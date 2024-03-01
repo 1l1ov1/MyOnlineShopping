@@ -1,4 +1,4 @@
-package com.wan.handler;
+package com.wan.exception.handler;
 
 import com.wan.exception.BaseException;
 import com.wan.result.Result;

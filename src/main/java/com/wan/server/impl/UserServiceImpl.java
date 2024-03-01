@@ -85,4 +85,9 @@ public class UserServiceImpl implements UserService {
         // 插入用户
         userMapper.insert(user);
     }
+
+    @Override
+    public User getUserById(Long userId) {
+        return userMapper.getById(userId);
+    }
 }

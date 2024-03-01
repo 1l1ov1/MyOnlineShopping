@@ -33,4 +33,11 @@ public interface UserMapper {
      */
     @AutoFill(OperationType.UPDATE)
     void update(User user);
+
+    /**
+     * 根据id查询
+     * @param userId
+     */
+    @Select("select * from user where id = #{userId}")
+    User getById(Long userId);
 }

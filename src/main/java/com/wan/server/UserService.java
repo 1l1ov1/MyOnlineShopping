@@ -16,4 +16,11 @@ public interface UserService {
      * @param userLoginDTO
      */
     void addUser(UserLoginDTO userLoginDTO);
+
+    /**
+     * 根据用户id查询
+     * @param userId
+     * @return
+     */
+    User getUserById(Long userId);
 }

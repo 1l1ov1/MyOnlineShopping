@@ -2,6 +2,7 @@ package com.wan.controller;
 
 import com.wan.constant.JwtClaimConstant;
 import com.wan.constant.MessageConstant;
+import com.wan.context.ThreadBaseContext;
 import com.wan.dto.UserLoginDTO;
 import com.wan.entity.User;
 import com.wan.entity.VerificationCode;
@@ -47,7 +48,7 @@ public class UserController {
     public Result<UserLoginVO> login(@RequestBody UserLoginDTO userLoginDTO, HttpServletRequest request) {
         log.info("用户登录：{}", userLoginDTO);
         String code = (String) request.getSession().getAttribute("verify_code");
-        //忽略大小写
+        // 忽略大小写
         if (!code.equalsIgnoreCase(userLoginDTO.getVerifyCode())) {
             return Result.error(MessageConstant.VERIFY_CODE_ERROR);
         }
@@ -90,7 +91,7 @@ public class UserController {
     @GetMapping("/verify")
     @ApiOperation("生成验证码")
     public Result<String> generateVerifyCode(HttpServletRequest request, HttpServletResponse resp) throws IOException {
-        VerificationCode code = new VerificationCode(135, 30);
+        VerificationCode code = new VerificationCode(130, 30);
         BufferedImage image = code.getImage(5, 3);
         String text = code.getText();
         HttpSession session = request.getSession(true);
@@ -100,4 +101,13 @@ public class UserController {
         return Result.success();
     }
 
+    @GetMapping("/getUserInfo")
+    @ApiOperation("获取个人信息")
+    public Result<User> getUserInfo() {
+        Long userId = ThreadBaseContext.getCurrentId();
+        // 使用完后就删除
+        ThreadBaseContext.removeCurrentId();
+        User user = userService.getUserById(userId);
+        return Result.success(user);
+    }
 }
