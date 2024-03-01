@@ -1,0 +1,25 @@
+server:
+  port: 8080
+
+spring:
+  profiles:
+    include: dev
+  datasource:
+    type: ${spring.datasource.type}
+    driver-class-name: ${spring.datasource.driver-class-name}
+    username: ${spring.datasource.username}
+    password: ${spring.datasource.password}
+    url: jdbc:mysql:// ${spring.datasource.host}:${spring.datasource.port}/${spring.datasource.database}
+
+mybatis:
+  #mapper配置文件
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.wan.entity
+  configuration:
+    #开启驼峰命名
+    map-underscore-to-camel-case: true
+online-shopping:
+  jwt:
+    user-secret-key: ${online-shopping.jwt.user-secret-key}
+    user-token-name: ${online-shopping.jwt.user-token-name}
+    user-ttl: ${online-shopping.jwt.user-ttl}

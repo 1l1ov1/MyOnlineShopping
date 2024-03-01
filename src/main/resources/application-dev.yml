@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: 123456
+    port: 3306
+    database: online_shopping
+    host: localhost
+online-shopping:
+  jwt:
+    # 设置jwt签名加密时使用的秘钥
+    user-secret-key: online-shopping-secret-key
+    # 设置jwt过期时间
+    user-ttl: 7200000
+    # 设置前端传递过来的令牌名称
+    user-token-name: Authorization
