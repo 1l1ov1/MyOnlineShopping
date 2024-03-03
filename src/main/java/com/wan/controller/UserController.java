@@ -2,6 +2,7 @@ package com.wan.controller;
 
 import com.wan.constant.JwtClaimConstant;
 import com.wan.constant.MessageConstant;
+import com.wan.constant.UserConstant;
 import com.wan.context.ThreadBaseContext;
 import com.wan.dto.UserLoginDTO;
 import com.wan.entity.User;
@@ -108,6 +109,22 @@ public class UserController {
         // 使用完后就删除
         ThreadBaseContext.removeCurrentId();
         User user = userService.getUserById(userId);
-        return Result.success(user);
+        return Result.success(user,"获取个人信息成功");
+    }
+
+    @GetMapping("/userLogout")
+    @ApiOperation("用户退出")
+    public Result<String> logout() {
+        log.info("用户退出...");
+        // 得到用户id
+        Long userId = ThreadBaseContext.getCurrentId();
+        //  创建用户
+        User user = User.builder()
+                .id(userId)
+                .isOnline(UserConstant.IS_NOT_ONLINE)
+                .build();
+        // 修改用户信息
+        userService.update(user);
+        return Result.success("退出成功");
     }
 }
