@@ -5,6 +5,7 @@ import com.wan.constant.MessageConstant;
 import com.wan.constant.UserConstant;
 import com.wan.context.ThreadBaseContext;
 import com.wan.dto.UserLoginDTO;
+import com.wan.dto.UserPageQueryDTO;
 import com.wan.entity.User;
 import com.wan.entity.VerificationCode;
 import com.wan.properties.JwtProperties;
@@ -15,7 +16,9 @@ import com.wan.vo.UserLoginVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -29,7 +32,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/user")
-@Api("用户相关接口")
+@Api("用户公共相关接口")
 @Slf4j
 public class UserController {
 
@@ -109,6 +112,7 @@ public class UserController {
         // 使用完后就删除
         ThreadBaseContext.removeCurrentId();
         User user = userService.getUserById(userId);
+
         return Result.success(user,"获取个人信息成功");
     }
 
@@ -127,4 +131,5 @@ public class UserController {
         userService.update(user);
         return Result.success("退出成功");
     }
+
 }

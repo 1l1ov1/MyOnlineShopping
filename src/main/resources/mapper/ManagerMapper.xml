@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wan.mapper.ManagerMapper">
+
+
+    <select id="pageQuery" resultType="com.wan.entity.User">
+        select * from user
+        <where>
+            <if test="username != null and username != ''">
+                and username like concat('%', #{username}, '%')
+            </if>
+            <if test="status != null">
+               and status = #{status}
+            </if>
+            <if test="accountStatus != null">
+                and account_status = #{accountStatus}
+            </if>
+            <if test="isOnline != null">
+                and is_online = #{isOnline}
+            </if>
+        </where>
+        order by create_time
+    </select>
+</mapper>
