@@ -2,16 +2,116 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.wan.mapper.ManagerMapper">
+    <resultMap id="userPageQueryDTO" type="com.wan.dto.UserPageQueryDTO">
+        <id property="id" column="id"></id>
+        <result property="username" column="username"></result>
+        <result property="password" column="password"></result>
+        <result property="status" column="status"></result>
+        <result property="phone" column="phone"></result>
+        <result property="avatar" column="avatar"></result>
+        <result property="isOnline" column="is_online"></result>
+        <result property="status" column="status"></result>
+        <result property="accountStatus" column="account_time"></result>
+        <result property="createTime" column="create_time"></result>
+        <result property="updateTime" column="update_time"></result>
+        <!--此处必须要指明javaType类型限定，否则会报错-->
+        <association
+                property="address"
+                javaType="com.wan.entity.Address"
+                select="com.wan.mapper.AddressMapper.getAddressByUserId"
+                column="userId">
+            <id property="id" column="id"></id>
+            <result property="userId" column="user_id"></result>
+            <result property="provinceCode" column="province_code"></result>
+            <result property="provinceName" column="province_name"></result>
+            <result property="cityCode" column="city_code"></result>
+            <result property="cityName" column="city_name"></result>
+            <result property="districtCode" column="district_code"></result>
+            <result property="districtName" column="district_name"></result>
+            <result property="detail" column="detail"></result>
+            <result property="isDefault" column="is_default"></result>
+            <result property="createTime" column="create_time"></result>
+            <result property="updateTime" column="update_time"></result>
+        </association>
+    </resultMap>
+
+    <resultMap id="userPageQueryVO" type="com.wan.vo.UserPageQueryVO">
+        <id property="id" column="id"></id>
+        <result property="username" column="username"></result>
+        <result property="password" column="password"></result>
+        <result property="status" column="status"></result>
+        <result property="phone" column="phone"></result>
+        <result property="avatar" column="avatar"></result>
+        <result property="isOnline" column="is_online"></result>
+        <result property="status" column="status"></result>
+        <result property="accountStatus" column="account_status"></result>
+        <result property="createTime" column="create_time"></result>
+        <result property="updateTime" column="update_time"></result>
+        <!--此处必须要指明javaType类型限定，否则会报错-->
+        <association
+                property="address"
+                javaType="com.wan.entity.Address"
+                columnPrefix="ab_"
+        >
+            <id property="id" column="id"></id>
+            <id property="userId" column="user_id"></id>
+            <result property="provinceCode" column="province_code"></result>
+            <result property="provinceName" column="province_name"></result>
+            <result property="cityCode" column="city_code"></result>
+            <result property="cityName" column="city_name"></result>
+            <result property="districtCode" column="district_code"></result>
+            <result property="districtName" column="district_name"></result>
+            <result property="detail" column="detail"></result>
+            <result property="isDefault" column="is_default"></result>
+            <result property="createTime" column="create_time"></result>
+            <result property="updateTime" column="update_time"></result>
+        </association>
+    </resultMap>
+
+    <update id="update">
+        update user
+        <set>
+            <if test="password != null">
+                password = #{password},
+            </if>
+            <if test="phone != null">
+                phone = #{phone},
+            </if>
+            <if test="accountStatus != null">
+                account_status = #{accountStatus},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="isOnline != null">
+                is_online = #{isOnline},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+        </set>
+        where id = #{id};
+    </update>
 
 
-    <select id="pageQuery" resultType="com.wan.entity.User">
-        select * from user
+    <select id="pageQuery" resultMap="userPageQueryVO">
+        select user.id,user.username,
+        user.password, user.phone, user.status,
+        user.account_status, user.is_online,
+        user.update_time, user.create_time,
+        user.avatar,
+        ab.id ab_id,user_id ab_user_id,
+        province_code ab_province_code, province_name ab_province_name,
+        city_code ab_city_code, city_name ab_city_name,
+        district_code ab_district_code, district_name ab_district_name,
+        detail ab_detail, is_default ab_is_default from user
+        left join address_book ab on user.id = ab.user_id and ab.is_default = 1
         <where>
             <if test="username != null and username != ''">
                 and username like concat('%', #{username}, '%')
             </if>
             <if test="status != null">
-               and status = #{status}
+                and status = #{status}
             </if>
             <if test="accountStatus != null">
                 and account_status = #{accountStatus}
@@ -20,6 +120,6 @@
                 and is_online = #{isOnline}
             </if>
         </where>
-        order by create_time
+        order by user.create_time
     </select>
 </mapper>

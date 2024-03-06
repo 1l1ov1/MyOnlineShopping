@@ -11,4 +11,6 @@ public class UserConstant {
     // 用户账号状态
     public static final int ENABLE = 1;// 启用
     public static final int DISABLE = 0; // 禁用
+
+    public static final String DEFAULT_PASSWORD = "123456";
 }

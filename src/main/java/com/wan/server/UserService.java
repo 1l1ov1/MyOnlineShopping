@@ -29,4 +29,11 @@ public interface UserService {
      * @param user
      */
     User update(User user);
+
+    /**
+     * 根据用户id得到用户的详细信息
+     * @param id
+     * @return
+     */
+    User getDetail(Long id);
 }

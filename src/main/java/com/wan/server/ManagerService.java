@@ -1,6 +1,9 @@
 package com.wan.server;
 
+import com.wan.annotation.AutoFill;
 import com.wan.dto.UserPageQueryDTO;
+import com.wan.entity.User;
+import com.wan.enumeration.OperationType;
 import com.wan.result.PageResult;
 
 import java.util.List;
@@ -25,4 +28,18 @@ public interface ManagerService {
      * @param ids
      */
     void patchDelete(List<Long> ids);
+
+    /**
+     * 管理员添加用户
+     * @param user
+     */
+
+    void addUser(User user);
+
+    /**
+     * 修改用户
+     * @param userPageQueryDTO
+     */
+
+    void updateUser(UserPageQueryDTO userPageQueryDTO);
 }

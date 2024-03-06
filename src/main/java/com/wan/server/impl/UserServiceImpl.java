@@ -8,8 +8,10 @@ import com.wan.exception.AccountExistException;
 import com.wan.exception.AccountLockedException;
 import com.wan.exception.AccountNotFountException;
 import com.wan.exception.PasswordErrorException;
+import com.wan.mapper.AddressMapper;
 import com.wan.mapper.UserMapper;
 import com.wan.server.UserService;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +23,8 @@ import org.springframework.util.DigestUtils;
 public class UserServiceImpl implements UserService {
     @Autowired
     private UserMapper userMapper;
-
+    @Autowired
+    private AddressMapper addressMapper;
     /**
      * 用户登录
      *
@@ -103,6 +106,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public User update(User user) {
         userMapper.update(user);
+        return user;
+    }
+
+    @Override
+    public User getDetail(Long id) {
+        User user = userMapper.getById(id);
         return user;
     }
 }

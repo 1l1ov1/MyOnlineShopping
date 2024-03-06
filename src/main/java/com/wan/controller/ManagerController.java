@@ -1,6 +1,7 @@
 package com.wan.controller;
 
 import com.wan.dto.UserPageQueryDTO;
+import com.wan.entity.User;
 import com.wan.result.PageResult;
 import com.wan.result.Result;
 import com.wan.server.ManagerService;
@@ -44,5 +45,20 @@ public class ManagerController {
         log.info("删除用户：{}", ids);
         managerService.patchDelete(ids);
         return Result.success("删除成功");
+    }
+    @PostMapping("/add")
+    @ApiOperation("添加用户")
+    public Result<String> addUser(@RequestBody User user) {
+        log.info("添加用户：{}", user);
+        managerService.addUser(user);
+        return Result.success("添加成功");
+    }
+
+    @PutMapping("/updateUser")
+    @ApiOperation("修改用户信息")
+    public Result<String> updateUser(@RequestBody UserPageQueryDTO userPageQueryDTO) {
+        log.info("修改用户：{}", userPageQueryDTO);
+        managerService.updateUser(userPageQueryDTO);
+        return Result.success("修改成功");
     }
 }
