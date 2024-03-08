@@ -24,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.system.ApplicationHome;
+import org.springframework.context.annotation.Bean;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,10 +36,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping("/user")
@@ -126,8 +124,8 @@ public class UserController {
         User user = userService.getUserById(userId);
         UserPageQueryVO userPageQueryVO = new UserPageQueryVO();
         BeanUtils.copyProperties(user, userPageQueryVO);
-        Address address = addressService.getAddressByUserId(userId, AddressConstant.IS_DEFAULT);
-        userPageQueryVO.setAddress(address);
+        List<Address> addressList = addressService.getAllAddressByUserId(userId);
+        userPageQueryVO.setAddressList(addressList);
         return Result.success(userPageQueryVO, "获取个人信息成功");
     }
 
@@ -154,12 +152,14 @@ public class UserController {
         User user = userService.getDetail(id);
         // 查询其对应的默认地址
         Address address = addressService.getAddressByUserId(id, isDefault);
+        List<Address> addressList = new ArrayList<>();
+        addressList.add(address);
         // 创建视图对象
         UserPageQueryVO userPageQueryVO = new UserPageQueryVO();
         // 拷贝到视图对象中
         BeanUtils.copyProperties(user, userPageQueryVO);
-        // 设置地址信息
-        userPageQueryVO.setAddress(address);
+
+        userPageQueryVO.setAddressList(addressList);
         return Result.success(userPageQueryVO, "查询成功");
     }
 
@@ -175,8 +175,16 @@ public class UserController {
     @PostMapping("/updateUser")
     @ApiOperation("修改用户自己的信息")
     public Result<String> update(UserPageQueryDTO userPageQueryDTO) {
-
-
+        log.info("用户修改自己的信息{}", userPageQueryDTO);
+        // 得到用户和对应的地址
+        User user = new User();
+        List<Address> addressList = userPageQueryDTO.getAddressList();
+        // 拷贝属性到user中
+        BeanUtils.copyProperties(userPageQueryDTO, user);
+        // 修改用户
+        userService.update(user);
+        // 修改地址
+        addressService.update(addressList);
         return Result.success("修改成功");
     }
 

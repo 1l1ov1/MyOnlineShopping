@@ -27,7 +27,7 @@ public interface ManagerService {
      * 批量删除用户
      * @param ids
      */
-    void patchDelete(List<Long> ids);
+    void deleteBatch(List<Long> ids);
 
     /**
      * 管理员添加用户

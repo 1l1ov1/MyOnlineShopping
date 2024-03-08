@@ -15,32 +15,105 @@
     <update id="updateDefaultAddress">
 
         update address_book
-                <set>
-                    <if test="provinceCode != null">
-                        province_code = #{provinceCode},
-                    </if>
-                    <if test="provinceName != null">
-                        province_name = #{provinceName},
-                    </if>
-                    <if test="cityCode != null">
-                        city_code = #{cityCode},
-                    </if>
-                    <if test="cityName != null">
-                        city_name = #{cityName},
-                    </if>
-                    <if test="districtCode != null">
-                        district_code = #{districtCode},
-                    </if>
-                    <if test="districtName != null">
-                        district_name = #{districtName},
-                    </if>
-                    <if test="isDefault != null">
-                        is_default = #{isDefault},
-                    </if>
-                    <if test="updateTime != null">
-                        update_time = #{updateTime},
-                    </if>
-                </set>
+        <set>
+            <if test="provinceCode != null">
+                province_code = #{provinceCode},
+            </if>
+            <if test="provinceName != null">
+                province_name = #{provinceName},
+            </if>
+            <if test="cityCode != null">
+                city_code = #{cityCode},
+            </if>
+            <if test="cityName != null">
+                city_name = #{cityName},
+            </if>
+            <if test="districtCode != null">
+                district_code = #{districtCode},
+            </if>
+            <if test="districtName != null">
+                district_name = #{districtName},
+            </if>
+            <if test="isDefault != null">
+                is_default = #{isDefault},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+        </set>
         where id = #{id};
     </update>
+    <update id="updateBatch">
+        update address_book
+        <trim prefix="set" suffixOverrides=",">
+            <trim prefix="province_code=case" suffix="end,">
+                <foreach collection="addressList" item="address" index="index">
+                    <if test="address.provinceCode!=null">
+                        when id=#{address.id} then #{address.provinceCode}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="province_name=case" suffix="end,">
+                <foreach collection="addressList" item="address" index="index">
+                    <if test="address.provinceName!=null">
+                        when id=#{address.id} then #{address.provinceName}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="city_code=case" suffix="end,">
+                <foreach collection="addressList" item="address" index="index">
+                    <if test="address.cityCode!=null">
+                        when id=#{address.id} then #{address.cityCode}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="city_name=case" suffix="end,">
+                <foreach collection="addressList" item="address" index="index">
+                    <if test="address.cityName=null">
+                        when id=#{address.id} then #{address.cityName}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="district_code=case" suffix="end,">
+                <foreach collection="addressList" item="address" index="index">
+                    <if test="address.districtCode!=null">
+                        when id=#{address.id} then #{address.districtCode}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="district_name=case" suffix="end,">
+                <foreach collection="addressList" item="address" index="index">
+                    <if test="address.districtName!=null">
+                        when id=#{address.id} then #{address.districtName}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="update_time=case" suffix="end,">
+                <foreach collection="addressList" item="address" index="index">
+                    <if test="address.updateTime!=null">
+                        when id=#{address.id} then #{address.updateTime}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        where
+        <foreach collection="addressList" separator="or" item="address" index="index">
+            id=#{address.id}
+        </foreach>
+
+    </update>
+    <select id="getAddressByUserId" resultType="com.wan.entity.Address">
+        select *
+        from address_book
+        <where>
+            <if test="userId != null">
+                and user_id = #{userId}
+            </if>
+            <if test="isDefault != null">
+                and is_default = #{isDefault}
+            </if>
+        </where>
+
+    </select>
+
 </mapper>

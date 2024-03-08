@@ -28,6 +28,7 @@ public class ManagerController {
         log.info("用户分页查询，参数为：{}", userPageQueryDTO);
         // 分页查询
         PageResult pageResult = managerService.pageQuery(userPageQueryDTO);
+
         return Result.success(pageResult);
     }
 
@@ -41,9 +42,9 @@ public class ManagerController {
 
     @DeleteMapping("/delete")
     @ApiOperation("批量删除用户")
-    public Result<String> patchDeleteUsers(@RequestParam  List<Long> ids) {
+    public Result<String> deleteUsers(@RequestParam  List<Long> ids) {
         log.info("删除用户：{}", ids);
-        managerService.patchDelete(ids);
+        managerService.deleteBatch(ids);
         return Result.success("删除成功");
     }
     @PostMapping("/add")

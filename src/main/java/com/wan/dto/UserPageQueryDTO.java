@@ -18,7 +18,8 @@ public class UserPageQueryDTO {
     private String password; // 密码
     private String avatar; // 密码
     //private String address; // 地址
-    private Address address;
+    // private Address address;
+    private List<Address> addressList;
     private Integer status; // 用户身份
     private Integer accountStatus; // 账号状态
     private Integer isOnline; // 账号在线状态

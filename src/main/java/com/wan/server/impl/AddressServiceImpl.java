@@ -16,4 +16,22 @@ public class AddressServiceImpl implements AddressService {
     public Address getAddressByUserId(Long userId, Integer isDefault) {
         return addressMapper.getAddressByUserId(userId, isDefault);
     }
+
+    /**
+     * 得到用户的所有地址
+     * @param userId
+     * @return
+     */
+    public List<Address> getAllAddressByUserId(Long userId) {
+        return addressMapper.getAllAddressByUserId(userId);
+    }
+
+    /**
+     * 批量修改地址信息
+     * @param addressList
+     */
+    @Override
+    public void update(List<Address> addressList) {
+        addressMapper.updateBatch(addressList);
+    }
 }

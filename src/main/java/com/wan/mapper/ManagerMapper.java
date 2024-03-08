@@ -17,7 +17,8 @@ public interface ManagerMapper {
      * @param userPageQueryDTO
      * @return
      */
-    Page<UserPageQueryVO> pageQuery(UserPageQueryDTO userPageQueryDTO);
+    // Page<UserPageQueryVO> pageQuery(UserPageQueryDTO userPageQueryDTO);
+    List<UserPageQueryVO> pageQuery(UserPageQueryDTO userPageQueryDTO);
 
     /**
      * 修改用户

@@ -12,4 +12,16 @@ public interface AddressService {
      */
     Address getAddressByUserId(Long userId, Integer isDefault);
 
+    /**
+     * 查询用户的所有地址
+     * @param userId
+     * @return
+     */
+    List<Address> getAllAddressByUserId(Long userId);
+
+    /***
+     * 批量修改地址信息
+     * @param addressList
+     */
+    void update(List<Address> addressList);
 }

@@ -11,11 +11,17 @@ import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 // 配置为切面类
 @Aspect
@@ -47,17 +53,37 @@ public class AutoFillAspect {
 
         // 得到实体类  默认将实体类放到0索引
         Object entity = args[0];
+
         // 得到现在的时间
         LocalDateTime now = LocalDateTime.now();
-
         // 如果操作是修改操作
         if (operationType == OperationType.UPDATE) {
             // 从实体类中设置公共字段
             try {
-                // 通过反射得到对应的方法
-                Method setUpdateTime = entity.getClass().getDeclaredMethod(AutoFillConstant.SET_UPDATE_TIME, LocalDateTime.class);
-                // 通过反射赋值
-                setUpdateTime.invoke(entity, now);
+                // 如果得到的实体是集合类型
+                if (entity instanceof Collection) {
+                    // 如果是List
+                    if (entity instanceof List) {
+                        // 创建ArrayList对象
+                        List list = new ArrayList();
+                        // 拷贝
+                        list.addAll((Collection) entity);
+                        // 遍历
+                        for (Object o : list) {
+                            // 通过反射得到对应的方法
+                            Method setUpdateTime = o.getClass().getDeclaredMethod(AutoFillConstant.SET_UPDATE_TIME, LocalDateTime.class);
+                            // 通过反射赋值
+                            setUpdateTime.invoke(o, now);
+                        }
+                    }
+
+                } else {
+                    // 通过反射得到对应的方法
+                    Method setUpdateTime = entity.getClass().getDeclaredMethod(AutoFillConstant.SET_UPDATE_TIME, LocalDateTime.class);
+                    // 通过反射赋值
+                    setUpdateTime.invoke(entity, now);
+                }
+
             } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                 throw new RuntimeException(e);
             }

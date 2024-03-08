@@ -2,6 +2,7 @@ package com.wan.server.impl;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.wan.constant.AddressConstant;
 import com.wan.constant.MessageConstant;
 import com.wan.constant.UserConstant;
@@ -9,6 +10,7 @@ import com.wan.dto.UserPageQueryDTO;
 import com.wan.entity.Address;
 import com.wan.entity.User;
 import com.wan.exception.AccountExistException;
+import com.wan.exception.AccountNotFountException;
 import com.wan.mapper.AddressMapper;
 import com.wan.mapper.ManagerMapper;
 import com.wan.mapper.UserMapper;
@@ -18,6 +20,7 @@ import com.wan.vo.UserPageQueryVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
 import java.util.List;
@@ -42,12 +45,15 @@ public class ManagerServiceImpl implements ManagerService {
     @Override
     public PageResult pageQuery(UserPageQueryDTO userPageQueryDTO) {
         // 开启分页
-        PageHelper.startPage(userPageQueryDTO.getPage(), userPageQueryDTO.getPageSize());
-        Page<UserPageQueryVO> pages = managerMapper.pageQuery(userPageQueryDTO);
-        long total = pages.getTotal();
+        PageInfo<UserPageQueryVO> pageInfo = PageHelper.startPage(userPageQueryDTO.getPage(), userPageQueryDTO.getPageSize())
+                .doSelectPageInfo(() -> managerMapper.pageQuery(userPageQueryDTO));
+        // 先查询用户
+        // Page<UserPageQueryVO> pages = managerMapper.pageQuery(userPageQueryDTO);
+        
+        long total = pageInfo.getTotal();
         return PageResult.builder()
                 .total(total)
-                .data(pages.getResult())
+                .data(pageInfo.getList())
                 .build();
     }
 
@@ -68,7 +74,10 @@ public class ManagerServiceImpl implements ManagerService {
     }
 
     @Override
-    public void patchDelete(List<Long> ids) {
+    public void deleteBatch(List<Long> ids) {
+        if (ids == null || ids.size() == 0) {
+            throw new AccountNotFountException(MessageConstant.ACCOUNT_NOT_FOUND);
+        }
         userMapper.deleteByIds(ids);
     }
 
@@ -101,23 +110,24 @@ public class ManagerServiceImpl implements ManagerService {
      * @param userPageQueryDTO
      */
     @Override
+    @Transactional // 开启事务
     public void updateUser(UserPageQueryDTO userPageQueryDTO) {
         // 先修改用户的信息
         managerMapper.update(userPageQueryDTO);
-        // 从前端得到默认地址
-        Address address = userPageQueryDTO.getAddress();
+        // 从前端得到地址
+        List<Address> addressList = userPageQueryDTO.getAddressList();
         // 先判断之前是否有默认地址，因为已经规定了如果有地址那么一定有一个默认地址
         Address defaultAddress = addressMapper.getAddressByUserId(userPageQueryDTO.getId(), AddressConstant.IS_DEFAULT);
-        // 如果数据库中没有
+        // 如果数据库中没有， 即没有地址
         if (defaultAddress == null ) {
             // 如果没有就是添加
             // 改为默认
-            address.setIsDefault(AddressConstant.IS_DEFAULT);
+            addressList.get(0).setIsDefault(AddressConstant.IS_DEFAULT);
             // 插入
-            addressMapper.insertAddress(address);
+            addressMapper.insertAddress(addressList.get(0));
         } else {
             // 否则就是修改
-            addressMapper.updateDefaultAddress(address);
+            addressMapper.updateBatch(addressList);
         }
 
     }

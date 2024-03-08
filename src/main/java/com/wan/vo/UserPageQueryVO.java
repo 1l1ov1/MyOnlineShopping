@@ -20,7 +20,8 @@ public class UserPageQueryVO {
     private Integer status; // 用户身份
     private String phone; // 电话号码
     // private String address; // 地址
-    private Address address;
+    // private Address address; // 默认地址
+    private List<Address> addressList; // 所有地址
     private String avatar; // 头像路径
     private Integer isOnline; // 是否在线 1在线 0不在线
     private Integer accountStatus; // 账户状态 0禁用 1启用

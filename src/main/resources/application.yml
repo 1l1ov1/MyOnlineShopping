@@ -9,7 +9,7 @@ spring:
     driver-class-name: ${spring.datasource.driver-class-name}
     username: ${spring.datasource.username}
     password: ${spring.datasource.password}
-    url: jdbc:mysql:// ${spring.datasource.host}:${spring.datasource.port}/${spring.datasource.database}
+    url: jdbc:mysql:// ${spring.datasource.host}:${spring.datasource.port}/${spring.datasource.database}?allowMultiQueries=true
 
 mybatis:
   #mapper配置文件
