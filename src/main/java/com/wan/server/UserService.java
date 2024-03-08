@@ -3,6 +3,8 @@ package com.wan.server;
 import com.wan.dto.UserLoginDTO;
 import com.wan.entity.User;
 
+import java.util.Map;
+
 public interface UserService {
     /**
      * 用户登录
@@ -36,4 +38,11 @@ public interface UserService {
      * @return
      */
     User getDetail(Long id);
+
+    /**
+     * 用户重置密码
+     * @param pwdData
+     * @param id
+     */
+    void updatePassword(Map<String, String> pwdData, Long id);
 }

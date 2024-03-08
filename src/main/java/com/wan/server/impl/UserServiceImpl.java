@@ -1,6 +1,7 @@
 package com.wan.server.impl;
 
 import com.wan.constant.MessageConstant;
+import com.wan.constant.PasswordConstant;
 import com.wan.constant.UserConstant;
 import com.wan.dto.UserLoginDTO;
 import com.wan.entity.User;
@@ -17,6 +18,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
+
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -113,5 +116,35 @@ public class UserServiceImpl implements UserService {
     public User getDetail(Long id) {
         User user = userMapper.getById(id);
         return user;
+    }
+
+    @Override
+    public void updatePassword(Map<String, String> pwdData, Long id) {
+        String oldPwd = pwdData.get("oldPwd");
+        String newPwd = pwdData.get("newPwd");
+        String rePwd = pwdData.get("rePwd");
+
+        // 如果密码为空
+        if (oldPwd == null || newPwd == null || rePwd == null
+        || "".equals(oldPwd) || "".equals(newPwd) || "".equals(rePwd)) {
+            throw new PasswordErrorException(PasswordConstant.PASSWORD_IS_NULL);
+        }
+
+        // 如果新旧密码相同
+        if (oldPwd.equals(newPwd)) {
+            throw new PasswordErrorException(PasswordConstant.NEW_PASSWORD_EQUALS_OLD_PASSWORD);
+        }
+        // 新密码和验证密码不同
+        if (!newPwd.equals(rePwd)) {
+            throw new PasswordErrorException(PasswordConstant.NEW_PASSWORD_IS_NOT_EQUALS_RE_PASSWORD);
+        }
+        // 创建对象
+        User user = User.builder()
+                .id(id)
+                .password(DigestUtils.md5DigestAsHex(newPwd.getBytes()))
+                .build();
+        // 更新密码
+        userMapper.update(user);
+
     }
 }

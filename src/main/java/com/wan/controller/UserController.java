@@ -1,5 +1,6 @@
 package com.wan.controller;
 
+import com.wan.constant.AddressConstant;
 import com.wan.constant.JwtClaimConstant;
 import com.wan.constant.MessageConstant;
 import com.wan.constant.UserConstant;
@@ -18,6 +19,7 @@ import com.wan.vo.UserLoginVO;
 import com.wan.vo.UserPageQueryVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +52,7 @@ public class UserController {
     private JwtProperties jwtProperties;
     @Autowired
     private AddressService addressService;
+
     /**
      * 用户登录
      *
@@ -116,13 +119,16 @@ public class UserController {
 
     @GetMapping("/getUserInfo")
     @ApiOperation("获取个人信息")
-    public Result<User> getUserInfo() {
+    public Result<UserPageQueryVO> getUserInfo() {
         Long userId = ThreadBaseContext.getCurrentId();
         // 使用完后就删除
         ThreadBaseContext.removeCurrentId();
         User user = userService.getUserById(userId);
-
-        return Result.success(user, "获取个人信息成功");
+        UserPageQueryVO userPageQueryVO = new UserPageQueryVO();
+        BeanUtils.copyProperties(user, userPageQueryVO);
+        Address address = addressService.getAddressByUserId(userId, AddressConstant.IS_DEFAULT);
+        userPageQueryVO.setAddress(address);
+        return Result.success(userPageQueryVO, "获取个人信息成功");
     }
 
     @GetMapping("/userLogout")
@@ -157,34 +163,21 @@ public class UserController {
         return Result.success(userPageQueryVO, "查询成功");
     }
 
-/*    @PostMapping("/upload")
-    @ApiOperation(("上传头像"))
-    public Result<String> uploadImg(MultipartFile file) {
-        String fileName = file.getOriginalFilename(); // 获取文件名以及后缀名
-        fileName = UUID.randomUUID() + "_" + fileName;// 重新生成文件名（根据具体情况生成对应文件名）
+    @PatchMapping("/updatePwd")
+    @ApiOperation("重置密码")
+    public Result<String> updatePwd(@RequestBody Map<String, String> pwdData) {
+        log.info("用户重置密码{}", pwdData);
+        Long id = ThreadBaseContext.getCurrentId();
+        userService.updatePassword(pwdData, id);
+        return Result.success("密码修改成功");
+    }
 
-        // 获取jar包所在目录
-        ApplicationHome h = new ApplicationHome(getClass());
-        File jarF = h.getSource();
-        // 在jar包所在目录下生成一个upload文件夹用来存储上传的图片
-        String dirPath = jarF.getParentFile().toString() + "/upload/";
-        System.out.println(dirPath);
+    @PostMapping("/updateUser")
+    @ApiOperation("修改用户自己的信息")
+    public Result<String> update(UserPageQueryDTO userPageQueryDTO) {
 
-        File filePath = new File(dirPath);
-        if (!filePath.exists()) {
-            filePath.mkdirs();
-        }
-        try {
-            // 将文件写入磁盘
-            file.transferTo(new File(dirPath + fileName));
-            // 上传成功返回状态信息
-            return Result.success("上传成功");
-        } catch (Exception e) {
-            e.printStackTrace();
-            // 上传失败，返回失败信息
-            return Result.error("上传失败  " + e.getMessage());
-        }
-        // 携带上传状态信息回调到文件上传页面
 
-    }*/
+        return Result.success("修改成功");
+    }
+
 }

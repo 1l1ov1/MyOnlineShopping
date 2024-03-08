@@ -23,6 +23,9 @@
             <if test="updateTime != null">
                 update_time = #{updateTime},
             </if>
+            <if test="avatar != null">
+                avatar = #{avatar},
+            </if>
         </set>
         where id = #{id}
 
