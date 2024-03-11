@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wan.mapper.StoreMapper">
+
+    <insert id="insertStore">
+        insert into store(user_id, store_name, status, create_time, update_time)
+        VALUES (#{userId}, #{storeName}, #{status}, #{createTime}, #{updateTime})
+    </insert>
+    <update id="update">
+        update store
+        <set>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="storeName != null">
+                store_name = #{storeName},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+    <delete id="deleteByIds">
+        delete from store where id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>
