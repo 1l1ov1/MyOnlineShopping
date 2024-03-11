@@ -69,7 +69,7 @@
             </trim>
             <trim prefix="city_name=case" suffix="end,">
                 <foreach collection="addressList" item="address" index="index">
-                    <if test="address.cityName=null">
+                    <if test="address.cityName!=null">
                         when id=#{address.id} then #{address.cityName}
                     </if>
                 </foreach>
@@ -85,6 +85,13 @@
                 <foreach collection="addressList" item="address" index="index">
                     <if test="address.districtName!=null">
                         when id=#{address.id} then #{address.districtName}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="detail=case" suffix="end,">
+                <foreach collection="addressList" item="address" index="index">
+                    <if test="address.detail!=null">
+                        when id=#{address.id} then #{address.detail}
                     </if>
                 </foreach>
             </trim>

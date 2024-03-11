@@ -24,7 +24,7 @@
                 select="selectAddressList"
                 column="id"
         >
-           
+
         </collection>
     </resultMap>
     <resultMap id="AddressListMap" type="com.wan.entity.Address">
@@ -66,36 +66,6 @@
         where id = #{id};
     </update>
 
-
-    <!-- <select id="pageQuery" resultMap="userPageQueryVO">
-         select user.id,user.username,
-         user.password, user.phone, user.status,
-         user.account_status, user.is_online,
-         user.update_time, user.create_time,
-         user.avatar,
-         ab.id ab_id,user_id ab_user_id,
-         province_code ab_province_code, province_name ab_province_name,
-         city_code ab_city_code, city_name ab_city_name,
-         district_code ab_district_code, district_name ab_district_name,
-         detail ab_detail, is_default ab_is_default from user
-         left join address_book ab on user.id = ab.user_id
-         <where>
-             <if test="username != null and username != ''">
-                 and username like concat('%', #{username}, '%')
-             </if>
-             <if test="status != null">
-                 and status = #{status}
-             </if>
-             <if test="accountStatus != null">
-                 and account_status = #{accountStatus}
-             </if>
-             <if test="isOnline != null">
-                 and is_online = #{isOnline}
-             </if>
-         </where>
-         order by user.create_time
-     </select>-->
-
     <select id="selectAddressList" resultMap="AddressListMap">
         select *
         from address_book
@@ -119,6 +89,42 @@
             </if>
         </where>
         order by user.create_time
+    </select>
+
+    <select id="storePageQuery" resultType="com.wan.vo.StorePageQueryVO">
+        SELECT
+        s.id,
+        s.user_id,
+        s.store_name,
+        s.`status` ,
+        u.username,
+        s.create_time
+        FROM
+        store s
+        INNER JOIN `user` u ON `u`.id = s.user_id
+        <where>
+            <if test="username != null and username != ''">
+                and username like concat('%', #{username}, '%')
+            </if>
+            <if test="storeName != null">
+                and store_name like concat('%', #{storeName}, '%')
+            </if>
+            <if test="status != null">
+                and s.status = #{status}
+            </if>
+        </where>
+        order by s.create_time
+    </select>
+    <select id="getStoreDetail" resultType="com.wan.vo.StorePageQueryVO">
+        SELECT s.id,
+               s.user_id,
+               s.store_name,
+               s.`status`,
+               u.username,
+               s.create_time
+        FROM store s
+                 INNER JOIN `user` u ON `u`.id = s.user_id
+        where s.id = #{id}
     </select>
 
 </mapper>

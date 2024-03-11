@@ -1,10 +1,12 @@
 package com.wan.server;
 
 import com.wan.annotation.AutoFill;
+import com.wan.dto.StorePageQueryDTO;
 import com.wan.dto.UserPageQueryDTO;
 import com.wan.entity.User;
 import com.wan.enumeration.OperationType;
 import com.wan.result.PageResult;
+import com.wan.vo.StorePageQueryVO;
 
 import java.util.List;
 
@@ -40,6 +42,44 @@ public interface ManagerService {
      * 修改用户
      * @param userPageQueryDTO
      */
-
     void updateUser(UserPageQueryDTO userPageQueryDTO);
+
+    /**
+     * 商店分页
+     * @param storePageQueryDTO
+     * @return
+     */
+    PageResult pageQuery(StorePageQueryDTO storePageQueryDTO);
+
+    /**
+     * 管理员修改商店
+     * @param storePageQueryDTO
+     */
+    void updateStore(StorePageQueryDTO storePageQueryDTO);
+
+    /**
+     * 获取某一个商店的详情
+     * @param id
+     * @return
+     */
+    StorePageQueryVO getStoreDetail(Long id);
+
+    /**
+     * 添加商店
+     * @param storePageQueryDTO
+     */
+    void addStore(StorePageQueryDTO storePageQueryDTO);
+
+    /**
+     * 批量删除商店
+     * @param ids
+     */
+    void deleteBatchStore(List<Long> ids);
+
+    /**
+     * 开店或关店
+     * @param status
+     * @param id
+     */
+    void openOrClose(Integer status, Long id);
 }

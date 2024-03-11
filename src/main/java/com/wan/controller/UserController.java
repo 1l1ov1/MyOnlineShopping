@@ -172,9 +172,9 @@ public class UserController {
         return Result.success("密码修改成功");
     }
 
-    @PostMapping("/updateUser")
+    @PutMapping("/updateUser")
     @ApiOperation("修改用户自己的信息")
-    public Result<String> update(UserPageQueryDTO userPageQueryDTO) {
+    public Result<String> update(@RequestBody UserPageQueryDTO userPageQueryDTO) {
         log.info("用户修改自己的信息{}", userPageQueryDTO);
         // 得到用户和对应的地址
         User user = new User();
@@ -188,4 +188,11 @@ public class UserController {
         return Result.success("修改成功");
     }
 
+    @PostMapping("/createStore/{storeName}")
+    @ApiOperation("用户开店")
+    public Result<String> createStore(@RequestBody UserLoginDTO userLoginDTO, @PathVariable String storeName) {
+        log.info("用户开店... {}, {}",userLoginDTO, storeName);
+        userService.createStore(userLoginDTO, storeName);
+        return Result.success("开店成功");
+    }
 }

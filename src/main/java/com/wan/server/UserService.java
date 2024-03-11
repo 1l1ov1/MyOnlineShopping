@@ -45,4 +45,11 @@ public interface UserService {
      * @param id
      */
     void updatePassword(Map<String, String> pwdData, Long id);
+
+    /**
+     * 开店
+     * @param userLoginDTO
+     * @param storeName
+     */
+    void createStore(UserLoginDTO userLoginDTO, String storeName);
 }

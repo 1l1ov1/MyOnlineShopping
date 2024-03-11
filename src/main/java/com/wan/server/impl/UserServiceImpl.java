@@ -2,14 +2,14 @@ package com.wan.server.impl;
 
 import com.wan.constant.MessageConstant;
 import com.wan.constant.PasswordConstant;
+import com.wan.constant.StoreConstant;
 import com.wan.constant.UserConstant;
 import com.wan.dto.UserLoginDTO;
+import com.wan.entity.Store;
 import com.wan.entity.User;
-import com.wan.exception.AccountExistException;
-import com.wan.exception.AccountLockedException;
-import com.wan.exception.AccountNotFountException;
-import com.wan.exception.PasswordErrorException;
+import com.wan.exception.*;
 import com.wan.mapper.AddressMapper;
+import com.wan.mapper.StoreMapper;
 import com.wan.mapper.UserMapper;
 import com.wan.server.UserService;
 
@@ -28,6 +28,9 @@ public class UserServiceImpl implements UserService {
     private UserMapper userMapper;
     @Autowired
     private AddressMapper addressMapper;
+    @Autowired
+    private StoreMapper storeMapper;
+
     /**
      * 用户登录
      *
@@ -36,26 +39,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public User login(UserLoginDTO userLoginDTO) {
-        String username = userLoginDTO.getUsername();
-        // 得到MD5加密后的密码
-        String password = DigestUtils.md5DigestAsHex(userLoginDTO.getPassword().getBytes());
-        // 从数据库中按用户名查找
-        User user = userMapper.getByUsername(username);
-        // 如果账号不存在
-        if (user == null) {
-            throw new AccountNotFountException(MessageConstant.ACCOUNT_NOT_FOUND);
-        }
-
-        // 如果账号存在，看看密码是否一致
-        if (!password.equals(user.getPassword())) {
-            throw new PasswordErrorException(MessageConstant.PASSWORD_ERROR);
-        }
-
-        // 如果账号密码输对，看看是否被禁用
-        // 如果被禁用
-        if (user.getAccountStatus() == UserConstant.DISABLE) {
-            throw new AccountLockedException(MessageConstant.ACCOUNT_LOCKED);
-        }
+        User user = isValid(userLoginDTO);
         // 修改用户的登录状态
         user.setIsOnline(UserConstant.IS_ONLINE);
         userMapper.update(user);
@@ -94,6 +78,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * 根据id得到用户
+     *
      * @param userId
      * @return
      */
@@ -104,6 +89,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * 修改用户
+     *
      * @param user
      */
     @Override
@@ -126,7 +112,7 @@ public class UserServiceImpl implements UserService {
 
         // 如果密码为空
         if (oldPwd == null || newPwd == null || rePwd == null
-        || "".equals(oldPwd) || "".equals(newPwd) || "".equals(rePwd)) {
+                || "".equals(oldPwd) || "".equals(newPwd) || "".equals(rePwd)) {
             throw new PasswordErrorException(PasswordConstant.PASSWORD_IS_NULL);
         }
 
@@ -146,5 +132,64 @@ public class UserServiceImpl implements UserService {
         // 更新密码
         userMapper.update(user);
 
+    }
+
+    @Override
+    public void createStore(UserLoginDTO userLoginDTO, String storeName) {
+        // 得到该用户
+        User user = isValid(userLoginDTO);
+        // 如果该用户是管理员
+        if (UserConstant.MANAGER == user.getStatus()) {
+            throw new StoreException(MessageConstant.MANAGE_IS_NOT_ALLOWED_TO_OPEN_STORE);
+        }
+        // 将该用户的身份设为商家
+        user.setStatus(UserConstant.BUSINESSMAN);
+        // 修改他
+        userMapper.update(user);
+        Store store = storeMapper.findStoreByStoreName(storeName);
+        // 如果店名已经存在
+        if (store != null) {
+            throw new StoreException(MessageConstant.STORE_EXIST);
+        }
+        // 创建商店
+        store = Store.builder()
+                .storeName(storeName)
+                .userId(user.getId())
+                .status(StoreConstant.OPEN)
+                .build();
+        // 添加商店
+        storeMapper.insertStore(store);
+    }
+
+    /**
+     * 判断账号是否合法，如果合法就将用户返回
+     *
+     * @param userLoginDTO
+     * @return
+     */
+    private User isValid(UserLoginDTO userLoginDTO) {
+        String username = userLoginDTO.getUsername();
+        // 得到MD5加密后的密码
+        String password = DigestUtils.md5DigestAsHex(userLoginDTO.getPassword().getBytes());
+        // 从数据库中按用户名查找
+        User user = userMapper.getByUsername(username);
+        // 如果账号不存在
+        if (user == null) {
+            throw new AccountNotFountException(MessageConstant.ACCOUNT_NOT_FOUND);
+        }
+
+        // 如果账号存在，看看密码是否一致
+        if (!password.equals(user.getPassword())) {
+            throw new PasswordErrorException(MessageConstant.PASSWORD_ERROR);
+        }
+
+        // 如果账号密码输对，看看是否被禁用
+        // 如果被禁用
+        if (user.getAccountStatus() == UserConstant.DISABLE) {
+            throw new AccountLockedException(MessageConstant.ACCOUNT_LOCKED);
+        }
+
+
+        return user;
     }
 }
