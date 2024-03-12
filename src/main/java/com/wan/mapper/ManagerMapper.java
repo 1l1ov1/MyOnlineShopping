@@ -2,6 +2,7 @@ package com.wan.mapper;
 
 import com.github.pagehelper.Page;
 import com.wan.annotation.AutoFill;
+import com.wan.dto.GoodsPageQueryDTO;
 import com.wan.dto.StorePageQueryDTO;
 import com.wan.dto.UserPageQueryDTO;
 import com.wan.enumeration.OperationType;
@@ -32,7 +33,7 @@ public interface ManagerMapper {
      * @param storePageQueryDTO
      * @return
      */
-    Page<StorePageQueryVO> storePageQuery(StorePageQueryDTO storePageQueryDTO);
+    // Page<StorePageQueryVO> storePageQuery(StorePageQueryDTO storePageQueryDTO);
 
     // /**
     //  * 修改商店
@@ -46,5 +47,12 @@ public interface ManagerMapper {
      * @param id
      * @return
      */
-    StorePageQueryVO getStoreDetail(Long id);
+    // StorePageQueryVO getStoreDetail(Long id);
+
+    /**
+     * 商品的分页查询
+     * @param goodsPageQueryDTO
+     * @return
+     */
+    // Page<UserPageQueryVO> goodsPageQuery(GoodsPageQueryDTO goodsPageQueryDTO);
 }

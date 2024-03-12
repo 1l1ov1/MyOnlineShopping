@@ -2,45 +2,96 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.wan.mapper.GoodsMapper">
-    <resultMap id="goodsPageQueryDTO" type="com.wan.dto.GoodsPageQueryDTO">
+    <!--goodsPageQueryVO映射-->
+    <resultMap id="goodsPageQueryVO" type="com.wan.vo.GoodsPageQueryVO">
         <id column="id" property="id"></id>
-        <result column="goods_name" property="goodsName"></result>
-        <result column="price" property="price"></result>
         <result column="status" property="status"></result>
+        <result column="store_id" property="storeId"></result>
+        <result column="goods_name" property="goodsName"></result>
         <result column="total" property="total"></result>
+        <result column="price" property="price"></result>
         <result column="discount" property="discount"></result>
-        <result column="description" property="description"></result>
         <result column="cover_pic" property="coverPic"></result>
+        <result column="description" property="description"></result>
         <result column="create_time" property="createTime"></result>
         <result column="update_time" property="updateTime"></result>
-        <association property="store" javaType="com.wan.entity.Store"
-        select="findStore"
-        column="store_name">
-
+        <association property="store" javaType="com.wan.entity.Store">
+            <id column="id" property="id"></id>
+            <result column="store_name" property="storeName"></result>
+            <result column="status" property="status"></result>
+            <result column="user_id" property="userId"></result>
+            <result column="create_time" property="createTime"></result>
+            <result column="update_time" property="updateTime"></result>
         </association>
     </resultMap>
-
-    <resultMap id="store" type="com.wan.entity.Store">
-        <id column="id" property="id"></id>
-        <result column="store_name" property="storeName"></result>
-        <result column="user_id" property="userId"></result>
-        <result column="create_time" property="createTime"></result>
-        <result column="update_time" property="updateTime"></result>
-    </resultMap>
-    <select id="pageQuery" resultType="com.wan.vo.GoodsPageQueryVO">
-        select * from goods
-            <where>
-                <if test="goodsName != null">
-                    goods_name = #{goodsName}
-                </if>
-                <if test="status != null">
-                    status = #{status}
-                </if>
-            </where>
-        order by create_time
-    </select>
-
-    <select id="findStore" resultMap="store">
-        select * from store where store_name = #{storeName}
+    <!--修改商品信息-->
+    <update id="update">
+        update goods
+        <set>
+            <if test="goodsName != null">
+                goods_name = #{goodsName},
+            </if>
+            <if test="price != null">
+                price = #{price},
+            </if>
+            <if test="total != null">
+                total = #{total},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="description != null">
+                description = #{description},
+            </if>
+            <if test="discount != null">
+                discount = #{discount},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+        </set>
+            where id = #{id}
+    </update>
+    <!--商品的批量删除-->
+    <delete id="delete">
+        delete from goods where id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </delete>
+    <!--商品的分页查询-->
+    <select id="pageQuery" resultMap="goodsPageQueryVO">
+        SELECT
+        g.id,
+        g.goods_name,
+        g.price,
+        g.total,
+        g.discount,
+        g.description,
+        g.cover_pic,
+        g.`status`,
+        g.create_time,
+        s.id,
+        s.store_name,
+        s.`status`
+        FROM
+        goods g INNER JOIN store s on s.id = g.store_id
+        <where>
+            <if test="goodsName != null">
+                and goods_name like concat('%', #{goodsName}, '%')
+            </if>
+            <if test="status != null">
+                and g.status = #{status}
+            </if>
+            <if test="updateTime != null">
+                and g.update_time = #{updateTime}
+            </if>
+            <if test="store != null and store.storeName != null">
+                and s.store_name like concat('%', #{store.storeName}, '%')
+            </if>
+            <if test="store != null and store.userId != null">
+                and s.user_id = #{store.userId}
+            </if>
+        </where>
     </select>
 </mapper>

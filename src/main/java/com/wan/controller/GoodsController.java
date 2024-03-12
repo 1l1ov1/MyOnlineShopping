@@ -1,17 +1,21 @@
 package com.wan.controller;
 
 import com.wan.dto.GoodsPageQueryDTO;
+import com.wan.entity.Goods;
+import com.wan.entity.Store;
 import com.wan.result.PageResult;
 import com.wan.result.Result;
 import com.wan.server.GoodsService;
+import com.wan.server.StoreService;
 import com.wan.vo.GoodsPageQueryVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @Slf4j
@@ -21,14 +25,46 @@ public class GoodsController {
 
     @Autowired
     private GoodsService goodsService;
-
-    @GetMapping("/page")
+    @Autowired
+    private StoreService storeService;
+    @PostMapping("/page")
     @ApiOperation("商品分页查询")
-    public Result<PageResult> pageQuery(GoodsPageQueryDTO goodsPageQueryDTO) {
+    public Result<PageResult> pageQuery(@RequestBody GoodsPageQueryDTO goodsPageQueryDTO) {
         log.info("商品分页查询{}", goodsPageQueryDTO);
         PageResult pageResult = goodsService.pageQuery(goodsPageQueryDTO);
 
         return Result.success(pageResult);
     }
 
+    @PostMapping("/add")
+    @ApiOperation("商品添加")
+    public Result<String> addGoods(@RequestBody GoodsPageQueryDTO goodsPageQueryDTO) {
+        log.info("商品添加 {}", goodsPageQueryDTO);
+        goodsService.addGoods(goodsPageQueryDTO);
+        return Result.success("添加成功");
+    }
+
+    @DeleteMapping("/delete")
+    @ApiOperation("商品的批量删除")
+    public Result<String> deleteGoods(@RequestParam List<Long> ids) {
+        log.info("商品的批量删除 {}", ids);
+        goodsService.batchDelete(ids);
+        return Result.success("删除成功");
+    }
+
+    @GetMapping("/{id}")
+    @ApiOperation("获取商品信息")
+    public Result<GoodsPageQueryVO> getGoodsDetail(@PathVariable Long id) {
+        log.info("获取商品的信息 {}", id);
+        GoodsPageQueryVO goodsPageQueryVO = goodsService.getGoodsInfo(id);
+        return Result.success(goodsPageQueryVO);
+    }
+
+    @PutMapping("/update")
+    @ApiOperation("修改商品")
+    public Result<String> updateGoods(@RequestBody GoodsPageQueryDTO goodsPageQueryDTO) {
+        log.info("修改商品的信息 {}", goodsPageQueryDTO);
+        goodsService.updateGoods(goodsPageQueryDTO);
+        return Result.success("修改成功");
+    }
 }

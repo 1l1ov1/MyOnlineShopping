@@ -16,6 +16,8 @@ import java.time.LocalDateTime;
 public class GoodsPageQueryDTO {
     // 商品id
     private Long id;
+    // 商店id
+    private Long storeId;
     // 表明商品的上架状态 0下架 1上架
     private Integer status;
     // 商品的价格

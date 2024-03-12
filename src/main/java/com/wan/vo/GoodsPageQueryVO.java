@@ -16,8 +16,13 @@ import java.time.LocalDateTime;
 public class GoodsPageQueryVO {
     // 商品id
     private Long id;
+    // 商店id
+    private Long storeId;
+    // 商品名
+    private String goodsName;
     // 表明商品的上架状态 0下架 1上架
     private Integer status;
+
     // 商品的价格
     private Double price;
     // 商品的总量

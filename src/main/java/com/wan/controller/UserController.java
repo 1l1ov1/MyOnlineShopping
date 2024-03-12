@@ -8,11 +8,13 @@ import com.wan.context.ThreadBaseContext;
 import com.wan.dto.UserLoginDTO;
 import com.wan.dto.UserPageQueryDTO;
 import com.wan.entity.Address;
+import com.wan.entity.Store;
 import com.wan.entity.User;
 import com.wan.entity.VerificationCode;
 import com.wan.properties.JwtProperties;
 import com.wan.result.Result;
 import com.wan.server.AddressService;
+import com.wan.server.StoreService;
 import com.wan.server.UserService;
 import com.wan.utils.JwtUtils;
 import com.wan.vo.UserLoginVO;
@@ -50,7 +52,8 @@ public class UserController {
     private JwtProperties jwtProperties;
     @Autowired
     private AddressService addressService;
-
+    @Autowired
+    private StoreService storeService;
     /**
      * 用户登录
      *
@@ -125,7 +128,9 @@ public class UserController {
         UserPageQueryVO userPageQueryVO = new UserPageQueryVO();
         BeanUtils.copyProperties(user, userPageQueryVO);
         List<Address> addressList = addressService.getAllAddressByUserId(userId);
+        Store store = storeService.findStoreByUserId(userId);
         userPageQueryVO.setAddressList(addressList);
+        userPageQueryVO.setStore(store);
         return Result.success(userPageQueryVO, "获取个人信息成功");
     }
 

@@ -1,8 +1,12 @@
 package com.wan.mapper;
 
+import com.github.pagehelper.Page;
 import com.wan.annotation.AutoFill;
+import com.wan.dto.StorePageQueryDTO;
 import com.wan.entity.Store;
 import com.wan.enumeration.OperationType;
+import com.wan.vo.GoodsPageQueryVO;
+import com.wan.vo.StorePageQueryVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
@@ -53,4 +57,18 @@ public interface StoreMapper {
      */
     @AutoFill(OperationType.UPDATE)
     void update(Store store);
+
+    /**
+     * 商品分页查询
+     * @param storePageQueryDTO
+     * @return
+     */
+    Page<StorePageQueryVO> pageQuery(StorePageQueryDTO storePageQueryDTO);
+
+    /**
+     * 得到商店详情
+     * @param id
+     * @return
+     */
+    StorePageQueryVO getStoreDetail(Long id);
 }

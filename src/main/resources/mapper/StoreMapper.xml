@@ -28,4 +28,40 @@
             #{id}
         </foreach>
     </delete>
+    <select id="pageQuery" resultType="com.wan.vo.StorePageQueryVO">
+        SELECT
+        s.id,
+        s.user_id,
+        s.store_name,
+        s.`status` ,
+        u.username,
+        s.create_time
+        FROM
+        store s
+        INNER JOIN `user` u ON `u`.id = s.user_id
+        <where>
+            <if test="username != null and username != ''">
+                and username like concat('%', #{username}, '%')
+            </if>
+            <if test="storeName != null">
+                and store_name like concat('%', #{storeName}, '%')
+            </if>
+            <if test="status != null">
+                and s.status = #{status}
+            </if>
+        </where>
+        order by s.create_time
+    </select>
+    <!--查询商店的详情-->
+    <select id="getStoreDetail" resultType="com.wan.vo.StorePageQueryVO">
+        SELECT s.id,
+               s.user_id,
+               s.store_name,
+               s.`status`,
+               u.username,
+               s.create_time
+        FROM store s
+                 INNER JOIN `user` u ON `u`.id = s.user_id
+        where s.id = #{id}
+    </select>
 </mapper>

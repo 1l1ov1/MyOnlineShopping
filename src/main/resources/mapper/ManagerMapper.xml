@@ -41,6 +41,29 @@
         <result property="createTime" column="create_time"></result>
         <result property="updateTime" column="update_time"></result>
     </resultMap>
+    <!--goodsPageQueryVO映射-->
+    <resultMap id="goodsPageQueryVO" type="com.wan.vo.GoodsPageQueryVO">
+        <id column="id" property="id"></id>
+        <result column="status" property="status"></result>
+        <result column="store_id" property="storeId"></result>
+        <result column="goods_name" property="goodsName"></result>
+        <result column="total" property="total"></result>
+        <result column="price" property="price"></result>
+        <result column="discount" property="discount"></result>
+        <result column="cover_pic" property="coverPic"></result>
+        <result column="description" property="description"></result>
+        <result column="create_time" property="createTime"></result>
+        <result column="update_time" property="updateTime"></result>
+        <association property="store" javaType="com.wan.entity.Store">
+            <id column="id" property="id"></id>
+            <result column="store_name" property="storeName"></result>
+            <result column="status" property="status"></result>
+            <result column="user_id" property="userId"></result>
+            <result column="create_time" property="createTime"></result>
+            <result column="update_time" property="updateTime"></result>
+        </association>
+    </resultMap>
+
     <update id="update">
         update user
         <set>
@@ -71,7 +94,7 @@
         from address_book
         where user_id = #{userId}
     </select>
-
+    <!--用户的分页查询-->
     <select id="pageQuery" resultMap="userPageQueryVO">
         select * from user
         <where>
@@ -90,7 +113,7 @@
         </where>
         order by user.create_time
     </select>
-
+    <!--商店的分页查询-->
     <select id="storePageQuery" resultType="com.wan.vo.StorePageQueryVO">
         SELECT
         s.id,
@@ -114,17 +137,6 @@
             </if>
         </where>
         order by s.create_time
-    </select>
-    <select id="getStoreDetail" resultType="com.wan.vo.StorePageQueryVO">
-        SELECT s.id,
-               s.user_id,
-               s.store_name,
-               s.`status`,
-               u.username,
-               s.create_time
-        FROM store s
-                 INNER JOIN `user` u ON `u`.id = s.user_id
-        where s.id = #{id}
     </select>
 
 </mapper>
