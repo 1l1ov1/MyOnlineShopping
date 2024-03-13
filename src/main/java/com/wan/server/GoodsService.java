@@ -20,7 +20,7 @@ public interface GoodsService {
      * 商品添加
      * @param goodsPageQueryDTO
      */
-    void addGoods(GoodsPageQueryDTO goodsPageQueryDTO);
+    Long addGoods(GoodsPageQueryDTO goodsPageQueryDTO);
 
     /**
      * 商品的批量删除

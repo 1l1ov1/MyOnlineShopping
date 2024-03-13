@@ -24,6 +24,13 @@
             <result column="update_time" property="updateTime"></result>
         </association>
     </resultMap>
+    <!--添加商品-->
+    <insert id="insertGoods" keyProperty="id" useGeneratedKeys="true">
+        insert into goods(store_id, goods_name, price, total, discount, description, cover_pic, status, update_time,
+                          create_time)
+        VALUES (#{storeId}, #{goodsName}, #{price}, #{total}, #{discount}, #{description}, #{coverPic}, #{status},
+                #{updateTime}, #{createTime})
+    </insert>
     <!--修改商品信息-->
     <update id="update">
         update goods
@@ -49,8 +56,11 @@
             <if test="updateTime != null">
                 update_time = #{updateTime},
             </if>
+            <if test="coverPic != null">
+                cover_pic = #{coverPic},
+            </if>
         </set>
-            where id = #{id}
+        where id = #{id}
     </update>
     <!--商品的批量删除-->
     <delete id="delete">

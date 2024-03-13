@@ -29,8 +29,6 @@ public interface GoodsMapper {
      * @param goods
      */
     @AutoFill(OperationType.INSERT)
-    @Insert("insert into goods(store_id, goods_name, price, total, discount, description, cover_pic, status, update_time, create_time) " +
-            "VALUES(#{storeId}, #{goodsName}, #{price}, #{total}, #{discount}, #{description}, #{coverPic}, #{status}, #{updateTime}, #{createTime}) ")
     void insertGoods(Goods goods);
 
     /**

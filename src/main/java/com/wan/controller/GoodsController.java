@@ -27,6 +27,7 @@ public class GoodsController {
     private GoodsService goodsService;
     @Autowired
     private StoreService storeService;
+
     @PostMapping("/page")
     @ApiOperation("商品分页查询")
     public Result<PageResult> pageQuery(@RequestBody GoodsPageQueryDTO goodsPageQueryDTO) {
@@ -38,10 +39,10 @@ public class GoodsController {
 
     @PostMapping("/add")
     @ApiOperation("商品添加")
-    public Result<String> addGoods(@RequestBody GoodsPageQueryDTO goodsPageQueryDTO) {
+    public Result<Long> addGoods(@RequestBody GoodsPageQueryDTO goodsPageQueryDTO) {
         log.info("商品添加 {}", goodsPageQueryDTO);
-        goodsService.addGoods(goodsPageQueryDTO);
-        return Result.success("添加成功");
+        Long goodsId = goodsService.addGoods(goodsPageQueryDTO);
+        return Result.success(goodsId, "添加成功");
     }
 
     @DeleteMapping("/delete")

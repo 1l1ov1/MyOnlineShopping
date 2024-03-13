@@ -51,7 +51,7 @@ public class GoodsServiceImpl implements GoodsService {
      * @param goodsPageQueryDTO
      */
     @Override
-    public void addGoods(GoodsPageQueryDTO goodsPageQueryDTO) {
+    public Long addGoods(GoodsPageQueryDTO goodsPageQueryDTO) {
         // 如果合法
         if (isValid(goodsPageQueryDTO)) {
             // 根据商店名查询商店
@@ -66,6 +66,10 @@ public class GoodsServiceImpl implements GoodsService {
             BeanUtils.copyProperties(goodsPageQueryDTO, goods);
             goods.setStoreId(storeId);
             goodsMapper.insertGoods(goods);
+            // 返回该商品的id
+            return goods.getId();
+        } else {
+            return null;
         }
     }
 
