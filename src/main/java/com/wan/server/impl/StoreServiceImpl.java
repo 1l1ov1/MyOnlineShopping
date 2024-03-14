@@ -6,11 +6,13 @@ import com.wan.constant.MessageConstant;
 import com.wan.constant.StoreConstant;
 import com.wan.constant.UserConstant;
 import com.wan.dto.StorePageQueryDTO;
+import com.wan.entity.Goods;
 import com.wan.entity.Store;
 import com.wan.entity.User;
 import com.wan.exception.AccountNotFountException;
 import com.wan.exception.StatusException;
 import com.wan.exception.StoreException;
+import com.wan.mapper.GoodsMapper;
 import com.wan.mapper.StoreMapper;
 import com.wan.mapper.UserMapper;
 import com.wan.result.PageResult;
@@ -30,7 +32,8 @@ public class StoreServiceImpl implements StoreService {
     private StoreMapper storeMapper;
     @Autowired
     private UserMapper userMapper;
-
+    @Autowired
+    private GoodsMapper goodsMapper;
     /**
      * 添加商店
      *
@@ -168,6 +171,17 @@ public class StoreServiceImpl implements StoreService {
         if (ids == null || ids.size() == 0) {
             throw new StoreException(MessageConstant.STORE_IS_NOT_EXIST);
         }
+
+        for (Long id : ids) {
+            // 根据id查找到商品
+            Store store = storeMapper.findStoreById(id);
+            List<Goods> goodsList = goodsMapper.findSHELVESGoodsByStoreId(store.getId());
+            // 如果该商店有上架商品
+            if (goodsList != null && goodsList.size() > 0) {
+               throw new StoreException(MessageConstant.THE_STORE_HAS_ITEMS_ON_THE_SHELVES);
+            }
+        }
+        // 删除的数据
         storeMapper.deleteByIds(ids);
     }
 

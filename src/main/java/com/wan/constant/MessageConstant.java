@@ -1,4 +1,5 @@
 package com.wan.constant;
+
 /**
  * 信息提示常量类
  */
@@ -27,6 +28,7 @@ public class MessageConstant {
 
     public static final String THE_STATUS_IS_NOT_EXIST = "这个状态不存在";
 
+    public static final String THE_STORE_HAS_ITEMS_ON_THE_SHELVES = "商店还有上架商品，无法删除";
     // 商品
     public static final String GOODS_IS_NOT_EXIST = "商品不存在";
     public static final String GOODS_NAME_IS_NOT_ALLOWED_TO_BE_EMPTY = "商品名不允许为空";

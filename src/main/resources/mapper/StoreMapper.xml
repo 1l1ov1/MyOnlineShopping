@@ -49,6 +49,9 @@
             <if test="status != null">
                 and s.status = #{status}
             </if>
+            <if test="id != null">
+                and s.id = #{id}
+            </if>
         </where>
         order by s.create_time
     </select>

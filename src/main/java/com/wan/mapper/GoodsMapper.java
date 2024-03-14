@@ -51,4 +51,7 @@ public interface GoodsMapper {
      */
     @AutoFill(OperationType.UPDATE)
     void update(Goods goods);
+
+    @Select("select * from goods where status = 1 and store_id = #{storeId}")
+    List<Goods> findSHELVESGoodsByStoreId(Long storeId);
 }
