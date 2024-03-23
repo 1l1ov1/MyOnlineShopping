@@ -1,6 +1,7 @@
 package com.wan.dto;
 
 import com.wan.entity.Address;
+import com.wan.entity.Store;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,27 +10,17 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class StorePageQueryDTO {
-    // id
+public class UserCreateStoreDTO {
     private Long id;
-    // 用户id
     private Long userId;
-    // 店名
-    private String storeName;
-    // 店的状态
-    private Integer status;
-    // 用户名称
     private String username;
-    // 商店地址
+    private String password;
     private Address address;
-    // 创建时间
-    private LocalDateTime createTime;
-    // 修改时间
-    private LocalDateTime updateTime;
+    private Store store;
 
-    private Integer page; // 页码
-    private Integer pageSize;// 每页显示数
+    private LocalDateTime createTime;
+    private LocalDateTime updateTime;
 }

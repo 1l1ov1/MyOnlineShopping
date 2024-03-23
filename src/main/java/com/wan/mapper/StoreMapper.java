@@ -34,7 +34,7 @@ public interface StoreMapper {
      * @param id
      * @return
      */
-    @Select("select * from store where id = #{id}")
+    /*@Select("select * from store where id = #{id}")*/
     Store findStoreById(Long id);
 
     /**

@@ -92,12 +92,34 @@ public class AutoFillAspect {
         } else if (operationType == OperationType.INSERT) {
 
             try {
-                // 通过反射得到对应的方法
-                Method setCreateTime = entity.getClass().getDeclaredMethod(AutoFillConstant.SET_CREATE_TIME, LocalDateTime.class);
-                Method setUpdateTime = entity.getClass().getDeclaredMethod(AutoFillConstant.SET_UPDATE_TIME, LocalDateTime.class);
-                // 通过反射赋值
-                setCreateTime.invoke(entity, now);
-                setUpdateTime.invoke(entity, now);
+                // 如果得到的实体是集合类型
+                if (entity instanceof Collection) {
+                    // 如果是List
+                    if (entity instanceof List) {
+                        // 创建ArrayList对象
+                        List list = new ArrayList();
+                        // 拷贝
+                        list.addAll((Collection) entity);
+                        // 遍历
+                        for (Object o : list) {
+                            // 通过反射得到对应的方法
+                            Method setUpdateTime = o.getClass().getDeclaredMethod(AutoFillConstant.SET_UPDATE_TIME, LocalDateTime.class);
+                            Method setCreateTime = o.getClass().getDeclaredMethod(AutoFillConstant.SET_CREATE_TIME, LocalDateTime.class);
+                            // 通过反射赋值
+                            setUpdateTime.invoke(o, now);
+                            setCreateTime.invoke(o, now);
+                        }
+                    }
+
+                } else {
+                    // 通过反射得到对应的方法
+                    Method setCreateTime = entity.getClass().getDeclaredMethod(AutoFillConstant.SET_CREATE_TIME, LocalDateTime.class);
+                    Method setUpdateTime = entity.getClass().getDeclaredMethod(AutoFillConstant.SET_UPDATE_TIME, LocalDateTime.class);
+                    // 通过反射赋值
+                    setCreateTime.invoke(entity, now);
+                    setUpdateTime.invoke(entity, now);
+                }
+
             } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
                 throw new RuntimeException(e);
             }

@@ -1,10 +1,9 @@
 package com.wan.server.impl;
 
-import com.wan.constant.MessageConstant;
-import com.wan.constant.PasswordConstant;
-import com.wan.constant.StoreConstant;
-import com.wan.constant.UserConstant;
+import com.wan.constant.*;
+import com.wan.dto.UserCreateStoreDTO;
 import com.wan.dto.UserLoginDTO;
+import com.wan.entity.Address;
 import com.wan.entity.Store;
 import com.wan.entity.User;
 import com.wan.exception.*;
@@ -17,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
 import java.util.Map;
@@ -134,7 +134,7 @@ public class UserServiceImpl implements UserService {
 
     }
 
-    @Override
+  /*  @Override
     public void createStore(UserLoginDTO userLoginDTO, String storeName) {
         // 得到该用户
         User user = isValid(userLoginDTO);
@@ -159,6 +159,43 @@ public class UserServiceImpl implements UserService {
                 .build();
         // 添加商店
         storeMapper.insertStore(store);
+    }*/
+
+    @Override
+    @Transactional
+    public void createStore(UserCreateStoreDTO userCreateStoreDTO) {
+        UserLoginDTO userLoginDTO = UserLoginDTO.builder()
+                .username(userCreateStoreDTO.getUsername())
+                .password(userCreateStoreDTO.getPassword()).build();
+
+        User user = isValid(userLoginDTO);
+
+        Store store = userCreateStoreDTO.getStore();
+        // 如果没有这个名字的商店，就找这个用户是否有商店
+        Store userStore = storeMapper.findStoreByUserId(user.getId());
+        // 如果有
+        if (userStore != null) {
+            throw new StoreException(MessageConstant.ONLY_HAS_ONE_STORE);
+        }
+        // 得到商店
+        Store storeByStoreName = storeMapper.findStoreByStoreName(store.getStoreName());
+        if (storeByStoreName != null) {
+            throw new StoreException(MessageConstant.STORE_EXIST);
+        }
+
+        // 如果没有
+        store.setUserId(user.getId());
+        store.setStatus(StoreConstant.OPEN);
+        // 添加商店
+        storeMapper.insertStore(store);
+        Address address = userCreateStoreDTO.getAddress();
+        // 成为店家
+        user.setStatus(UserConstant.BUSINESSMAN);
+        userMapper.update(user);
+        // 添加地址
+        address.setStoreId(store.getId());
+        address.setIsDefault(AddressConstant.IS_DEFAULT);
+        addressMapper.insertStoreAddress(address);
     }
 
     /**

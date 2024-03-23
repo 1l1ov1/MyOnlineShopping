@@ -5,26 +5,23 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Store {
-    // id
+public class Orders {
     private Long id;
-    // 用户id
+    private String goodsName;
     private Long userId;
-    // 店名
-    private String storeName;
-    // 店的地址
-    private Address address;
-    // 店的状态
+    private Long goodsId;
+    private Integer number;
+    private BigDecimal totalPrice;
+    private Integer pay;
     private Integer status;
-    // 创建时间
+
     private LocalDateTime createTime;
-    // 修改时间
     private LocalDateTime updateTime;
 }

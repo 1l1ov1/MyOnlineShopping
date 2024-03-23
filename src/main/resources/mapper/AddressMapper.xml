@@ -12,6 +12,16 @@
                 #{districtCode}, #{districtName},
                 #{detail}, #{createTime}, #{updateTime}, #{isDefault})
     </insert>
+    <insert id="insertStoreAddress">
+        insert into store_address(store_id, province_code, province_name,
+                                  city_code, city_name,
+                                  district_code, district_name,
+                                  detail, is_default,create_time, update_time)
+        VALUES (#{storeId}, #{provinceCode}, #{provinceName},
+                #{cityCode}, #{cityName},
+                #{districtCode}, #{districtName},
+                #{detail}, #{isDefault},#{createTime}, #{updateTime})
+    </insert>
     <update id="updateDefaultAddress">
 
         update address_book
@@ -92,6 +102,13 @@
                 <foreach collection="addressList" item="address" index="index">
                     <if test="address.detail!=null">
                         when id=#{address.id} then #{address.detail}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="is_default=case" suffix="end,">
+                <foreach collection="addressList" item="address" index="index">
+                    <if test="address.isDefault!=null">
+                        when id=#{address.id} then #{address.isDefault}
                     </if>
                 </foreach>
             </trim>

@@ -34,10 +34,10 @@ public interface ManagerService {
 
     /**
      * 管理员添加用户
-     * @param user
+     * @param userPageQueryDTO
      */
 
-    void addUser(User user);
+    void addUser(UserPageQueryDTO userPageQueryDTO);
 
     /**
      * 修改用户

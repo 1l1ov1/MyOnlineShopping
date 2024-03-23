@@ -3,7 +3,44 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.wan.mapper.StoreMapper">
 
-    <insert id="insertStore">
+    <resultMap id="storePageVO" type="com.wan.vo.StorePageQueryVO">
+        <id column="id" property="id"></id>
+        <result property="username" column="username"></result>
+        <result property="storeName" column="store_name"></result>
+        <result property="userId" column="user_id"></result>
+        <result property="status" column="status"></result>
+        <result property="createTime" column="create_time"></result>
+        <result property="updateTime" column="update_time"></result>
+        <association property="address"
+                     javaType="com.wan.entity.Address"
+                     column="id" select="getStoreAddress">
+
+        </association>
+    </resultMap>
+
+    <resultMap id="storeAddress" type="com.wan.entity.Address">
+        <id column="id" property="id"></id>
+        <result column="store_id" property="storeId"></result>
+        <result column="province_code" property="provinceCode"></result>
+        <result column="province_name" property="provinceName"></result>
+        <result column="city_code" property="cityCode"></result>
+        <result column="city_name" property="cityName"></result>
+        <result column="district_code" property="districtCode"></result>
+        <result column="district_name" property="districtName"></result>
+        <result column="is_default" property="isDefault"></result>
+        <result property="createTime" column="create_time"></result>
+        <result property="updateTime" column="update_time"></result>
+    </resultMap>
+
+    <select id="getStoreAddress" resultMap="storeAddress">
+        select * from store_address where store_id = #{id}
+    </select>
+
+
+
+
+
+    <insert id="insertStore" keyProperty="id" useGeneratedKeys="true">
         insert into store(user_id, store_name, status, create_time, update_time)
         VALUES (#{userId}, #{storeName}, #{status}, #{createTime}, #{updateTime})
     </insert>
@@ -28,7 +65,7 @@
             #{id}
         </foreach>
     </delete>
-    <select id="pageQuery" resultType="com.wan.vo.StorePageQueryVO">
+    <select id="pageQuery" resultMap="storePageVO">
         SELECT
         s.id,
         s.user_id,
@@ -66,5 +103,27 @@
         FROM store s
                  INNER JOIN `user` u ON `u`.id = s.user_id
         where s.id = #{id}
+    </select>
+
+
+
+    <resultMap id="store" type="com.wan.entity.Store">
+        <id column="id" property="id"></id>
+        <result property="userId" column="user_id"></result>
+        <result property="storeName" column="store_name"></result>
+        <result property="userId" column="user_id"></result>
+        <result property="status" column="status"></result>
+        <result property="createTime" column="create_time"></result>
+        <result property="updateTime" column="update_time"></result>
+        <association property="address"
+                     javaType="com.wan.entity.Address"
+                     column="id" select="getStoreAddress">
+
+        </association>
+    </resultMap>
+    <select id="findStoreById" resultMap="store">
+       select * from store
+            where id = #{id}
+
     </select>
 </mapper>

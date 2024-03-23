@@ -33,12 +33,14 @@ public interface GoodsMapper {
 
     /**
      * 批量删除
+     *
      * @param ids
      */
     void delete(List<Long> ids);
 
     /**
      * 根据id查找商品
+     *
      * @param id
      * @return
      */
@@ -46,12 +48,20 @@ public interface GoodsMapper {
     Goods findGoodsById(Long id);
 
     /**
+     * 根据id集合查询商品
+     * @param ids
+     * @return
+     */
+    List<Goods> findGoodsByIds(List<Long> ids);
+    /**
      * 修改商品信息
+     *
      * @param goods
      */
     @AutoFill(OperationType.UPDATE)
     void update(Goods goods);
 
-    @Select("select * from goods where status = 1 and store_id = #{storeId}")
+
     List<Goods> findSHELVESGoodsByStoreId(Long storeId);
+
 }

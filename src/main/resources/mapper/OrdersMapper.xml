@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wan.mapper.OrdersMapper">
+    <resultMap id="ordersPageQueryVO" type="com.wan.vo.OrdersPageQueryVO">
+        <id column="id" property="id"></id>
+        <result property="goodsName" column="goods_name"></result>
+        <result property="totalPrice" column="total_price"></result>
+        <result property="number" column="number"></result>
+        <result property="coverPic" column="cover_pic"></result>
+        <result property="status" column="status"></result>
+        <result property="username" column="username"></result>
+        <result property="createTime" column="create_time"></result>
+        <result property="phone" column="phone"></result>
+        <association property="store" javaType="com.wan.entity.Store"
+                     columnPrefix="s_">
+            <id column="id" property="id"></id>
+            <result property="storeName" column="store_name"></result>
+            <result property="userId" column="user_id"></result>
+            <result property="status" column="status"></result>
+            <result property="createTime" column="create_time"></result>
+            <result property="updateTime" column="update_time"></result>
+            <association property="address"
+                         javaType="com.wan.entity.Address"
+                         column="id"
+                         select="com.wan.mapper.StoreMapper.getStoreAddress">
+            </association>
+        </association>
+        <association property="address" javaType="com.wan.entity.Address"
+                     column="username" select="userDefaultAddress">
+
+        </association>
+    </resultMap>
+    <resultMap id="userDefaultAddressMap" type="com.wan.entity.Address">
+        <id column="id" property="id"></id>
+        <result column="user_id" property="userId"></result>
+        <result column="province_code" property="provinceCode"></result>
+        <result column="province_name" property="provinceName"></result>
+        <result column="city_code" property="cityCode"></result>
+        <result column="city_name" property="cityName"></result>
+        <result column="district_code" property="districtCode"></result>
+        <result column="district_name" property="districtName"></result>
+        <result column="is_default" property="isDefault"></result>
+        <result property="createTime" column="create_time"></result>
+        <result property="updateTime" column="update_time"></result>
+    </resultMap>
+    <update id="update">
+        update orders
+        <set>
+            <if test="status !=  null">
+                status = #{status},
+            </if>
+            <if test="goodsName != null">
+                goods_name = #{goodsName},
+            </if>
+            <if test="totalPrice != null">
+                total_price = #{totalPrice},
+            </if>
+            <if test="number != null">
+                number = #{number},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime}
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+    <delete id="batchDeleteOrders">
+        delete from orders where id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </delete>
+    <select id="userDefaultAddress" resultMap="userDefaultAddressMap">
+        select *
+        from address_book
+        where is_default = 1
+          and user_id = (select id
+                         from user
+                         where username = #{username})
+    </select>
+    <insert id="batchInsertOrder">
+        insert into orders(goods_name, user_id, goods_id, number,
+        total_price, pay, status, create_time,
+        update_time) VALUES
+        <foreach collection="ordersList" item="orders" separator=",">
+            (#{orders.goodsName}, #{orders.userId}, #{orders.goodsId},
+            #{orders.number}, #{orders.totalPrice}, #{orders.pay},
+            #{orders.status}, #{orders.createTime}, #{orders.updateTime})
+        </foreach>
+    </insert>
+    <select id="pageQuery" resultMap="ordersPageQueryVO">
+        SELECT o.id,
+        o.`status`,
+        o.total_price,
+        o.number,
+        o.pay,
+        o.create_time,
+        g.goods_name,
+        g.cover_pic,
+        s.store_name s_store_name,
+        s.status s_status,
+        s.id s_id,
+        s.user_id s_user_id,
+        u.username,
+        u.phone
+        from orders o
+        INNER JOIN `user` u on o.user_id = u.id
+        INNER JOIN goods g on g.id = o.goods_id
+        INNER JOIN store s ON s.id = g.store_id
+        <where>
+            <if test="username != null">
+                and username like concat('%', #{username}, '%')
+            </if>
+            <if test="status != null">
+                and o.status = #{status}
+            </if>
+            <if test="store != null and store.storeName != null">
+                and store_name like concat('%', #{store.storeName}, '%')
+            </if>
+            <if test="store != null and store.id != null">
+                and s.id = #{store.id}
+            </if>
+        </where>
+    </select>
+    <select id="findOrdersById" resultType="com.wan.entity.Orders">
+        select * from orders where id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+</mapper>

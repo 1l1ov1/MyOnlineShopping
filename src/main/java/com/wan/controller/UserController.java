@@ -5,6 +5,7 @@ import com.wan.constant.JwtClaimConstant;
 import com.wan.constant.MessageConstant;
 import com.wan.constant.UserConstant;
 import com.wan.context.ThreadBaseContext;
+import com.wan.dto.UserCreateStoreDTO;
 import com.wan.dto.UserLoginDTO;
 import com.wan.dto.UserPageQueryDTO;
 import com.wan.entity.Address;
@@ -37,6 +38,7 @@ import javax.servlet.http.HttpSession;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -54,6 +56,7 @@ public class UserController {
     private AddressService addressService;
     @Autowired
     private StoreService storeService;
+
     /**
      * 用户登录
      *
@@ -193,11 +196,41 @@ public class UserController {
         return Result.success("修改成功");
     }
 
-    @PostMapping("/createStore/{storeName}")
+    // @PostMapping("/createStore/{storeName}")
+    // @ApiOperation("用户开店")
+    // public Result<String> createStore(@RequestBody UserLoginDTO userLoginDTO, @PathVariable String storeName) {
+    //     log.info("用户开店... {}, {}",userLoginDTO, storeName);
+    //     userService.createStore(userLoginDTO, storeName);
+    //     return Result.success("开店成功");
+    // }
+    @PostMapping("/createStore")
     @ApiOperation("用户开店")
-    public Result<String> createStore(@RequestBody UserLoginDTO userLoginDTO, @PathVariable String storeName) {
-        log.info("用户开店... {}, {}",userLoginDTO, storeName);
-        userService.createStore(userLoginDTO, storeName);
+    public Result<String> createStore(@RequestBody UserCreateStoreDTO userCreateStoreDTO) {
+        log.info("用户开店... {}", userCreateStoreDTO);
+        userService.createStore(userCreateStoreDTO);
         return Result.success("开店成功");
+    }
+
+    @GetMapping("/recharge/{value}")
+    @ApiOperation("用户充值")
+    public Result<String> recharge(@PathVariable Double value) {
+        log.info("用户充值 {}", value);
+        Long userId = ThreadBaseContext.getCurrentId();
+        // 用完就清空
+        ThreadBaseContext.removeCurrentId();
+        // 根据id查询用户id
+        User user = userService.getUserById(userId);
+        // 设置用户金额
+        user.setMoney(user.getMoney().add(BigDecimal.valueOf(value)));
+        userService.update(user);
+        return Result.success("充值成功");
+    }
+
+    @PostMapping("/addressDefault")
+    @ApiOperation("设为默认地址")
+    public Result<String> updateAddressDefault(@RequestBody Address address) {
+        log.info("设为默认地址 {}", address);
+        addressService.update(address);
+        return Result.success("修改成功");
     }
 }

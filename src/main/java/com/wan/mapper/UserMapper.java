@@ -24,8 +24,7 @@ public interface UserMapper {
      * 插入用户
      * @param user
      */
-    @Insert("insert into user(username, password, phone, create_time, update_time, status, account_status, is_online) " +
-            "VALUES (#{username},#{password}, #{phone}, #{createTime},#{updateTime},#{status},#{accountStatus},#{isOnline})")
+
     @AutoFill(OperationType.INSERT)
     void insert(User user);
 

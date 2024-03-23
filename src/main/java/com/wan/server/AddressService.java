@@ -24,4 +24,10 @@ public interface AddressService {
      * @param addressList
      */
     void update(List<Address> addressList);
+
+    /**
+     * 设置为默认地址
+     * @param address
+     */
+    void update(Address address);
 }

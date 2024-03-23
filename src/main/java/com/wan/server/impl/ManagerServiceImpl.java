@@ -27,6 +27,7 @@ import com.wan.vo.StorePageQueryVO;
 import com.wan.vo.UserPageQueryVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
@@ -96,25 +97,35 @@ public class ManagerServiceImpl implements ManagerService {
     /**
      * 管理员添加用户
      *
-     * @param user
+     * @param userPageQueryDTO
      */
     @Override
-    public void addUser(User user) {
+    @Transactional
+    public void addUser(UserPageQueryDTO userPageQueryDTO) {
         // 先根据用户账号查询用户是否存在
-        User query = userMapper.getByUsername(user.getUsername());
+        User query = userMapper.getByUsername(userPageQueryDTO.getUsername());
         if (query != null) {
             throw new AccountExistException(MessageConstant.ACCOUNT_EXIST);
         }
         // 如果账号不存在
         // 先将该用户的密码加密
-        String md5 = DigestUtils.md5DigestAsHex(user.getPassword().getBytes());
-        user.setPassword(md5);
+        String md5 = DigestUtils.md5DigestAsHex(userPageQueryDTO.getPassword().getBytes());
+        userPageQueryDTO.setPassword(md5);
         // 将账号状态设置为启用状态
-        user.setAccountStatus(UserConstant.ENABLE);
+        userPageQueryDTO.setAccountStatus(UserConstant.ENABLE);
         // 将账号设置为不在线
-        user.setIsOnline(UserConstant.IS_NOT_ONLINE);
+        userPageQueryDTO.setIsOnline(UserConstant.IS_NOT_ONLINE);
+        User user = new User();
+        BeanUtils.copyProperties(userPageQueryDTO, user);
         // 然后插入用户
         userMapper.insert(user);
+        // 得到地址
+        Address address = userPageQueryDTO.getAddressList().get(0);
+        // 设置id
+        address.setUserId(user.getId());
+        address.setIsDefault(AddressConstant.IS_DEFAULT);
+        //添加地址
+        addressMapper.insertAddress(address);
     }
 
     /**

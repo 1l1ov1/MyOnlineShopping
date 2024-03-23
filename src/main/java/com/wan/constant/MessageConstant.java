@@ -44,4 +44,15 @@ public class MessageConstant {
 
 
     public static final String PLEASE_CHOOSE_ONE_MORE_DATA_TO_DELETE = "请选择至少一条数据来删除";
+
+    // 购物车
+    public static final String USER_IS_NOT_EXIST = "用户不存在";
+    public static final String CART_IS_NOT_EXIST = "购物车不存在";
+
+    public static final String THE_AMOUNT_IS_INSUFFICIENT = "金额不足，请充值";
+    public static final String INSUFFICIENT_PRODUCT_QUANTITY = "商品数量不足";
+
+    // 订单
+    public static final String ORDERS_NUMBER_IS_NOT_EXIST = "订单号不存在";
+    public static final String ORDERS_STATUS_IS_WRONG = "订单状态出错";
 }

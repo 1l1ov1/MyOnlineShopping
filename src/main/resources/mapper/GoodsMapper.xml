@@ -15,15 +15,53 @@
         <result column="description" property="description"></result>
         <result column="create_time" property="createTime"></result>
         <result column="update_time" property="updateTime"></result>
-        <association property="store" javaType="com.wan.entity.Store">
-            <id column="id" property="id"></id>
-            <result column="store_name" property="storeName"></result>
-            <result column="status" property="status"></result>
-            <result column="user_id" property="userId"></result>
-            <result column="create_time" property="createTime"></result>
-            <result column="update_time" property="updateTime"></result>
+        <association property="store" javaType="com.wan.entity.Store"
+                     select="getGoodsStore" column="{id=store_id}">
         </association>
     </resultMap>
+
+    <resultMap id="store" type="com.wan.entity.Store">
+        <id column="id" property="id"></id>
+        <result column="store_name" property="storeName"></result>
+        <result column="status" property="status"></result>
+        <result column="user_id" property="userId"></result>
+        <result column="create_time" property="createTime"></result>
+        <result column="update_time" property="updateTime"></result>
+        <association property="address" javaType="com.wan.entity.Address"
+                     select="getStoreAddress" column="id">
+        </association>
+    </resultMap>
+    <resultMap id="address" type="com.wan.entity.Address">
+        <id column="id" property="id"></id>
+        <result column="store_id" property="storeId"></result>
+        <result column="province_code" property="provinceCode"></result>
+        <result column="province_name" property="provinceName"></result>
+        <result column="city_code" property="cityCode"></result>
+        <result column="city_name" property="cityName"></result>
+        <result column="district_code" property="districtCode"></result>
+        <result column="district_name" property="districtName"></result>
+        <result property="createTime" column="create_time"></result>
+        <result property="updateTime" column="update_time"></result>
+    </resultMap>
+
+    <select id="getGoodsStore" resultMap="store">
+        select * from store s
+        <where>
+            <if test="storeName != null">
+                and s.store_name like concat('%', #{toreName}, '%')
+            </if>
+            <if test="userId != null">
+                and s.user_id = #{userId}
+            </if>
+            and id = #{id}
+        </where>
+
+    </select>
+    <select id="getStoreAddress" resultMap="address">
+        select *
+        from store_address
+        where store_id = #{id}
+    </select>
     <!--添加商品-->
     <insert id="insertGoods" keyProperty="id" useGeneratedKeys="true">
         insert into goods(store_id, goods_name, price, total, discount, description, cover_pic, status, update_time,
@@ -73,6 +111,7 @@
     <select id="pageQuery" resultMap="goodsPageQueryVO">
         SELECT
         g.id,
+        g.store_id,
         g.goods_name,
         g.price,
         g.total,
@@ -80,12 +119,9 @@
         g.description,
         g.cover_pic,
         g.`status`,
-        g.create_time,
-        s.id,
-        s.store_name,
-        s.`status`
+        g.create_time
         FROM
-        goods g INNER JOIN store s on s.id = g.store_id
+        goods g
         <where>
             <if test="goodsName != null">
                 and goods_name like concat('%', #{goodsName}, '%')
@@ -96,12 +132,29 @@
             <if test="updateTime != null">
                 and g.update_time = #{updateTime}
             </if>
-            <if test="store != null and store.storeName != null">
-                and s.store_name like concat('%', #{store.storeName}, '%')
-            </if>
-            <if test="store != null and store.userId != null">
-                and s.user_id = #{store.userId}
-            </if>
+            <!--  <if test="store != null and store.storeName != null">
+                  and s.store_name like concat('%', #{store.storeName}, '%')
+              </if>
+              <if test="store != null and store.userId != null">
+                  and s.user_id = #{store.userId}
+              </if>-->
         </where>
+    </select>
+
+    <select id="findSHELVESGoodsByStoreId" resultType="com.wan.entity.Goods">
+        select * from goods
+        <where>
+            status = 1
+            <if test="storeId != null">
+                and store_id = #{storeId}
+            </if>
+
+        </where>
+    </select>
+    <select id="findGoodsByIds" resultType="com.wan.entity.Goods">
+        select * from goods where id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
     </select>
 </mapper>

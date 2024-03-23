@@ -1,5 +1,6 @@
 package com.wan.server;
 
+import com.wan.dto.UserCreateStoreDTO;
 import com.wan.dto.UserLoginDTO;
 import com.wan.entity.User;
 
@@ -46,10 +47,11 @@ public interface UserService {
      */
     void updatePassword(Map<String, String> pwdData, Long id);
 
-    /**
-     * 开店
-     * @param userLoginDTO
-     * @param storeName
-     */
-    void createStore(UserLoginDTO userLoginDTO, String storeName);
+    // /**
+    //  * 开店
+    //  * @param userLoginDTO
+    //  * @param storeName
+    //  */
+    // void createStore(UserLoginDTO userLoginDTO, String storeName);
+    void createStore(UserCreateStoreDTO userCreateStoreDTO);
 }

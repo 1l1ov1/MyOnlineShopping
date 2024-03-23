@@ -1,5 +1,6 @@
 package com.wan.vo;
 
+import com.wan.entity.Address;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,6 +23,8 @@ public class StorePageQueryVO {
     private Integer status;
     // 用户名称
     private String username;
+    // 商店地址
+    private Address address;
     // 创建时间
     private LocalDateTime createTime;
     // 修改时间

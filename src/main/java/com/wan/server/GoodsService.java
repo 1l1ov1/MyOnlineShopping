@@ -40,4 +40,10 @@ public interface GoodsService {
      * @param goodsPageQueryDTO
      */
     void updateGoods(GoodsPageQueryDTO goodsPageQueryDTO);
+
+    /**
+     * 查询所有上架商品
+     * @return
+     */
+    List<Goods> queryAll();
 }

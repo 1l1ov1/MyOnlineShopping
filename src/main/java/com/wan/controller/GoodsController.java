@@ -37,6 +37,14 @@ public class GoodsController {
         return Result.success(pageResult);
     }
 
+    @GetMapping("/query")
+    @ApiOperation("获取所有商品信息")
+    public Result<List<Goods>> queryAll() {
+        log.info("查询所有商品");
+        List<Goods> goodsList = goodsService.queryAll();
+        return Result.success(goodsList);
+    }
+
     @PostMapping("/add")
     @ApiOperation("商品添加")
     public Result<Long> addGoods(@RequestBody GoodsPageQueryDTO goodsPageQueryDTO) {

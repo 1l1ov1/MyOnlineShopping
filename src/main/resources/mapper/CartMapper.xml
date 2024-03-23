@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wan.mapper.CartMapper">
+    <resultMap id="cartVO" type="com.wan.entity.CartWithStore">
+        <association property="store"
+                     columnPrefix="s_"
+        >
+            <id column="id" property="id"></id>
+            <result column="store_name" property="storeName"></result>
+            <result column="user_id" property="userId"></result>
+            <result column="status" property="status"></result>
+            <result property="createTime" column="create_time"></result>
+            <result property="updateTime" column="update_time"></result>
+        </association>
+        <association property="cart"
+                     javaType="com.wan.entity.Cart"
+                     columnPrefix="c_">
+            <id property="id" column="id"></id>
+            <result property="userId" column="user_id"></result>
+            <result property="goodsName" column="goods_name"></result>
+            <result property="goodsId" column="goods_id"></result>
+            <result property="number" column="number"></result>
+            <result property="totalPrice" column="total_price"></result>
+            <result property="coverPic" column="cover_pic"></result>
+            <result property="goodsPrice" column="goods_price"></result>
+            <result property="discount" column="discount"></result>
+            <result property="createTime" column="create_time"></result>
+            <result property="updateTime" column="update_time"></result>
+        </association>
+    </resultMap>
+
+    <delete id="batchDeleteCarts">
+        delete from cart where id in
+        <foreach collection="cartList" item="cart" open="(" close=")" separator=",">
+            #{cart.id}
+        </foreach>
+    </delete>
+
+    <select id="findUserCartsById" resultMap="cartVO">
+        SELECT c.id             c_id,
+               c.user_id        c_user_id,
+               c.goods_name     c_goods_name,
+               c.goods_id       c_goods_id,
+               c.number         c_number,
+               c.total_price    c_total_price,
+               g.cover_pic      c_cover_pic,
+               g.price          c_goods_price,
+               g.discount       c_discount,
+               c.create_time    c_create_time,
+               c.update_time    c_update_time,
+               s.id          AS s_id,
+               s.store_name     s_store_name,
+               s.user_id     AS s_user_id,
+               s.status         s_status,
+               s.create_time AS s_create_time,
+               s.update_time AS s_update_time
+        FROM cart c
+                 JOIN
+             goods g ON c.goods_id = g.id -- 通过goods_id连接cart和goods表
+                 JOIN
+             store s ON g.store_id = s.id -- 通过store_id连接goods和store表
+        WHERE c.user_id = #{id}
+    </select>
+</mapper>

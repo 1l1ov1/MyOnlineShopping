@@ -16,6 +16,8 @@ public class Address {
     private Long id;
     // 用户id
     private Long userId;
+    // 商店id
+    private Long storeId;
     // 省级区划编号
     private String provinceCode;
     // 省级名称

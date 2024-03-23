@@ -54,9 +54,9 @@ public class ManagerController {
 
     @PostMapping("/add")
     @ApiOperation("添加用户")
-    public Result<String> addUser(@RequestBody User user) {
-        log.info("添加用户：{}", user);
-        managerService.addUser(user);
+    public Result<String> addUser(@RequestBody UserPageQueryDTO userPageQueryDTO) {
+        log.info("添加用户：{}", userPageQueryDTO);
+        managerService.addUser(userPageQueryDTO);
         return Result.success("添加成功");
     }
 

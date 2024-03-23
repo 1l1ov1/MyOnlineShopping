@@ -46,4 +46,7 @@ public interface AddressMapper {
      */
     @AutoFill(OperationType.UPDATE)
     void updateBatch(List<Address> addressList);
+
+    @AutoFill(OperationType.INSERT)
+    void insertStoreAddress(Address address);
 }
