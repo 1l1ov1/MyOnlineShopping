@@ -18,12 +18,19 @@ import com.wan.mapper.UserMapper;
 import com.wan.result.PageResult;
 import com.wan.server.StoreService;
 import com.wan.vo.GoodsPageQueryVO;
+import com.wan.vo.StoreAllGoodsVO;
 import com.wan.vo.StorePageQueryVO;
+import com.wan.vo.StoreSearchVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class StoreServiceImpl implements StoreService {
@@ -34,6 +41,7 @@ public class StoreServiceImpl implements StoreService {
     private UserMapper userMapper;
     @Autowired
     private GoodsMapper goodsMapper;
+
     /**
      * 添加商店
      *
@@ -61,6 +69,7 @@ public class StoreServiceImpl implements StoreService {
 
     /**
      * 根据用户id查找
+     *
      * @param userId
      * @return
      */
@@ -167,26 +176,56 @@ public class StoreServiceImpl implements StoreService {
      * @param ids
      */
     @Override
+    @Transactional
     public void deleteBatchStore(List<Long> ids) {
         if (ids == null || ids.size() == 0) {
             throw new StoreException(MessageConstant.STORE_IS_NOT_EXIST);
         }
 
-        for (Long id : ids) {
-            // 根据id查找到商品
-            Store store = storeMapper.findStoreById(id);
+        // 根据id 查询商店
+        List<Store> storeList = storeMapper.findStoreByIds(ids);
+        // 检查商店是否存在
+        ids.removeAll(storeList.stream().map(Store::getId).collect(Collectors.toList()));
+        if (!ids.isEmpty()) {
+            throw new StoreException(MessageConstant.STORE_IS_NOT_EXIST);
+        }
+
+        // 检查商店是否有上架商品
+        List<Long> storeWithItems = new ArrayList<>();
+        for (Store store : storeList) {
             List<Goods> goodsList = goodsMapper.findSHELVESGoodsByStoreId(store.getId());
-            // 如果该商店有上架商品
-            if (goodsList != null && goodsList.size() > 0) {
-               throw new StoreException(MessageConstant.THE_STORE_HAS_ITEMS_ON_THE_SHELVES);
+            if (goodsList != null && !goodsList.isEmpty()) {
+                storeWithItems.add(store.getId());
             }
         }
-        // 删除的数据
-        storeMapper.deleteByIds(ids);
+        // 如果有上架商品
+        if (!storeWithItems.isEmpty()) {
+            throw new StoreException(MessageConstant.THE_STORE_HAS_ITEMS_ON_THE_SHELVES);
+        }
+
+        // 批量删除商店
+        storeMapper.deleteByIds(storeList.stream()
+                .map(Store::getId)
+                .collect(Collectors.toList()));
+
+        // 提取所有需要修改身份的用户ID
+        List<Long> userId = storeList.stream()
+                .map(Store::getUserId)
+                .collect(Collectors.toList());
+        // 得到用户列表
+        List<User> userList = userId.stream()
+                .map(id -> User.builder()
+                        .id(id)
+                        .status(UserConstant.COMMON_USER)
+                        .build())
+                .collect(Collectors.toList());
+        // 批量更新
+        userMapper.batchUpdateUsers(userList);
     }
 
     /**
      * 开店或关店
+     *
      * @param status
      * @param id
      */
@@ -207,6 +246,7 @@ public class StoreServiceImpl implements StoreService {
 
     /**
      * 得到商店详情
+     *
      * @param id
      * @return
      */
@@ -220,8 +260,47 @@ public class StoreServiceImpl implements StoreService {
         return storeMapper.getStoreDetail(id);
     }
 
+    @Override
+    public StoreAllGoodsVO getStoreAllGoods(Long id) {
+        Store store = storeMapper.findStoreById(id);
+        if (store == null) {
+            throw new StoreException(MessageConstant.STORE_IS_NOT_EXIST);
+        }
+        // 如果商店存在
+        return storeMapper.getAllGoods(id);
+    }
+
+    @Override
+    public StoreSearchVO searchStores(String storeName) {
+        if (storeName == null || "".equals(storeName)) {
+            throw new StoreException(MessageConstant.STORE_NAME_IS_EMPTY);
+        }
+
+        List<Store> storeList = storeMapper.queryStores(storeName);
+        return StoreSearchVO.builder()
+                .storeList(storeList)
+                .build();
+    }
+
+    @Override
+    public void updateStore(Store updatingStore) {
+        Long id = updatingStore.getId();
+        String logo = updatingStore.getLogo();
+        Store store = storeMapper.findStoreById(id);
+        if (store == null) {
+            throw new StoreException(MessageConstant.STORE_IS_NOT_EXIST);
+        }
+
+        if ("".equals(logo) || logo == null) {
+            throw new StoreException(MessageConstant.STORE_LOGO_IS_EMPTY);
+        }
+
+        storeMapper.update(updatingStore);
+    }
+
     /**
      * 防止后端接口暴露，通过Postman来访问接口 进行数据校验
+     *
      * @param storePageQueryDTO
      * @return
      */

@@ -9,29 +9,32 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class StorePageQueryVO {
+public class ApplyVO {
     // id
     private Long id;
-    // 用户id
-    private Long userId;
-    // 店名
-    private String storeName;
-    // 店的状态
-    private Integer status;
-    // 用户名称
+    // 用户名
     private String username;
-    // 商店地址
+    // 密码
+    private String password;
+    // 状态
+    private Integer status;
+    // 地址
     private Address address;
-    // 商店logo
-    private String logo;
+    // 商店名称
+    private String storeName;
+    // 拒绝理由
+    private String reason;
+
     // 创建时间
     private LocalDateTime createTime;
-    // 修改时间
+    // 更新时间
     private LocalDateTime updateTime;
 
-    private Integer page; // 页码
-    private Integer pageSize;// 每页显示数
+    private Integer page;
+    private Integer pageSize;
+
+    private Integer sort; // 1 升序 0 降序
 }

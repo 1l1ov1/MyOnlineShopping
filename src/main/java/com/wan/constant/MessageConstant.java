@@ -28,6 +28,8 @@ public class MessageConstant {
 
     public static final String THE_STATUS_IS_NOT_EXIST = "这个状态不存在";
 
+    public static final String STORE_LOGO_IS_EMPTY = "商店logo为空";
+    public static final String STORE_ADDRESS_IS_NOT_ALLOWED_TO_BE_EMPTY = "商店地址不允许为空";
     public static final String THE_STORE_HAS_ITEMS_ON_THE_SHELVES = "商店还有上架商品，无法删除";
     // 商品
     public static final String GOODS_IS_NOT_EXIST = "商品不存在";
@@ -41,8 +43,6 @@ public class MessageConstant {
     public static final String GOODS_STATUS_IS_OUT_OF_VALID_RANGE = "商品状态超出有效范围";
     public static final String GOODS_TOTAL_IS_NOT_ALLOWED_TO_BE_EMPTY = "商品总量不允许为空";
     public static final String GOODS_TOTAL_IS_OUT_OF_VALID_RANGE = "商品总量超出有效范围";
-
-
     public static final String PLEASE_CHOOSE_ONE_MORE_DATA_TO_DELETE = "请选择至少一条数据来删除";
 
     // 购物车
@@ -55,4 +55,10 @@ public class MessageConstant {
     // 订单
     public static final String ORDERS_NUMBER_IS_NOT_EXIST = "订单号不存在";
     public static final String ORDERS_STATUS_IS_WRONG = "订单状态出错";
+
+    // 申请
+    public static final String APPLY_IS_NOT_EXIST = "申请不存在";
+    public static final String APPLY_IS_EXIST = "已发送过审核，请勿重复发送";
+
+    public static final String APPLY_STATUS_IS_WRONG = "申请状态异常";
 }

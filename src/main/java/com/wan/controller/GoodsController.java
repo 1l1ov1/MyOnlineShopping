@@ -8,6 +8,7 @@ import com.wan.result.Result;
 import com.wan.server.GoodsService;
 import com.wan.server.StoreService;
 import com.wan.vo.GoodsPageQueryVO;
+import com.wan.vo.GoodsSearchVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -75,5 +76,13 @@ public class GoodsController {
         log.info("修改商品的信息 {}", goodsPageQueryDTO);
         goodsService.updateGoods(goodsPageQueryDTO);
         return Result.success("修改成功");
+    }
+
+    @GetMapping("/query/{goodsName}")
+    @ApiOperation("搜索商品")
+    public Result<GoodsSearchVO> searchGoods(@PathVariable String goodsName) {
+        log.info("搜索商品 {}", goodsName);
+        GoodsSearchVO goodsSearchVO = goodsService.searchGoods(goodsName);
+        return Result.success(goodsSearchVO);
     }
 }

@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wan.mapper.ApplyMapper">
+    <resultMap id="applyDTO" type="com.wan.dto.ApplyDTO">
+        <id property="id" column="id"></id>
+        <result property="username" column="username"></result>
+        <result property="password" column="password"></result>
+        <result property="status" column="status"></result>
+        <result property="storeName" column="store_name"></result>
+        <result property="createTime" column="create_time"></result>
+        <result property="updateTime" column="update_time"></result>
+        <association property="address" javaType="com.wan.entity.Address"
+        >
+            <id column="id" property="id"></id>
+            <result column="store_id" property="storeId"></result>
+            <result column="province_code" property="provinceCode"></result>
+            <result column="province_name" property="provinceName"></result>
+            <result column="city_code" property="cityCode"></result>
+            <result column="city_name" property="cityName"></result>
+            <result column="district_code" property="districtCode"></result>
+            <result column="district_name" property="districtName"></result>
+            <result column="is_default" property="isDefault"></result>
+            <result property="createTime" column="create_time"></result>
+            <result property="updateTime" column="update_time"></result>
+        </association>
+    </resultMap>
+
+    <insert id="insertApply" useGeneratedKeys="true" keyProperty="id">
+        insert into apply_for_create_store(username, password, store_name,
+                                           reason, status, create_time,
+                                           update_time)
+        VALUES ( #{username}, #{password}, #{storeName}
+               , #{reason}, #{status}, #{createTime}, #{updateTime})
+
+    </insert>
+    <insert id="insertApplyAddress">
+        update apply_for_create_store
+        <set>
+            <if test="address.provinceCode != null">
+                province_code = #{address.provinceCode},
+            </if>
+            <if test="address.provinceName != null">
+                province_name = #{address.provinceName},
+            </if>
+            <if test="address.cityCode != null">
+                city_code = #{address.cityCode},
+            </if>
+            <if test="address.cityName != null">
+                city_name = #{address.cityName},
+            </if>
+            <if test="address.districtCode != null">
+                district_code = #{address.districtCode},
+            </if>
+            <if test="address.districtName != null">
+                district_name = #{address.districtName},
+            </if>
+            <if test="address.detail != null">
+                detail = #{address.detail}
+            </if>
+        </set>
+        where id = #{id}
+    </insert>
+    <update id="updateApply">
+        update apply_for_create_store
+        <set>
+            <if test="username != null">
+                username = #{username},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="storeName != null">
+                store_name = #{storeName},
+            </if>
+            <if test="reason != null">
+                reason = #{reason},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+
+        </set>
+        where id = #{id}
+    </update>
+    <delete id="batchDeleteApplies">
+        delete from apply_for_create_store where id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </delete>
+    <resultMap id="applyVO" type="com.wan.vo.ApplyVO">
+        <id column="id" property="id"></id>
+        <result column="username" property="username"></result>
+        <result column="password" property="password"></result>
+        <result column="status" property="status"></result>
+        <result column="store_name" property="storeName"></result>
+        <result column="reason" property="reason"></result>
+        <result column="create_time" property="createTime"></result>
+        <result column="update_time" property="updateTime"></result>
+        <association property="address" javaType="com.wan.entity.Address"
+                     columnPrefix="ad_">
+            <id column="id" property="id"></id>
+            <result column="store_id" property="storeId"></result>
+            <result column="province_code" property="provinceCode"></result>
+            <result column="province_name" property="provinceName"></result>
+            <result column="city_code" property="cityCode"></result>
+            <result column="city_name" property="cityName"></result>
+            <result column="district_code" property="districtCode"></result>
+            <result column="district_name" property="districtName"></result>
+            <result column="is_default" property="isDefault"></result>
+            <result column="detail" property="detail"></result>
+            <result property="createTime" column="create_time"></result>
+            <result property="updateTime" column="update_time"></result>
+        </association>
+    </resultMap>
+    <resultMap id="apply" type="com.wan.entity.Apply">
+        <id column="id" property="id"></id>
+        <result column="username" property="username"></result>
+        <result column="password" property="password"></result>
+        <result column="status" property="status"></result>
+        <result column="store_name" property="storeName"></result>
+        <result column="reason" property="reason"></result>
+        <result column="create_time" property="createTime"></result>
+        <result column="update_time" property="updateTime"></result>
+        <association property="address" javaType="com.wan.entity.Address"
+                     columnPrefix="ad_">
+            <id column="id" property="id"></id>
+            <result column="store_id" property="storeId"></result>
+            <result column="province_code" property="provinceCode"></result>
+            <result column="province_name" property="provinceName"></result>
+            <result column="city_code" property="cityCode"></result>
+            <result column="city_name" property="cityName"></result>
+            <result column="district_code" property="districtCode"></result>
+            <result column="district_name" property="districtName"></result>
+            <result column="is_default" property="isDefault"></result>
+            <result column="detail" property="detail"></result>
+            <result property="createTime" column="create_time"></result>
+            <result property="updateTime" column="update_time"></result>
+        </association>
+    </resultMap>
+    <select id="pageQuery" resultMap="applyVO">
+        select
+        id,
+        username,
+        password,
+        store_name,
+        status,
+        reason,
+        province_code ad_province_code,
+        province_name ad_province_name,
+        city_code ad_city_code,
+        city_name ad_city_name,
+        district_code ad_district_code,
+        district_name ad_district_name,
+        detail ad_detail,
+        create_time
+        from apply_for_create_store
+        <where>
+            <if test="username != null">
+                and username like concat('%', #{username}, '%')
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+            <if test="storeName != null">
+                and store_name like concat('%', #{storeName}, '%')
+            </if>
+        </where>
+        order by create_time
+        <if test="sort == 1">
+            asc
+        </if>
+        <if test="sort == 0">
+            desc
+        </if>
+    </select>
+    <select id="findAppliesById" resultMap="apply">
+        select
+        id,
+        username,
+        store_name,
+        password,
+        status,
+        reason,
+        province_code ad_province_code,
+        province_name ad_province_name,
+        city_code ad_city_code,
+        city_name ad_city_name,
+        district_code ad_district_code,
+        district_name ad_district_name,
+        detail ad_detail,
+        create_time
+        from apply_for_create_store where id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+    <select id="findApprovedOrUnderApply" resultMap="apply">
+        select *
+        from apply_for_create_store
+        where username = #{username} and status = 0
+           or status = 1
+    </select>
+</mapper>

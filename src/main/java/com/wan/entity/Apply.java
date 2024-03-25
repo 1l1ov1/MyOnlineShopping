@@ -7,26 +7,28 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class Store {
+public class Apply {
     // id
     private Long id;
-    // 用户id
-    private Long userId;
-    // 店名
-    private String storeName;
-    // 店的地址
-    private Address address;
-    // 店的状态
+    // 用户名
+    private String username;
+    // 密码
+    private String password;
+    // 状态
     private Integer status;
-    // 商店logo
-    private String logo;
+    // 地址
+    private Address address;
+    // 商店名称
+    private String storeName;
+    // 拒绝理由
+    private String reason;
+
     // 创建时间
     private LocalDateTime createTime;
-    // 修改时间
+    // 更新时间
     private LocalDateTime updateTime;
 }

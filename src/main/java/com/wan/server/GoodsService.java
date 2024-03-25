@@ -4,6 +4,7 @@ import com.wan.dto.GoodsPageQueryDTO;
 import com.wan.entity.Goods;
 import com.wan.result.PageResult;
 import com.wan.vo.GoodsPageQueryVO;
+import com.wan.vo.GoodsSearchVO;
 
 import java.util.List;
 
@@ -46,4 +47,11 @@ public interface GoodsService {
      * @return
      */
     List<Goods> queryAll();
+
+    /**
+     * 根据商品名搜索商品
+     * @param goodsName
+     * @return
+     */
+    GoodsSearchVO searchGoods(String goodsName);
 }

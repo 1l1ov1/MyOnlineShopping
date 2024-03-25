@@ -47,4 +47,11 @@ public interface UserMapper {
      * @param ids
      */
     void deleteByIds(List<Long> ids);
+
+    /**
+     * 批量修改用户
+     * @param userList
+     */
+    @AutoFill(OperationType.UPDATE)
+    void batchUpdateUsers(List<User> userList);
 }

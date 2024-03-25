@@ -122,6 +122,13 @@
                 and s.id = #{store.id}
             </if>
         </where>
+        order by o.create_time
+        <if test="sort == 1">
+            asc
+        </if>
+        <if test="sort == 0">
+            desc
+        </if>
     </select>
     <select id="findOrdersById" resultType="com.wan.entity.Orders">
         select * from orders where id in

@@ -25,6 +25,8 @@ public class StorePageQueryDTO {
     private String username;
     // 商店地址
     private Address address;
+    // 商店logo
+    private String logo;
     // 创建时间
     private LocalDateTime createTime;
     // 修改时间
@@ -32,4 +34,6 @@ public class StorePageQueryDTO {
 
     private Integer page; // 页码
     private Integer pageSize;// 每页显示数
+
+    private Integer sort;
 }

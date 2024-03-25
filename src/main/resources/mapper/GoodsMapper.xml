@@ -139,6 +139,13 @@
                   and s.user_id = #{store.userId}
               </if>-->
         </where>
+        order by g.create_time
+        <if test="sort == 1">
+            asc
+        </if>
+        <if test="sort == 0">
+            desc
+        </if>
     </select>
 
     <select id="findSHELVESGoodsByStoreId" resultType="com.wan.entity.Goods">
@@ -156,5 +163,23 @@
         <foreach collection="ids" item="id" open="(" close=")" separator=",">
             #{id}
         </foreach>
+    </select>
+
+
+    <select id="searchGoods" resultType="com.wan.entity.Goods">
+        select id,
+               store_id,
+               goods_name,
+               price,
+               total,
+               discount,
+               description,
+               cover_pic,
+               `status`,
+               create_time
+        from goods
+        where status = 1
+#           and total > 0
+          and goods_name like concat('%', #{goodsName}, '%')
     </select>
 </mapper>

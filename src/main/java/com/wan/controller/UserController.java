@@ -5,16 +5,15 @@ import com.wan.constant.JwtClaimConstant;
 import com.wan.constant.MessageConstant;
 import com.wan.constant.UserConstant;
 import com.wan.context.ThreadBaseContext;
+import com.wan.dto.ApplyDTO;
 import com.wan.dto.UserCreateStoreDTO;
 import com.wan.dto.UserLoginDTO;
 import com.wan.dto.UserPageQueryDTO;
-import com.wan.entity.Address;
-import com.wan.entity.Store;
-import com.wan.entity.User;
-import com.wan.entity.VerificationCode;
+import com.wan.entity.*;
 import com.wan.properties.JwtProperties;
 import com.wan.result.Result;
 import com.wan.server.AddressService;
+import com.wan.server.ApplyService;
 import com.wan.server.StoreService;
 import com.wan.server.UserService;
 import com.wan.utils.JwtUtils;
@@ -56,6 +55,8 @@ public class UserController {
     private AddressService addressService;
     @Autowired
     private StoreService storeService;
+    @Autowired
+    private ApplyService applyService;
 
     /**
      * 用户登录
@@ -233,4 +234,29 @@ public class UserController {
         addressService.update(address);
         return Result.success("修改成功");
     }
+
+    @PostMapping("/send")
+    @ApiOperation("发送开店申请")
+    public Result<String> sendApplyForCreateStore(@RequestBody ApplyDTO applyDTO) {
+        log.info("发送开店申请, {}", applyDTO);
+        applyService.addApply(applyDTO);
+        return Result.success("发送成功");
+    }
+
+    @PostMapping("/check")
+    @ApiOperation("/检查申请格式")
+    public Result<Boolean> checkApply(@RequestBody ApplyDTO applyDTO) {
+        log.info("检查开店申请, {}", applyDTO);
+        applyService.checkApply(applyDTO);
+        return Result.success("格式正确");
+    }
+
+    @GetMapping("/findApply/{username}")
+    @ApiOperation("查询用户是否已经发送过申请并审核通过")
+    public Result<Apply> findApplyExist (@PathVariable String username) {
+        log.info("查询用户是否发送过申请并审核通过 {}", username);
+        Apply apply = applyService.findApply(username);
+        return Result.success(apply);
+    }
+
 }

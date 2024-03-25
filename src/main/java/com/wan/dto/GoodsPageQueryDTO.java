@@ -41,4 +41,6 @@ public class GoodsPageQueryDTO {
 
     private Integer page; // 页码
     private Integer pageSize;// 每页显示数
+
+    private Integer sort;
 }

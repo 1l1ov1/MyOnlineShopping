@@ -13,6 +13,7 @@ import com.wan.mapper.StoreMapper;
 import com.wan.result.PageResult;
 import com.wan.server.GoodsService;
 import com.wan.vo.GoodsPageQueryVO;
+import com.wan.vo.GoodsSearchVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -103,13 +104,14 @@ public class GoodsServiceImpl implements GoodsService {
         Store store = storeMapper.findStoreById(goods.getStoreId());
 
         GoodsPageQueryVO goodsPageQueryVO = new GoodsPageQueryVO();
-        BeanUtils.copyProperties(goods,goodsPageQueryVO);
+        BeanUtils.copyProperties(goods, goodsPageQueryVO);
         goodsPageQueryVO.setStore(store);
         return goodsPageQueryVO;
     }
 
     /**
      * 修改商品
+     *
      * @param goodsPageQueryDTO
      */
     @Override
@@ -124,6 +126,18 @@ public class GoodsServiceImpl implements GoodsService {
     @Override
     public List<Goods> queryAll() {
         return goodsMapper.findSHELVESGoodsByStoreId(null);
+    }
+
+
+    @Override
+    public GoodsSearchVO searchGoods(String goodsName) {
+        if (goodsName == null || "".equals(goodsName)) {
+            throw new GoodsException(MessageConstant.GOODS_NAME_IS_NOT_ALLOWED_TO_BE_EMPTY);
+        }
+        List<Goods> goodsList = goodsMapper.searchGoods(goodsName);
+        return GoodsSearchVO.builder()
+                .goodsList(goodsList)
+                .build();
     }
 
     /**

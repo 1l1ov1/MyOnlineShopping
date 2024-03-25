@@ -6,6 +6,7 @@ import com.wan.dto.GoodsPageQueryDTO;
 import com.wan.entity.Goods;
 import com.wan.enumeration.OperationType;
 import com.wan.vo.GoodsPageQueryVO;
+import com.wan.vo.GoodsSearchVO;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
@@ -49,10 +50,12 @@ public interface GoodsMapper {
 
     /**
      * 根据id集合查询商品
+     *
      * @param ids
      * @return
      */
     List<Goods> findGoodsByIds(List<Long> ids);
+
     /**
      * 修改商品信息
      *
@@ -61,7 +64,19 @@ public interface GoodsMapper {
     @AutoFill(OperationType.UPDATE)
     void update(Goods goods);
 
-
+    /**
+     * 搜索上架商品
+     *
+     * @param storeId
+     * @return
+     */
     List<Goods> findSHELVESGoodsByStoreId(Long storeId);
 
+    /**
+     * 搜索上架商品
+     *
+     * @param goodsName
+     * @return
+     */
+    List<Goods> searchGoods(String goodsName);
 }

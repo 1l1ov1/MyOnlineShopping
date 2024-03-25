@@ -3,7 +3,9 @@ package com.wan.server;
 import com.wan.dto.StorePageQueryDTO;
 import com.wan.entity.Store;
 import com.wan.result.PageResult;
+import com.wan.vo.StoreAllGoodsVO;
 import com.wan.vo.StorePageQueryVO;
+import com.wan.vo.StoreSearchVO;
 
 import java.util.List;
 
@@ -66,4 +68,24 @@ public interface StoreService {
      * @param storePageQueryDTO
      */
     void addStore(StorePageQueryDTO storePageQueryDTO);
+
+    /**
+     * 得到商店中所有的商品
+     * @param id
+     * @return
+     */
+    StoreAllGoodsVO getStoreAllGoods(Long id);
+
+    /**
+     * 搜索商店
+     * @param storeName
+     * @return
+     */
+    StoreSearchVO searchStores(String storeName);
+
+    /**
+     * 修改商品图片
+     * @param updatingStore
+     */
+    void updateStore(Store updatingStore);
 }

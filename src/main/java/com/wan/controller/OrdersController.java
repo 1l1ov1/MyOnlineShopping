@@ -32,7 +32,7 @@ public class OrdersController {
         return Result.success(pageResult);
     }
 
-    @DeleteMapping("delete")
+    @DeleteMapping("/delete")
     @ApiOperation("批量删除")
     public Result<String> batchDeleteOrders(@RequestParam List<Long> ids) {
         log.info("批量删除 {}", ids);

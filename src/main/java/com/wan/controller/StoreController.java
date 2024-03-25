@@ -5,7 +5,9 @@ import com.wan.dto.StorePageQueryDTO;
 import com.wan.result.PageResult;
 import com.wan.result.Result;
 import com.wan.server.StoreService;
+import com.wan.vo.StoreAllGoodsVO;
 import com.wan.vo.StorePageQueryVO;
+import com.wan.vo.StoreSearchVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -70,5 +72,21 @@ public class StoreController {
         log.info("开店和关店{}, {}", status, id);
         storeService.openOrClose(status, id);
         return Result.success("修改成功");
+    }
+
+    @GetMapping("/getGoods/{id}")
+    @ApiOperation("得到商店的商品")
+    public Result<StoreAllGoodsVO> getStoreAllGoods(@PathVariable Long id) {
+        log.info("得到商店的商品 {}", id);
+        StoreAllGoodsVO storeAllGoodsVO = storeService.getStoreAllGoods(id);
+        return Result.success(storeAllGoodsVO);
+    }
+
+    @GetMapping("/queryStores/{storeName}")
+    @ApiOperation("搜索商店")
+    public Result<StoreSearchVO> queryStores(@PathVariable String storeName) {
+        log.info("搜索商店 {}", storeName);
+        StoreSearchVO storeSearchVO = storeService.searchStores(storeName);
+        return Result.success(storeSearchVO);
     }
 }

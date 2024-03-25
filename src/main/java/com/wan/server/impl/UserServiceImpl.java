@@ -134,33 +134,6 @@ public class UserServiceImpl implements UserService {
 
     }
 
-  /*  @Override
-    public void createStore(UserLoginDTO userLoginDTO, String storeName) {
-        // 得到该用户
-        User user = isValid(userLoginDTO);
-        // 如果该用户是管理员
-        if (UserConstant.MANAGER == user.getStatus()) {
-            throw new StoreException(MessageConstant.MANAGE_IS_NOT_ALLOWED_TO_OPEN_STORE);
-        }
-        // 将该用户的身份设为商家
-        user.setStatus(UserConstant.BUSINESSMAN);
-        // 修改他
-        userMapper.update(user);
-        Store store = storeMapper.findStoreByStoreName(storeName);
-        // 如果店名已经存在
-        if (store != null) {
-            throw new StoreException(MessageConstant.STORE_EXIST);
-        }
-        // 创建商店
-        store = Store.builder()
-                .storeName(storeName)
-                .userId(user.getId())
-                .status(StoreConstant.OPEN)
-                .build();
-        // 添加商店
-        storeMapper.insertStore(store);
-    }*/
-
     @Override
     @Transactional
     public void createStore(UserCreateStoreDTO userCreateStoreDTO) {
@@ -182,13 +155,16 @@ public class UserServiceImpl implements UserService {
         if (storeByStoreName != null) {
             throw new StoreException(MessageConstant.STORE_EXIST);
         }
-
         // 如果没有
         store.setUserId(user.getId());
         store.setStatus(StoreConstant.OPEN);
         // 添加商店
         storeMapper.insertStore(store);
+        // 得到地址
         Address address = userCreateStoreDTO.getAddress();
+        if (address == null) {
+            throw new StoreException(MessageConstant.STORE_ADDRESS_IS_NOT_ALLOWED_TO_BE_EMPTY);
+        }
         // 成为店家
         user.setStatus(UserConstant.BUSINESSMAN);
         userMapper.update(user);

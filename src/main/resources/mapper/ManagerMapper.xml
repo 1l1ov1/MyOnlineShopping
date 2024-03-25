@@ -112,6 +112,12 @@
             </if>
         </where>
         order by user.create_time
+        <if test="sort == 1">
+            asc
+        </if>
+        <if test="sort == 0">
+            desc
+        </if>
     </select>
     <!--商店的分页查询-->
     <select id="storePageQuery" resultType="com.wan.vo.StorePageQueryVO">

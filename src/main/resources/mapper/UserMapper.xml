@@ -40,6 +40,71 @@
         where id = #{id}
 
     </update>
+    <update id="batchUpdateUsers">
+        update user
+        <trim prefix="set" suffixOverrides=",">
+            <trim prefix="password=case" suffix="end,">
+                <foreach collection="userList" item="user" index="index">
+                    <if test="user.password != null and user.password != ''">
+                        when id=#{user.id} then #{user.password}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="status=case" suffix="end,">
+                <foreach collection="userList" item="user" index="index">
+                    <if test="user.status != null">
+                        when id=#{user.id} then #{user.status}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="avatar=case" suffix="end,">
+                <foreach collection="userList" item="user" index="index">
+                    <if test="user.avatar != null">
+                        when id=#{user.id} then #{user.avatar}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="money=case" suffix="end,">
+                <foreach collection="userList" item="user" index="index">
+                    <if test="user.money != null">
+                        when id=#{user.id} then #{user.money}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="phone=case" suffix="end,">
+                <foreach collection="userList" item="user" index="index">
+                    <if test="user.phone != null">
+                        when id=#{user.id} then #{user.phone}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="is_online=case" suffix="end,">
+                <foreach collection="userList" item="user" index="index">
+                    <if test="user.isOnline != null">
+                        when id=#{user.id} then #{user.isOnline}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="account_status=case" suffix="end,">
+                <foreach collection="userList" item="user" index="index">
+                    <if test="user.accountStatus != null">
+                        when id=#{user.id} then #{user.accountStatus}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="update_time=case" suffix="end,">
+                <foreach collection="userList" item="user" index="index">
+                    <if test="user.updateTime != null">
+                        when id=#{user.id} then #{user.updateTime}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        where
+        <foreach collection="userList" separator="or" item="user" index="index">
+            id = #{user.id}
+        </foreach>
+    </update>
     <delete id="deleteByIds">
         delete from user where id in
         <foreach collection="ids" item="id" open="(" close=")" separator=",">

@@ -27,4 +27,6 @@ public class UserPageQueryDTO {
     private LocalDateTime updateTime; // 账号修改时间
     private Integer page; // 页码
     private Integer pageSize;// 每页显示数
+
+    private Integer sort;
 }
