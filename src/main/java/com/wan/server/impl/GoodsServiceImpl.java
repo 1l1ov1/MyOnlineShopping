@@ -4,10 +4,13 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.wan.constant.MessageConstant;
 import com.wan.dto.GoodsPageQueryDTO;
+import com.wan.entity.Category;
 import com.wan.entity.Goods;
 import com.wan.entity.Store;
+import com.wan.exception.CategoryException;
 import com.wan.exception.GoodsException;
 import com.wan.exception.StoreException;
+import com.wan.mapper.CategoryMapper;
 import com.wan.mapper.GoodsMapper;
 import com.wan.mapper.StoreMapper;
 import com.wan.result.PageResult;
@@ -28,6 +31,8 @@ public class GoodsServiceImpl implements GoodsService {
     private GoodsMapper goodsMapper;
     @Autowired
     private StoreMapper storeMapper;
+    @Autowired
+    private CategoryMapper categoryMapper;
 
     /**
      * 商品分页查询
@@ -62,6 +67,12 @@ public class GoodsServiceImpl implements GoodsService {
             // 如果商店不存在
             if (store == null) {
                 throw new StoreException(MessageConstant.STORE_IS_NOT_EXIST);
+            }
+
+            // 查找分类
+            Long categoryId = goodsPageQueryDTO.getCategoryId();
+            if (categoryId == null) {
+                throw new CategoryException(MessageConstant.CATEGORY_IS_NOT_EXIST);
             }
             Long storeId = store.getId();
             Goods goods = new Goods();
@@ -125,7 +136,7 @@ public class GoodsServiceImpl implements GoodsService {
 
     @Override
     public List<Goods> queryAll() {
-        return goodsMapper.findSHELVESGoodsByStoreId(null);
+        return goodsMapper.findShelvesGoodsByStoreId(null);
     }
 
 
@@ -138,6 +149,21 @@ public class GoodsServiceImpl implements GoodsService {
         return GoodsSearchVO.builder()
                 .goodsList(goodsList)
                 .build();
+    }
+
+
+    @Override
+    public GoodsSearchVO findGoods(Long id) {
+        if (id == null) {
+            throw new CategoryException(MessageConstant.CATEGORY_IS_NOT_EXIST);
+        }
+        // 查询分类的上架商品
+        List<Goods> goodsList = goodsMapper.findGoodsByCategoryId(id);
+
+        return GoodsSearchVO.builder()
+                .goodsList(goodsList)
+                .build();
+
     }
 
     /**

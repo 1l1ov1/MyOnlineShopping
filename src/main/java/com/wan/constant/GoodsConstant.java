@@ -1,6 +1,9 @@
 package com.wan.constant;
 
 public class GoodsConstant {
+    private GoodsConstant() {
+
+    }
     // 商品上架
     public static final Integer SHELVES = 1;
     // 商品下架

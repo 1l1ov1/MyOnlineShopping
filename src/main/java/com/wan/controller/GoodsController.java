@@ -85,4 +85,12 @@ public class GoodsController {
         GoodsSearchVO goodsSearchVO = goodsService.searchGoods(goodsName);
         return Result.success(goodsSearchVO);
     }
+
+    @GetMapping("/category/{id}")
+    @ApiOperation("根据分类id查询上架商品")
+    public Result<GoodsSearchVO> queryGoods(@PathVariable Long id) {
+        log.info("根据分类id查询 {}", id);
+        GoodsSearchVO goodsSearchVO = goodsService.findGoods(id);
+        return Result.success(goodsSearchVO);
+    }
 }

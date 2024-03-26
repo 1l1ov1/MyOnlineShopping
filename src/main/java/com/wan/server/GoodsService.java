@@ -54,4 +54,11 @@ public interface GoodsService {
      * @return
      */
     GoodsSearchVO searchGoods(String goodsName);
+
+    /**
+     * 根据分类id查询商品
+     * @param id
+     * @return
+     */
+    GoodsSearchVO findGoods(Long id);
 }

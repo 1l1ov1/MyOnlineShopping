@@ -1,6 +1,9 @@
 package com.wan.constant;
 
 public class OrdersConstant {
+    private OrdersConstant() {
+
+    }
     /**
      * 未发货订单
      */

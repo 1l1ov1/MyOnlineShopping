@@ -1,6 +1,9 @@
 package com.wan.constant;
 
 public class ApplyConstant {
+    private ApplyConstant() {
+
+    }
     /**
      * 待审核中
      */

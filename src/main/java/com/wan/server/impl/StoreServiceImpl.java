@@ -193,7 +193,7 @@ public class StoreServiceImpl implements StoreService {
         // 检查商店是否有上架商品
         List<Long> storeWithItems = new ArrayList<>();
         for (Store store : storeList) {
-            List<Goods> goodsList = goodsMapper.findSHELVESGoodsByStoreId(store.getId());
+            List<Goods> goodsList = goodsMapper.findShelvesGoodsByStoreId(store.getId());
             if (goodsList != null && !goodsList.isEmpty()) {
                 storeWithItems.add(store.getId());
             }

@@ -1,6 +1,9 @@
 package com.wan.constant;
 
 public class UserConstant {
+    private UserConstant() {
+
+    }
     // 用户身份
     public static final int MANAGER = 0; // 管理员
     public static final int COMMON_USER = 1; // 普通用户

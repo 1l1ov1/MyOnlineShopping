@@ -4,6 +4,9 @@ package com.wan.constant;
  * 信息提示常量类
  */
 public class MessageConstant {
+    private MessageConstant() {
+
+    }
     // 账号
     public static final String PASSWORD_ERROR = "密码错误";
     public static final String ACCOUNT_NOT_FOUND = "账号不存在";
@@ -61,4 +64,13 @@ public class MessageConstant {
     public static final String APPLY_IS_EXIST = "已发送过审核，请勿重复发送";
 
     public static final String APPLY_STATUS_IS_WRONG = "申请状态异常";
+
+    // 分类
+    public static final String CATEGORY_IS_NOT_EXIST = "分类不存在";
+
+    public static final String CATEGORY_IS_EXIST = "分类已经存在";
+    public static final String CATEGORY_STATUS_IS_WRONG = "分类状态异常";
+    public static final String CATEGORY_NAME_IS_EMPTY = "分类名称为空";
+
+    public static final String HAVING_SHELVE_GOODS_IN_THE_CATEGORY = "该分类下还有上架商品，无法禁用或删除";
 }

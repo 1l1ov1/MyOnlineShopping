@@ -22,7 +22,10 @@ public class GoodsPageQueryVO {
     private String goodsName;
     // 表明商品的上架状态 0下架 1上架
     private Integer status;
-
+    // 分类id
+    private Long categoryId;
+    // 分类名称
+    private String categoryName;
     // 商品的价格
     private Double price;
     // 商品的总量

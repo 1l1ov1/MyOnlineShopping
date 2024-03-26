@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wan.mapper.CategoryMapper">
+    <insert id="insert">
+        insert into category(category_name, category_status, update_time, create_time)
+        VALUES (#{categoryName}, #{categoryStatus}, #{updateTime}, #{createTime})
+    </insert>
+    <update id="updateCategory">
+        update category
+        <set>
+            <if test="categoryName != null and categoryName != ''">
+                category_name = #{categoryName},
+            </if>
+            <if test="categoryStatus != null">
+                category_status = #{categoryStatus},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+    <delete id="batchDelete">
+        delete from category where id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </delete>
+
+
+    <select id="pageQuery" resultType="com.wan.vo.CategoryVO">
+        select * from category
+        <where>
+            <if test="categoryName != null">
+                and category_name like concat('%',#{categoryName},'%')
+            </if>
+            <if test="categoryStatus != null">
+                and category_status = #{categoryStatus}
+            </if>
+        </where>
+        order by create_time
+        <if test="sort == 1">
+            asc
+        </if>
+        <if test="sort == 0">
+            desc
+        </if>
+    </select>
+    <select id="findCategoryByIds" resultType="com.wan.entity.Category">
+        select * from category
+        where id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+</mapper>

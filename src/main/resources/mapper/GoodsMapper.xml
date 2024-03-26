@@ -8,6 +8,7 @@
         <result column="status" property="status"></result>
         <result column="store_id" property="storeId"></result>
         <result column="goods_name" property="goodsName"></result>
+        <result column="category_name" property="categoryName"></result>
         <result column="total" property="total"></result>
         <result column="price" property="price"></result>
         <result column="discount" property="discount"></result>
@@ -64,10 +65,13 @@
     </select>
     <!--添加商品-->
     <insert id="insertGoods" keyProperty="id" useGeneratedKeys="true">
-        insert into goods(store_id, goods_name, price, total, discount, description, cover_pic, status, update_time,
+        insert into goods(store_id, goods_name, price, total, discount,
+                          description, cover_pic, status, category_id,
+                          update_time,
                           create_time)
-        VALUES (#{storeId}, #{goodsName}, #{price}, #{total}, #{discount}, #{description}, #{coverPic}, #{status},
-                #{updateTime}, #{createTime})
+        VALUES (#{storeId}, #{goodsName}, #{price}, #{total}, #{discount},
+                #{description}, #{coverPic}, #{status}, #{categoryId}
+                    #{updateTime}, #{createTime})
     </insert>
     <!--修改商品信息-->
     <update id="update">
@@ -97,6 +101,9 @@
             <if test="coverPic != null">
                 cover_pic = #{coverPic},
             </if>
+            <if test="categoryId != null">
+                category_id = #{categoryId}
+            </if>
         </set>
         where id = #{id}
     </update>
@@ -113,6 +120,7 @@
         g.id,
         g.store_id,
         g.goods_name,
+        category_name,
         g.price,
         g.total,
         g.discount,
@@ -121,13 +129,16 @@
         g.`status`,
         g.create_time
         FROM
-        goods g
+        goods g inner join category c on g.category_id = c.id
         <where>
             <if test="goodsName != null">
                 and goods_name like concat('%', #{goodsName}, '%')
             </if>
             <if test="status != null">
                 and g.status = #{status}
+            </if>
+            <if test="categoryId != null">
+                and g.category_id = #{categoryId}
             </if>
             <if test="updateTime != null">
                 and g.update_time = #{updateTime}
@@ -148,7 +159,7 @@
         </if>
     </select>
 
-    <select id="findSHELVESGoodsByStoreId" resultType="com.wan.entity.Goods">
+    <select id="findShelvesGoodsByStoreId" resultType="com.wan.entity.Goods">
         select * from goods
         <where>
             status = 1
@@ -169,7 +180,8 @@
     <select id="searchGoods" resultType="com.wan.entity.Goods">
         select id,
                store_id,
-               goods_name,
+                goods_name,
+               category_id,
                price,
                total,
                discount,

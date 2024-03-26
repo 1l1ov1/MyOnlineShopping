@@ -82,7 +82,7 @@ public class StoreController {
         return Result.success(storeAllGoodsVO);
     }
 
-    @GetMapping("/queryStores/{storeName}")
+    @GetMapping("/query/{storeName}")
     @ApiOperation("搜索商店")
     public Result<StoreSearchVO> queryStores(@PathVariable String storeName) {
         log.info("搜索商店 {}", storeName);

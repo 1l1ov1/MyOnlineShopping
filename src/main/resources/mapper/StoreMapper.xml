@@ -147,7 +147,7 @@
         <collection property="goodsList" javaType="java.util.List"
                     ofType="com.wan.entity.Goods"
                     column="{storeId=id}"
-                    select="com.wan.mapper.GoodsMapper.findSHELVESGoodsByStoreId">
+                    select="com.wan.mapper.GoodsMapper.findShelvesGoodsByStoreId">
 
         </collection>
     </resultMap>

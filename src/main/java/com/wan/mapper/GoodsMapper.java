@@ -70,7 +70,7 @@ public interface GoodsMapper {
      * @param storeId
      * @return
      */
-    List<Goods> findSHELVESGoodsByStoreId(Long storeId);
+    List<Goods> findShelvesGoodsByStoreId(Long storeId);
 
     /**
      * 搜索上架商品
@@ -79,4 +79,12 @@ public interface GoodsMapper {
      * @return
      */
     List<Goods> searchGoods(String goodsName);
+
+    /**
+     * 根据分类id查询上架商品
+     * @param categoryId
+     * @return
+     */
+    @Select("select * from goods where category_id = #{categoryId} and status = 1")
+    List<Goods> findGoodsByCategoryId(Long categoryId);
 }
