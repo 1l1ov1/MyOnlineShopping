@@ -7,6 +7,7 @@ public class MessageConstant {
     private MessageConstant() {
 
     }
+
     // 账号
     public static final String PASSWORD_ERROR = "密码错误";
     public static final String ACCOUNT_NOT_FOUND = "账号不存在";
@@ -73,4 +74,8 @@ public class MessageConstant {
     public static final String CATEGORY_NAME_IS_EMPTY = "分类名称为空";
 
     public static final String HAVING_SHELVE_GOODS_IN_THE_CATEGORY = "该分类下还有上架商品，无法禁用或删除";
+
+    // 收藏夹
+    public static final String THIS_FAVORITE_IS_NOT_EXIST = "该收藏品不存在";
+
 }

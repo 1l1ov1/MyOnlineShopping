@@ -80,14 +80,22 @@
                          where username = #{username})
     </select>
     <insert id="batchInsertOrder">
-        insert into orders(goods_name, user_id, goods_id, number,
+        insert into orders(goods_name, user_id, goods_id, store_id,number,
         total_price, pay, status, create_time,
         update_time) VALUES
         <foreach collection="ordersList" item="orders" separator=",">
-            (#{orders.goodsName}, #{orders.userId}, #{orders.goodsId},
+            (#{orders.goodsName}, #{orders.userId}, #{orders.goodsId},#{orders.storeId},
             #{orders.number}, #{orders.totalPrice}, #{orders.pay},
             #{orders.status}, #{orders.createTime}, #{orders.updateTime})
         </foreach>
+    </insert>
+    <insert id="insertOrders">
+        insert into orders(goods_name, user_id, goods_id, store_id,
+                           total_price, pay, status, create_time,
+                           update_time, number)
+        VALUES (#{goodsName}, #{userId}, #{goodsId}, #{storeId},
+                #{totalPrice}, #{pay}, #{status},
+                #{createTime}, #{updateTime}, #{number})
     </insert>
     <select id="pageQuery" resultMap="ordersPageQueryVO">
         SELECT o.id,

@@ -43,6 +43,12 @@ public interface UserMapper {
     User getById(Long userId);
 
     /**
+     * 根据ids得到用户列表
+     * @param ids
+     * @return
+     */
+    List<User> findUserByIds(List<Long> ids);
+    /**
      * 删除用户
      * @param ids
      */

@@ -1,4 +1,4 @@
-package com.wan.entity;
+package com.wan.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,20 +9,17 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class Orders {
-    private Long id;
-    private String goodsName;
-    private Long userId;
+public class GoodsPurchaseDTO {
     private Long goodsId;
     private Long storeId;
+    private String goodsName;
     private Integer number;
+    private Double price;
+    private Double discount;
     private BigDecimal totalPrice;
-    private Integer pay;
-    private Integer status;
-
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
 }

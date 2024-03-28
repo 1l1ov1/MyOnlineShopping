@@ -42,6 +42,11 @@ public class Cart implements Serializable {
     @ApiModelProperty("商品id")
     private Long goodsId;
     /**
+     * 商店id
+     */
+    @ApiModelProperty("商店id")
+    private Long storeId;
+    /**
      * 商品名称
      */
     @ApiModelProperty("商品名称")

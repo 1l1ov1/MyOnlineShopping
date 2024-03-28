@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wan.mapper.FavoriteMapper">
+
+
+    <insert id="batchSave">
+        insert into favorite(user_id, goods_id, store_id,create_time, update_time)
+        VALUES
+        <foreach collection="favoriteDTOList" item="favoriteDTO" separator=",">
+            ( #{favoriteDTO.userId}, #{favoriteDTO.goodsId}, #{favoriteDTO.storeId},
+            #{favoriteDTO.createTime}, #{favoriteDTO.updateTime})
+
+        </foreach>
+    </insert>
+    <delete id="batchDeleteFavorite">
+        delete from favorite where user_id = #{userId} and
+        <if test="target == 'product'">
+            goods_id in
+            <foreach collection="ids" item="id" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+        <if test="target == 'store'">
+            store_id in
+            <foreach collection="ids" item="id" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+    </delete>
+
+    <resultMap id="favorite" type="com.wan.entity.Favorite">
+        <id property="id" column="id"></id>
+        <result property="userId" column="user_id"></result>
+        <result property="goodsId" column="goods_id"></result>
+        <result property="storeId" column="store_id"></result>
+        <result property="cartId" column="cart_id"></result>
+        <result property="createTime" column="create_time"></result>
+        <result property="updateTime" column="update_time"></result>
+        <association property="goods" javaType="com.wan.entity.Goods"
+                     columnPrefix="g_">
+            <id column="id" property="id"></id>
+            <result column="status" property="status"></result>
+            <result column="store_id" property="storeId"></result>
+            <result column="goods_name" property="goodsName"></result>
+            <result column="category_id" property="categoryId"></result>
+            <result column="total" property="total"></result>
+            <result column="price" property="price"></result>
+            <result column="discount" property="discount"></result>
+            <result column="cover_pic" property="coverPic"></result>
+            <result column="description" property="description"></result>
+            <result column="create_time" property="createTime"></result>
+            <result column="update_time" property="updateTime"></result>
+        </association>
+        <association property="store" javaType="com.wan.entity.Store"
+                     columnPrefix="s_">
+            <id column="id" property="id"></id>
+            <result property="userId" column="user_id"></result>
+            <result property="storeName" column="store_name"></result>
+            <result property="userId" column="user_id"></result>
+            <result property="status" column="status"></result>
+            <result property="logo" column="logo"></result>
+            <result property="createTime" column="create_time"></result>
+            <result property="updateTime" column="update_time"></result>
+        </association>
+    </resultMap>
+
+    <select id="queryFavoriteByUserId" resultMap="favorite">
+        select f.id,
+               f.user_id,
+               f.goods_id,
+               g.goods_name  g_goods_name,
+               g.cover_pic   g_cover_pic,
+               g.price       g_price,
+               g.discount    g_discount,
+               g.description g_description,
+               g.total       g_total,
+               s.store_name  s_store_name,
+               s.logo        s_logo,
+               f.store_id,
+               f.create_time
+        from favorite f
+                 LEFT JOIN goods g on f.goods_id = g.id
+                 LEFT JOIN store s on f.store_id = s.id
+        where f.user_id = #{userId}
+    </select>
+    <select id="queryOneTypeFavorite" resultType="com.wan.entity.Favorite">
+        select * from favorite
+        where user_id = #{userId}
+        and
+        <if test="target == 'product'">
+            goods_id in
+            <foreach collection="ids" item="id" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+
+        <if test="target == 'store'">
+            store_id in
+            <foreach collection="ids" item="id" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+    </select>
+</mapper>

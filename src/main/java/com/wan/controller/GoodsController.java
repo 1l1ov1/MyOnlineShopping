@@ -1,6 +1,7 @@
 package com.wan.controller;
 
 import com.wan.dto.GoodsPageQueryDTO;
+import com.wan.dto.GoodsPurchaseDTO;
 import com.wan.entity.Goods;
 import com.wan.entity.Store;
 import com.wan.result.PageResult;
@@ -92,5 +93,13 @@ public class GoodsController {
         log.info("根据分类id查询 {}", id);
         GoodsSearchVO goodsSearchVO = goodsService.findGoods(id);
         return Result.success(goodsSearchVO);
+    }
+
+    @PostMapping("/buy")
+    @ApiOperation("立即购买")
+    public Result<String> buyGoods(@RequestBody GoodsPurchaseDTO goodsPurchaseDTO) {
+        log.info("立即购买 {}", goodsPurchaseDTO);
+        goodsService.buy(goodsPurchaseDTO);
+        return Result.success("购买成功");
     }
 }

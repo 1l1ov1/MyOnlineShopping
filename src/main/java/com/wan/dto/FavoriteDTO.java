@@ -1,28 +1,22 @@
-package com.wan.entity;
+package com.wan.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class Orders {
+public class FavoriteDTO {
     private Long id;
-    private String goodsName;
     private Long userId;
     private Long goodsId;
     private Long storeId;
-    private Integer number;
-    private BigDecimal totalPrice;
-    private Integer pay;
-    private Integer status;
-
+    private Long cartId;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
 }

@@ -3,16 +3,17 @@ package com.wan.server.impl;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.wan.constant.MessageConstant;
+import com.wan.constant.OrdersConstant;
+import com.wan.constant.PayConstant;
+import com.wan.context.ThreadBaseContext;
 import com.wan.dto.GoodsPageQueryDTO;
-import com.wan.entity.Category;
-import com.wan.entity.Goods;
-import com.wan.entity.Store;
+import com.wan.dto.GoodsPurchaseDTO;
+import com.wan.entity.*;
 import com.wan.exception.CategoryException;
 import com.wan.exception.GoodsException;
+import com.wan.exception.OrdersException;
 import com.wan.exception.StoreException;
-import com.wan.mapper.CategoryMapper;
-import com.wan.mapper.GoodsMapper;
-import com.wan.mapper.StoreMapper;
+import com.wan.mapper.*;
 import com.wan.result.PageResult;
 import com.wan.server.GoodsService;
 import com.wan.vo.GoodsPageQueryVO;
@@ -20,7 +21,10 @@ import com.wan.vo.GoodsSearchVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,6 +37,10 @@ public class GoodsServiceImpl implements GoodsService {
     private StoreMapper storeMapper;
     @Autowired
     private CategoryMapper categoryMapper;
+    @Autowired
+    private OrdersMapper ordersMapper;
+    @Autowired
+    private UserMapper userMapper;
 
     /**
      * 商品分页查询
@@ -164,6 +172,54 @@ public class GoodsServiceImpl implements GoodsService {
                 .goodsList(goodsList)
                 .build();
 
+    }
+
+    /**
+     * 购买商品
+     *
+     * @param goodsPurchaseDTO
+     */
+    @Override
+    @Transactional
+    public void buy(GoodsPurchaseDTO goodsPurchaseDTO) {
+        Goods goods = goodsMapper.findGoodsById(goodsPurchaseDTO.getGoodsId());
+        if (goods == null) {
+            throw new GoodsException(MessageConstant.GOODS_IS_NOT_EXIST);
+        }
+        // 如果该商品存在
+        Long total = goods.getTotal();
+        Integer number = goodsPurchaseDTO.getNumber();
+        // 如果购买数量大于剩余量
+        if (total < number) {
+            throw new GoodsException(MessageConstant.GOODS_TOTAL_IS_OUT_OF_VALID_RANGE);
+        }
+        Long userId = ThreadBaseContext.getCurrentId();
+
+        BigDecimal totalPrice = goodsPurchaseDTO.getTotalPrice();
+        Orders orders = Orders.builder()
+                .goodsId(goodsPurchaseDTO.getGoodsId())
+                .goodsName(goodsPurchaseDTO.getGoodsName())
+                .number(goodsPurchaseDTO.getNumber())
+                .pay(PayConstant.WALLET_PAYMENTS)
+                .storeId(goodsPurchaseDTO.getStoreId())
+                .userId(userId)
+                .totalPrice(goodsPurchaseDTO.getTotalPrice())
+                .status(OrdersConstant.UNSHIPPED_ORDER)
+                .build();
+
+        // 添加订单
+        ordersMapper.insertOrders(orders);
+        // 用户扣钱
+        User user = userMapper.getById(userId);
+        BigDecimal userMoney = user.getMoney();
+        // 如果金额不足
+        if (userMoney.compareTo(totalPrice) < 0) {
+            throw new OrdersException(MessageConstant.THE_AMOUNT_IS_INSUFFICIENT);
+        }
+
+        // 如果金额足够
+        user.setMoney(userMoney.subtract(totalPrice));
+        userMapper.update(user);
     }
 
     /**

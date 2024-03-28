@@ -6,6 +6,7 @@ import com.wan.dto.OrdersPageQueryDTO;
 import com.wan.entity.Orders;
 import com.wan.enumeration.OperationType;
 import com.wan.vo.OrdersPageQueryVO;
+import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -15,13 +16,23 @@ public interface OrdersMapper {
 
     /**
      * 批量添加订单
+     *
      * @param ordersList
      */
     @AutoFill(OperationType.INSERT)
     void batchInsertOrder(List<Orders> ordersList);
 
     /**
+     * 单独插入
+     *
+     * @param orders
+     */
+    @AutoFill(OperationType.INSERT)
+    void insertOrders(Orders orders);
+
+    /**
      * 分页查询
+     *
      * @param ordersPageQueryDTO
      * @return
      */
@@ -35,12 +46,14 @@ public interface OrdersMapper {
 
     /**
      * 批量删除订单
+     *
      * @param ids
      */
     void batchDeleteOrders(List<Long> ids);
 
     /**
      * 修改订单
+     *
      * @param orders
      */
     void update(Orders orders);

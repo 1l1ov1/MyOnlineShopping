@@ -45,7 +45,18 @@ public class CartServiceImpl implements CartService {
     public void addCart(Cart cart) {
         if (isValid(cart)) {
             // 插入购物车
-            cartMapper.insert(cart);
+            Long userId = cart.getUserId();
+            Long goodsId = cart.getGoodsId();
+            Cart c = cartMapper.findGoodsByGoodsIdAndUserId(userId, goodsId);
+            if (c != null) {
+                // 如果存在了
+                c.setNumber(cart.getNumber() + c.getNumber());
+                // 并修改合并
+                cartMapper.updateCart(c);
+            } else {
+                // 如果不存在就添加
+                cartMapper.insert(cart);
+            }
         }
     }
 
@@ -171,6 +182,7 @@ public class CartServiceImpl implements CartService {
         orders.setTotalPrice(cart.getTotalPrice());
         orders.setPay(PayConstant.WALLET_PAYMENTS);
         orders.setUserId(userId);
+        orders.setStoreId(cart.getStoreId());
         orders.setStatus(OrdersConstant.UNSHIPPED_ORDER);
         return orders;
     }
