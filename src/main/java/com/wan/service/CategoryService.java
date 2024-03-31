@@ -1,4 +1,4 @@
-package com.wan.server;
+package com.wan.service;
 
 import com.wan.dto.CategoryDTO;
 import com.wan.result.PageResult;

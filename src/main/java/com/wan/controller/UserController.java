@@ -1,44 +1,37 @@
 package com.wan.controller;
 
-import com.wan.constant.AddressConstant;
 import com.wan.constant.JwtClaimConstant;
 import com.wan.constant.MessageConstant;
 import com.wan.constant.UserConstant;
 import com.wan.context.ThreadBaseContext;
-import com.wan.dto.ApplyDTO;
-import com.wan.dto.UserCreateStoreDTO;
-import com.wan.dto.UserLoginDTO;
-import com.wan.dto.UserPageQueryDTO;
+import com.wan.dto.*;
 import com.wan.entity.*;
 import com.wan.properties.JwtProperties;
+import com.wan.result.PageResult;
 import com.wan.result.Result;
-import com.wan.server.AddressService;
-import com.wan.server.ApplyService;
-import com.wan.server.StoreService;
-import com.wan.server.UserService;
+import com.wan.service.*;
 import com.wan.utils.JwtUtils;
+
 import com.wan.vo.UserLoginVO;
 import com.wan.vo.UserPageQueryVO;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import lombok.extern.java.Log;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.system.ApplicationHome;
-import org.springframework.context.annotation.Bean;
-import org.springframework.util.DigestUtils;
+
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
+
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.awt.image.BufferedImage;
-import java.io.File;
+
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.*;
 
 @RestController
@@ -57,6 +50,8 @@ public class UserController {
     private StoreService storeService;
     @Autowired
     private ApplyService applyService;
+    @Autowired
+    private GoodsService goodsService;
 
     /**
      * 用户登录
@@ -197,13 +192,6 @@ public class UserController {
         return Result.success("修改成功");
     }
 
-    // @PostMapping("/createStore/{storeName}")
-    // @ApiOperation("用户开店")
-    // public Result<String> createStore(@RequestBody UserLoginDTO userLoginDTO, @PathVariable String storeName) {
-    //     log.info("用户开店... {}, {}",userLoginDTO, storeName);
-    //     userService.createStore(userLoginDTO, storeName);
-    //     return Result.success("开店成功");
-    // }
     @PostMapping("/createStore")
     @ApiOperation("用户开店")
     public Result<String> createStore(@RequestBody UserCreateStoreDTO userCreateStoreDTO) {
@@ -253,10 +241,26 @@ public class UserController {
 
     @GetMapping("/findApply/{username}")
     @ApiOperation("查询用户是否已经发送过申请并审核通过")
-    public Result<Apply> findApplyExist (@PathVariable String username) {
+    public Result<Apply> findApplyExist(@PathVariable String username) {
         log.info("查询用户是否发送过申请并审核通过 {}", username);
         Apply apply = applyService.findApply(username);
         return Result.success(apply);
     }
 
+
+    @PostMapping("/buy")
+    @ApiOperation("立即购买")
+    public Result<String> buyGoods(@RequestBody GoodsPurchaseDTO goodsPurchaseDTO) {
+        log.info("立即购买 {}", goodsPurchaseDTO);
+        userService.buy(goodsPurchaseDTO);
+        return Result.success("购买成功");
+    }
+
+    @GetMapping("/queryOrders/{userId}")
+    @ApiOperation("用户查询某种类型的订单")
+    public Result<PageResult> userQueryOrders(@PathVariable Long userId, @RequestParam Integer target, @RequestParam Integer currentPage, @RequestParam Integer pageSize) {
+        log.info("用户查询某种类型的订单 {}, {}, {}, {}", userId, target, currentPage, pageSize);
+        PageResult pageResult = userService.queryOneTypeOrders(userId, target, currentPage, pageSize);
+        return Result.success(pageResult);
+    }
 }

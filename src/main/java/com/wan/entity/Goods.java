@@ -36,4 +36,14 @@ public class Goods {
     private LocalDateTime createTime;
     // 修改时间
     private LocalDateTime updateTime;
+    /**
+     * 减少库存数量。
+     * 该方法通过传入的数字减少当前库存的数量。注意，该方法没有返回值。
+     *
+     * @param number 需要减少的库存数量。是一个整数。
+     */
+    public void decreaseStock(Integer number) {
+        // 设置新的库存数量为当前数量减去减少的数量
+        setTotal(getTotal() - number);
+    }
 }

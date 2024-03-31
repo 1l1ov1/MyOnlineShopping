@@ -65,6 +65,50 @@
         </set>
         where id = #{id}
     </update>
+    <update id="batchUpdate">
+        update orders
+        <trim prefix="set" suffixOverrides=",">
+            <trim prefix="status=case" suffix="end,">
+                <foreach collection="ordersList" item="orders" index="index">
+                    <if test="orders.status!=null">
+                        when id=#{orders.id} then #{orders.status}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="goodsName=case" suffix="end,">
+                <foreach collection="ordersList" item="orders" index="index">
+                    <if test="orders.goodsName!=null">
+                        when id=#{orders.id} then #{orders.goodsName}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="totalPrice=case" suffix="end,">
+                <foreach collection="ordersList" item="orders" index="index">
+                    <if test="orders.totalPrice!=null">
+                        when id=#{orders.id} then #{orders.totalPrice}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="number=case" suffix="end,">
+                <foreach collection="ordersList" item="orders" index="index">
+                    <if test="orders.number!=null">
+                        when id=#{orders.id} then #{orders.number}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="update_time=case" suffix="end,">
+                <foreach collection="ordersList" item="orders" index="index">
+                    <if test="orders.updateTime!=null">
+                        when id=#{orders.id} then #{orders.updateTime}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        where
+        <foreach collection="ordersList" separator="or" item="orders" index="index">
+            id=#{orders.id}
+        </foreach>
+    </update>
     <delete id="batchDeleteOrders">
         delete from orders where id in
         <foreach collection="ids" item="id" open="(" close=")" separator=",">

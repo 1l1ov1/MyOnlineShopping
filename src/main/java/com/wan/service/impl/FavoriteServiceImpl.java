@@ -1,4 +1,4 @@
-package com.wan.server.impl;
+package com.wan.service.impl;
 
 import com.wan.constant.MessageConstant;
 import com.wan.context.ThreadBaseContext;
@@ -13,8 +13,7 @@ import com.wan.exception.FavoriteException;
 import com.wan.exception.GoodsException;
 import com.wan.exception.StoreException;
 import com.wan.mapper.*;
-import com.wan.server.FavoriteService;
-import com.wan.utils.CheckObjectFieldUtils;
+import com.wan.service.FavoriteService;
 import com.wan.vo.FavoriteVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -172,29 +171,6 @@ public class FavoriteServiceImpl implements FavoriteService {
         favoriteMapper.batchDeleteFavorite(ids, userId, favoriteType.getTarget());
     }
 
-    /*
-    private void batchDeleteGoodsFavorite(List<Long> ids) {
-        // 得到用户的id
-        Long userId = ThreadBaseContext.getCurrentId();
-        List<Favorite> favorites = favoriteMapper.queryOneTypeFavorite(ids, userId, FavoriteType.PRODUCT.getTarget());
-        if (favorites == null || favorites.size() != ids.size()) {
-            throw new FavoriteException(MessageConstant.GOODS_IS_NOT_EXIST);
-        }
-        // 删除
-        favoriteMapper.batchDeleteFavorite(ids, userId, FavoriteType.PRODUCT.getTarget());
-    }
-
-    private void batchDeleteStoreFavorite(List<Long> ids) {
-        // 得到用户的id
-        Long userId = ThreadBaseContext.getCurrentId();
-        List<Favorite> favorites = favoriteMapper.queryOneTypeFavorite(ids, userId, FavoriteType.STORE.getTarget());
-        if (favorites == null || favorites.size() != ids.size()) {
-            throw new FavoriteException(MessageConstant.STORE_IS_NOT_EXIST);
-        }
-        // 删除
-        favoriteMapper.batchDeleteFavorite(ids, userId, FavoriteType.STORE.getTarget());
-    }
-    */
 
     /**
      * 查询用户的所有收藏夹
@@ -213,6 +189,28 @@ public class FavoriteServiceImpl implements FavoriteService {
 
         // 如果用户不空
         List<Favorite> favorites = favoriteMapper.queryFavoriteByUserId(userId);
+        return FavoriteVO.builder()
+                .favoriteList(favorites)
+                .build();
+    }
+
+    @Override
+    public FavoriteVO queryFavorite(Long id, String target) {
+        FavoriteType favoriteType = FavoriteType.valueOf(target.toUpperCase());
+        if (FavoriteType.PRODUCT == favoriteType || FavoriteType.STORE == favoriteType) {
+            return queryFavoriteByType(id, favoriteType);
+        } else {
+            // 处理未知目标类型的情况，例如抛出一个异常或记录一条错误日志
+            throw new IllegalArgumentException("Unknown target type: " + target);
+        }
+    }
+
+    private FavoriteVO queryFavoriteByType(Long id, FavoriteType favoriteType) {
+        Long userId = ThreadBaseContext.getCurrentId();
+        List<Long> targetIds = new ArrayList<>(); // 根据需要可能改为 goodsId 或 storeId
+        targetIds.add(id);
+        List<Favorite> favorites = favoriteMapper.queryOneTypeFavorite(targetIds, userId, favoriteType.getTarget());
+
         return FavoriteVO.builder()
                 .favoriteList(favorites)
                 .build();

@@ -3,7 +3,7 @@ package com.wan.controller;
 import com.wan.dto.CategoryDTO;
 import com.wan.result.PageResult;
 import com.wan.result.Result;
-import com.wan.server.CategoryService;
+import com.wan.service.CategoryService;
 import com.wan.vo.CategoryVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

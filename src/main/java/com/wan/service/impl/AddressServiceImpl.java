@@ -1,9 +1,9 @@
-package com.wan.server.impl;
+package com.wan.service.impl;
 
 import com.wan.constant.AddressConstant;
 import com.wan.entity.Address;
 import com.wan.mapper.AddressMapper;
-import com.wan.server.AddressService;
+import com.wan.service.AddressService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

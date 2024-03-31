@@ -1,4 +1,4 @@
-package com.wan.server;
+package com.wan.service;
 
 import com.wan.dto.ApplyDTO;
 import com.wan.entity.Apply;

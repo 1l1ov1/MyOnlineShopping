@@ -8,6 +8,7 @@ import com.wan.enumeration.OperationType;
 import com.wan.vo.OrdersPageQueryVO;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 
@@ -56,5 +57,31 @@ public interface OrdersMapper {
      *
      * @param orders
      */
+    @AutoFill(OperationType.UPDATE)
     void update(Orders orders);
+
+    /**
+     * 查询某种状态的所有订单
+     *
+     * @param status
+     * @return
+     */
+    @Select("select * from orders where status = #{status}")
+    List<Orders> queryOneTypeOrders(Integer status);
+
+    /**
+     * 批量修改订单
+     *
+     * @param ordersList
+     */
+    @AutoFill(OperationType.UPDATE)
+    void batchUpdate(List<Orders> ordersList);
+
+    /**
+     * 查询订单
+     * @param id
+     * @return
+     */
+    @Select("select * from  orders where id = #{id}")
+    Orders findOrders(Long id);
 }

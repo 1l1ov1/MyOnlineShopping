@@ -2,7 +2,7 @@ package com.wan.controller;
 
 import com.wan.dto.FavoriteDTO;
 import com.wan.result.Result;
-import com.wan.server.FavoriteService;
+import com.wan.service.FavoriteService;
 import com.wan.vo.FavoriteVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -43,5 +43,13 @@ public class FavoriteController {
         log.info("批量删除 {} {}", ids, target);
         favoriteService.batchDelete(ids, target);
         return Result.success("删除成功");
+    }
+
+    @GetMapping("/search/{id}")
+    @ApiOperation("查询用户某种收藏")
+    public Result<FavoriteVO> searchFavorite(@PathVariable Long id, @RequestParam String target) {
+        log.info("查询用户某种收藏 {}， {}", id, target);
+        FavoriteVO favoriteVO = favoriteService.queryFavorite(id, target);
+        return Result.success(favoriteVO);
     }
 }

@@ -1,13 +1,7 @@
-package com.wan.server;
+package com.wan.service;
 
-import com.wan.annotation.AutoFill;
-import com.wan.dto.GoodsPageQueryDTO;
-import com.wan.dto.StorePageQueryDTO;
 import com.wan.dto.UserPageQueryDTO;
-import com.wan.entity.User;
-import com.wan.enumeration.OperationType;
 import com.wan.result.PageResult;
-import com.wan.vo.StorePageQueryVO;
 
 import java.util.List;
 
@@ -45,4 +39,9 @@ public interface ManagerService {
      */
     void updateUser(UserPageQueryDTO userPageQueryDTO);
 
+    /**
+     * 获取用户总数
+     * @return
+     */
+    Integer userCount();
 }

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wan.mapper.StoreSalesMapper">
+
+    <insert id="insertStoreSales" useGeneratedKeys="true" keyProperty="id">
+        insert into store_sales(date, store_id, daily_sales, order_count,
+                                avg_order_amount, category_id,
+                                user_count, create_time, update_time)
+        VALUES (#{date}, #{storeId}, #{dailySales}, #{orderCount},
+                #{avgOrderAmount}, #{categoryId},
+                #{userCount}, #{createTime}, #{updateTime})
+    </insert>
+    <update id="update">
+        UPDATE store_sales
+        <set>
+            <if test="date != null">date = #{date},</if>
+            <if test="storeId != null">store_id = #{storeId},</if>
+            <if test="dailySales != null">daily_sales = #{dailySales},</if>
+            <if test="orderCount != null">order_count = #{orderCount},</if>
+            <if test="avgOrderAmount != null">avg_order_amount = #{avgOrderAmount},</if>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="userCount != null">user_count = #{userCount},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+</mapper>

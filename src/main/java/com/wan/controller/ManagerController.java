@@ -1,20 +1,15 @@
 package com.wan.controller;
 
-import com.wan.dto.GoodsPageQueryDTO;
-import com.wan.dto.StorePageQueryDTO;
 import com.wan.dto.UserPageQueryDTO;
-import com.wan.entity.User;
 import com.wan.result.PageResult;
 import com.wan.result.Result;
-import com.wan.server.ManagerService;
-import com.wan.vo.StorePageQueryVO;
+import com.wan.service.ManagerService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.websocket.server.PathParam;
 import java.util.List;
 
 @RestController
@@ -68,5 +63,11 @@ public class ManagerController {
         return Result.success("修改成功");
     }
 
-
+    @GetMapping("/userCount")
+    @ApiOperation("查询用户人数")
+    public Result<Integer> userCount() {
+        log.info("查询用户人数");
+        Integer count = managerService.userCount();
+        return Result.success(count);
+    }
 }

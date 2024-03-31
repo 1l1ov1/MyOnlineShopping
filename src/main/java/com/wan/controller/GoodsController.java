@@ -1,19 +1,16 @@
 package com.wan.controller;
 
 import com.wan.dto.GoodsPageQueryDTO;
-import com.wan.dto.GoodsPurchaseDTO;
 import com.wan.entity.Goods;
-import com.wan.entity.Store;
 import com.wan.result.PageResult;
 import com.wan.result.Result;
-import com.wan.server.GoodsService;
-import com.wan.server.StoreService;
+import com.wan.service.GoodsService;
+import com.wan.service.StoreService;
 import com.wan.vo.GoodsPageQueryVO;
 import com.wan.vo.GoodsSearchVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -95,11 +92,5 @@ public class GoodsController {
         return Result.success(goodsSearchVO);
     }
 
-    @PostMapping("/buy")
-    @ApiOperation("立即购买")
-    public Result<String> buyGoods(@RequestBody GoodsPurchaseDTO goodsPurchaseDTO) {
-        log.info("立即购买 {}", goodsPurchaseDTO);
-        goodsService.buy(goodsPurchaseDTO);
-        return Result.success("购买成功");
-    }
+
 }

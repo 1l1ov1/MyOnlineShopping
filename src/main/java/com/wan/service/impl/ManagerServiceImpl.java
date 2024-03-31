@@ -1,33 +1,24 @@
-package com.wan.server.impl;
+package com.wan.service.impl;
 
-import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.wan.constant.AddressConstant;
 import com.wan.constant.MessageConstant;
-import com.wan.constant.StoreConstant;
 import com.wan.constant.UserConstant;
-import com.wan.dto.GoodsPageQueryDTO;
-import com.wan.dto.StorePageQueryDTO;
 import com.wan.dto.UserPageQueryDTO;
 import com.wan.entity.Address;
-import com.wan.entity.Store;
 import com.wan.entity.User;
 import com.wan.exception.AccountExistException;
 import com.wan.exception.AccountNotFountException;
 import com.wan.exception.StatusException;
-import com.wan.exception.StoreException;
 import com.wan.mapper.AddressMapper;
 import com.wan.mapper.ManagerMapper;
-import com.wan.mapper.StoreMapper;
 import com.wan.mapper.UserMapper;
 import com.wan.result.PageResult;
-import com.wan.server.ManagerService;
-import com.wan.vo.StorePageQueryVO;
+import com.wan.service.ManagerService;
 import com.wan.vo.UserPageQueryVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
@@ -124,7 +115,7 @@ public class ManagerServiceImpl implements ManagerService {
         // 设置id
         address.setUserId(user.getId());
         address.setIsDefault(AddressConstant.IS_DEFAULT);
-        //添加地址
+        // 添加地址
         addressMapper.insertAddress(address);
     }
 
@@ -156,4 +147,8 @@ public class ManagerServiceImpl implements ManagerService {
 
     }
 
+    @Override
+    public Integer userCount() {
+        return userMapper.getUserCount();
+    }
 }

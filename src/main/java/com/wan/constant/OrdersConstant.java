@@ -4,6 +4,11 @@ public class OrdersConstant {
     private OrdersConstant() {
 
     }
+
+    /**
+     * 全部订单
+     */
+    public static final Integer ALL_ORDERS = 0;
     /**
      * 未发货订单
      */
@@ -16,4 +21,13 @@ public class OrdersConstant {
      * 退款订单
      */
     public static final Integer REFUNDED_ORDER = 3;
+
+    /**
+     * 用户已签收
+     */
+    public static final Integer USER_RECEIVE_PRODUCT = 4;
+    /**
+     * 交易成功订单
+     */
+    public static final Integer SUCCESSFUL_ORDER = 5;
 }

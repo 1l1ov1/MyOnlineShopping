@@ -1,4 +1,4 @@
-package com.wan.server.impl;
+package com.wan.service.impl;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -16,8 +16,7 @@ import com.wan.mapper.GoodsMapper;
 import com.wan.mapper.StoreMapper;
 import com.wan.mapper.UserMapper;
 import com.wan.result.PageResult;
-import com.wan.server.StoreService;
-import com.wan.vo.GoodsPageQueryVO;
+import com.wan.service.StoreService;
 import com.wan.vo.StoreAllGoodsVO;
 import com.wan.vo.StorePageQueryVO;
 import com.wan.vo.StoreSearchVO;
@@ -27,9 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service

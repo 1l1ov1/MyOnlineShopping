@@ -1,7 +1,6 @@
-package com.wan.server;
+package com.wan.service;
 
 import com.wan.dto.GoodsPageQueryDTO;
-import com.wan.dto.GoodsPurchaseDTO;
 import com.wan.entity.Goods;
 import com.wan.result.PageResult;
 import com.wan.vo.GoodsPageQueryVO;
@@ -63,9 +62,5 @@ public interface GoodsService {
      */
     GoodsSearchVO findGoods(Long id);
 
-    /**
-     * 购买商品
-     * @param goodsPurchaseDTO
-     */
-    void buy(GoodsPurchaseDTO goodsPurchaseDTO);
+
 }

@@ -1,9 +1,11 @@
 package com.wan.mapper;
 
+import com.github.pagehelper.Page;
 import com.wan.annotation.AutoFill;
 import com.wan.dto.UserLoginDTO;
 import com.wan.entity.User;
 import com.wan.enumeration.OperationType;
+import com.wan.vo.UserOrdersVO;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
@@ -60,4 +62,20 @@ public interface UserMapper {
      */
     @AutoFill(OperationType.UPDATE)
     void batchUpdateUsers(List<User> userList);
+
+
+    /**
+     * 查询某种类型
+     * @param userId
+     * @param target
+     * @return
+     */
+    Page<UserOrdersVO> queryOneTypeOrders(Long userId, Integer target);
+
+    /**
+     * 得到用户数量
+     * @return
+     */
+    @Select("select count(1) from user")
+    Integer getUserCount();
 }

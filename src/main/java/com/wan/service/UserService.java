@@ -1,9 +1,10 @@
-package com.wan.server;
+package com.wan.service;
 
+import com.wan.dto.GoodsPurchaseDTO;
 import com.wan.dto.UserCreateStoreDTO;
 import com.wan.dto.UserLoginDTO;
 import com.wan.entity.User;
-
+import com.wan.result.PageResult;
 import java.util.Map;
 
 public interface UserService {
@@ -47,11 +48,22 @@ public interface UserService {
      */
     void updatePassword(Map<String, String> pwdData, Long id);
 
-    // /**
-    //  * 开店
-    //  * @param userLoginDTO
-    //  * @param storeName
-    //  */
-    // void createStore(UserLoginDTO userLoginDTO, String storeName);
+
     void createStore(UserCreateStoreDTO userCreateStoreDTO);
+
+    /**
+     * 购买商品
+     * @param goodsPurchaseDTO
+     */
+    void buy(GoodsPurchaseDTO goodsPurchaseDTO);
+
+    /**
+     * 查询某种类型的订单
+     * @param userId
+     * @param target
+     * @param currentPage
+     * @param pageSize
+     * @return
+     */
+    PageResult queryOneTypeOrders(Long userId, Integer target, Integer currentPage, Integer pageSize);
 }

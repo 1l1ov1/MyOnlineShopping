@@ -1,4 +1,4 @@
-package com.wan.server;
+package com.wan.service;
 
 import com.wan.dto.FavoriteDTO;
 import com.wan.vo.FavoriteVO;
@@ -29,4 +29,12 @@ public interface FavoriteService {
      * @return
      */
     FavoriteVO queryFavoriteByUserId(Long userId);
+
+    /**
+     * 查询当前用户的某种收藏类型的收藏是否存在
+     * @param id
+     * @param target
+     * @return
+     */
+    FavoriteVO queryFavorite(Long id, String target);
 }

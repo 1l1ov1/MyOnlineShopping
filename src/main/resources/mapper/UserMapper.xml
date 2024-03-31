@@ -117,4 +117,54 @@
             #{id}
         </foreach>
     </select>
+
+    <resultMap id="userOrdersVO" type="com.wan.vo.UserOrdersVO">
+        <id property="id" column="id"></id>
+        <result property="status" column="status"></result>
+        <result property="number" column="number"></result>
+        <result property="pay" column="pay"></result>
+        <result property="totalPrice" column="total_price"></result>
+        <result property="createTime" column="create_time"></result>
+        <result property="updateTime" column="update_time"></result>
+        <association property="goods" javaType="com.wan.entity.Goods"
+        columnPrefix="g_">
+            <id column="id" property="id"></id>
+            <result column="goods_name" property="goodsName"></result>
+            <result column="price" property="price"></result>
+            <result column="discount" property="discount"></result>
+            <result column="cover_pic" property="coverPic"></result>
+            <result column="description" property="description"></result>
+        </association>
+        <association property="store" javaType="com.wan.entity.Store"
+        columnPrefix="s_">
+            <id column="id" property="id"></id>
+            <result column="store_name" property="storeName"></result>
+            <result column="logo" property="logo"></result>
+        </association>
+    </resultMap>
+    <select id="queryOneTypeOrders" resultMap="userOrdersVO">
+        SELECT o.id,
+        o.`status`,
+        o.pay,
+        o.number,
+        o.total_price,
+        g.id g_id,
+        g.goods_name g_goods_name,
+        g.cover_pic g_cover_pic,
+        g.description g_description,
+        g.price g_price,
+        g.discount g_discount,
+        s.id s_id,
+        s.store_name s_store_name,
+        s.logo s_logo,
+        o.create_time
+        FROM orders o
+        INNER JOIN goods g on o.goods_id = g.id
+        INNER JOIN store s ON o.store_id = s.id
+        where o.user_id = 1
+        <if test="target != null and target != 0">
+            and o.status = #{target}
+        </if>
+    order by o.create_time desc
+    </select>
 </mapper>

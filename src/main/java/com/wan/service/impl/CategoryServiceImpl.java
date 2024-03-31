@@ -1,4 +1,4 @@
-package com.wan.server.impl;
+package com.wan.service.impl;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -12,7 +12,7 @@ import com.wan.exception.CategoryException;
 import com.wan.mapper.CategoryMapper;
 import com.wan.mapper.GoodsMapper;
 import com.wan.result.PageResult;
-import com.wan.server.CategoryService;
+import com.wan.service.CategoryService;
 import com.wan.utils.CheckObjectFieldUtils;
 import com.wan.vo.CategoryVO;
 import org.springframework.beans.BeanUtils;
@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class CategoryServiceImpl implements CategoryService {

@@ -1,10 +1,9 @@
 package com.wan.controller;
 
 import com.wan.dto.ApplyDTO;
-import com.wan.entity.Apply;
 import com.wan.result.PageResult;
 import com.wan.result.Result;
-import com.wan.server.ApplyService;
+import com.wan.service.ApplyService;
 import com.wan.vo.ApplyVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

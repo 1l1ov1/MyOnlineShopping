@@ -1,10 +1,9 @@
 package com.wan.controller;
 
-import com.wan.dto.GoodsPageQueryDTO;
 import com.wan.dto.StorePageQueryDTO;
 import com.wan.result.PageResult;
 import com.wan.result.Result;
-import com.wan.server.StoreService;
+import com.wan.service.StoreService;
 import com.wan.vo.StoreAllGoodsVO;
 import com.wan.vo.StorePageQueryVO;
 import com.wan.vo.StoreSearchVO;

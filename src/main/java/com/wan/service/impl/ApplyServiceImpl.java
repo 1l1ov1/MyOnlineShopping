@@ -1,11 +1,9 @@
-package com.wan.server.impl;
+package com.wan.service.impl;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.wan.constant.ApplyConstant;
 import com.wan.constant.MessageConstant;
-import com.wan.constant.StoreConstant;
-import com.wan.constant.UserConstant;
 import com.wan.dto.ApplyDTO;
 import com.wan.entity.*;
 import com.wan.exception.*;
@@ -14,21 +12,16 @@ import com.wan.mapper.StoreMapper;
 import com.wan.mapper.UserMapper;
 import com.wan.result.PageResult;
 import com.wan.result.ValidationResult;
-import com.wan.server.ApplyService;
-import com.wan.utils.CheckObjectFieldUtils;
+import com.wan.service.ApplyService;
 import com.wan.vo.ApplyVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Service
 public class ApplyServiceImpl implements ApplyService {
