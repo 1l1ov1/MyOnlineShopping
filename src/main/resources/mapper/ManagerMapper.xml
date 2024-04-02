@@ -145,4 +145,29 @@
         order by s.create_time
     </select>
 
+
+    <select id="queryStoreSalesInOneDay" resultType="com.wan.vo.StoreSalesWithStoreName">
+        SELECT ss.*, s.store_name
+        FROM store_sales ss
+                 INNER JOIN store s on ss.store_id = s.id
+        WHERE date between #{start} and #{end}
+        ORDER BY date
+    </select>
+    <select id="getTotalRevenue" resultType="java.math.BigDecimal">
+        select SUM(daily_sales)
+        from store_sales
+        WHERE date between #{start} and #{end}
+    </select>
+    <select id="queryAllUserCountInOneDay" resultType="java.lang.Integer">
+        select count(*)
+        from user
+    </select>
+    <select id="queryRegisterUserCountInOneDay" resultType="java.lang.Integer">
+        select count(*)
+        from user
+        WHERE create_time between #{start} and #{end}
+        GROUP BY create_time
+    </select>
+
+
 </mapper>

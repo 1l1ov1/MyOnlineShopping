@@ -7,7 +7,9 @@ import com.wan.constant.MessageConstant;
 import com.wan.constant.UserConstant;
 import com.wan.dto.UserPageQueryDTO;
 import com.wan.entity.Address;
+import com.wan.entity.StoreSales;
 import com.wan.entity.User;
+import com.wan.enumeration.StoreSalesRangeType;
 import com.wan.exception.AccountExistException;
 import com.wan.exception.AccountNotFountException;
 import com.wan.exception.StatusException;
@@ -16,14 +18,23 @@ import com.wan.mapper.ManagerMapper;
 import com.wan.mapper.UserMapper;
 import com.wan.result.PageResult;
 import com.wan.service.ManagerService;
+import com.wan.vo.StoreSalesVO;
+import com.wan.vo.StoreSalesWithStoreName;
+import com.wan.vo.UserCountVO;
 import com.wan.vo.UserPageQueryVO;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
-import java.util.List;
+import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
+import java.util.*;
 
 @Service
 public class ManagerServiceImpl implements ManagerService {
@@ -147,8 +158,193 @@ public class ManagerServiceImpl implements ManagerService {
 
     }
 
+    /**
+     * 查询用户人数
+     *
+     * @return
+     */
     @Override
     public Integer userCount() {
         return userMapper.getUserCount();
     }
+
+    /**
+     * 查询一段时间的营业额
+     *
+     * @param type
+     * @return
+     */
+    @Override
+    public StoreSalesVO queryStoreSalesInOneDay(Integer type) {
+        // 得到对应的枚举类型
+        StoreSalesRangeType storeSalesRangeType = StoreSalesRangeType.getStoreSalesRangeType(type);
+        if (storeSalesRangeType == null) {
+            throw new IllegalArgumentException("查询营业额的类型无效");
+        }
+        Pair<LocalDate, LocalDate> pair = calculateDateRange(storeSalesRangeType);
+        LocalDate start = pair.getLeft();
+        LocalDate end = pair.getRight();
+        // 得到营业额
+        List<StoreSalesWithStoreName> storeSalesWithStoreNameList = managerMapper.queryStoreSalesInOneDay(start, end);
+        // 得到总营业额
+        BigDecimal totalRevenue = managerMapper.getTotalRevenue(start, end);
+        // 返回结果
+        return buildStoreSalesVO(start, end, totalRevenue, storeSalesWithStoreNameList);
+    }
+
+    /**
+     * 查询一段时间的用户数量和注册用户数量
+     *
+     * @param day
+     * @return
+     */
+    @Override
+    public UserCountVO queryUserCount(Integer day) {
+        // 得到对应的枚举类
+        StoreSalesRangeType storeSalesRangeType = StoreSalesRangeType.getStoreSalesRangeType(day);
+        Pair<LocalDate, LocalDate> pair = calculateDateRange(storeSalesRangeType);
+        // 得到迭代器
+        LocalDate start = pair.getLeft();
+        LocalDate end = pair.getRight();
+        Integer allUserCount = managerMapper.queryAllUserCountInOneDay();
+        List<Integer> registerUserCount = managerMapper.queryRegisterUserCountInOneDay(start, end);
+        return buildUserCountVO(start, end, allUserCount, registerUserCount);
+    }
+
+    /**
+     * 计算时间范围
+     *
+     * @param storeSalesRangeType
+     * @return
+     */
+    /*private Map<LocalDate, LocalDate> calculateDateRange(StoreSalesRangeType storeSalesRangeType) {
+        HashMap<LocalDate, LocalDate> map = new HashMap<>();
+        // 得到今天
+        LocalDate now = LocalDate.now();
+        // 得到时间范围的开始
+        LocalDate start;
+        // 得到时间范围的结束
+        LocalDate end;
+        if (!isThisWeekOrMonth(storeSalesRangeType)) {
+            // 如果不是本周或本月
+            // 得到开始时间
+            start = adjustDateByDay(now, storeSalesRangeType.getDay());
+            // 得到昨天
+            end = now.plusDays(-1);
+            // 得到用户数量
+        } else {
+            // 如果是本周或本月
+            // 如果是本周
+            if (storeSalesRangeType.getDay().equals(StoreSalesRangeType.THIS_WEEK.getDay())) {
+                // 得到本周周一
+                start = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+                // 得到本周周末
+                end = now.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+            } else {
+                // 如果是本月
+                // 得到本月第一天
+                start = now.with(TemporalAdjusters.firstDayOfMonth());
+                // 得到本月最后一天
+                end = now.with(TemporalAdjusters.lastDayOfMonth());
+            }
+
+        }
+        map.put(start, end);
+        return map;
+    }*/
+    // 简化
+    private Pair<LocalDate, LocalDate> calculateDateRange(StoreSalesRangeType storeSalesRangeType) {
+        // 得到今天
+        LocalDate now = LocalDate.now();
+        // 得到时间范围的开始
+        LocalDate start;
+        // 得到时间范围的结束
+        LocalDate end;
+        if (!isThisWeekOrMonth(storeSalesRangeType)) {
+            // 如果不是本周或本月
+            // 得到开始时间
+            start = adjustDateByDay(now, storeSalesRangeType.getDay());
+            // 得到昨天
+            end = now.plusDays(-1);
+            // 得到用户数量
+        } else {
+            // 如果是本周或本月
+            // 如果是本周
+            if (storeSalesRangeType.getDay().equals(StoreSalesRangeType.THIS_WEEK.getDay())) {
+                // 得到本周周一
+                start = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+                // 得到本周周末
+                end = now.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+            } else {
+                // 如果是本月
+                // 得到本月第一天
+                start = now.with(TemporalAdjusters.firstDayOfMonth());
+                // 得到本月最后一天
+                end = now.with(TemporalAdjusters.lastDayOfMonth());
+            }
+
+        }
+        return Pair.of(start, end);
+    }
+
+    /**
+     * 构建UserCountVO
+     *
+     * @param start
+     * @param end
+     * @param allUserCount
+     * @param registerUserCount
+     * @return
+     */
+    private UserCountVO buildUserCountVO(LocalDate start, LocalDate end, Integer allUserCount, List<Integer> registerUserCount) {
+        return UserCountVO.builder()
+                .userCount(allUserCount)
+                .registerUserCount(registerUserCount)
+                .start(start)
+                .end(end)
+                .build();
+    }
+
+    /**
+     * 判断是本周还是本月
+     *
+     * @param type
+     * @return
+     */
+    private boolean isThisWeekOrMonth(StoreSalesRangeType type) {
+        return type.getDay().equals(StoreSalesRangeType.THIS_WEEK.getDay()) ||
+                type.getDay().equals(StoreSalesRangeType.THIS_MONTH.getDay());
+    }
+
+    /**
+     * 根据天数调整时间
+     *
+     * @param now
+     * @param day
+     * @return
+     */
+
+    private LocalDate adjustDateByDay(LocalDate now, Integer day) {
+        return now.plusDays(day);
+    }
+
+    /**
+     * 构建StoreSalesVO
+     *
+     * @param start
+     * @param end
+     * @param totalRevenue
+     * @param storeSalesWithStoreNameList
+     * @return
+     */
+    private StoreSalesVO buildStoreSalesVO(LocalDate start, LocalDate end, BigDecimal totalRevenue, List<StoreSalesWithStoreName> storeSalesWithStoreNameList) {
+        return StoreSalesVO.builder()
+                .totalRevenue(totalRevenue)
+                .storeSalesList(storeSalesWithStoreNameList)
+                .start(start)
+                .end(end)
+                .build();
+    }
 }
+
+

@@ -2,6 +2,8 @@ package com.wan.service;
 
 import com.wan.dto.UserPageQueryDTO;
 import com.wan.result.PageResult;
+import com.wan.vo.StoreSalesVO;
+import com.wan.vo.UserCountVO;
 
 import java.util.List;
 
@@ -44,4 +46,18 @@ public interface ManagerService {
      * @return
      */
     Integer userCount();
+
+    /**
+     * 查询某天的营业额
+     * @param day
+     * @return
+     */
+    StoreSalesVO queryStoreSalesInOneDay(Integer day);
+
+    /**
+     * 查询用户数量和注册人数在规定天数内
+     * @param day
+     * @return
+     */
+    UserCountVO queryUserCount(Integer day);
 }

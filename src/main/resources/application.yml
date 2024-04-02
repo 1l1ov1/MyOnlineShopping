@@ -24,6 +24,6 @@ online-shopping:
     user-token-name: ${online-shopping.jwt.user-token-name}
     user-ttl: ${online-shopping.jwt.user-ttl}
 
-logging:
-  level:
-    com.wan.mapper.applyMapper: debug
+#logging:
+#  level:
+#    com.wan.mapper.ManagerMapper: debug
