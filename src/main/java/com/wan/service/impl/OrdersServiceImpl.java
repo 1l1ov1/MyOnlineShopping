@@ -107,32 +107,7 @@ public class OrdersServiceImpl implements OrdersService {
     }
 
 
-    @Scheduled(cron = "0 0 0 * * ?") // 每天午夜执行，用于处理已发货3天后转为已签收的订单
-    public void processShippedOrders() {
-        List<Orders> shippedOrders = ordersMapper.queryOneTypeOrders(OrdersConstant.SHIPPED_ORDER);
-        processOrders(shippedOrders, OrdersConstant.USER_RECEIVE_PRODUCT, 3);
-    }
 
-    @Scheduled(cron = "0 0 0 * * ?") // 每天午夜点执行，用于处理已签收7天后转为交易完成的订单
-    public void processReceivedOrders() {
-        List<Orders> receivedOrders = ordersMapper.queryOneTypeOrders(OrdersConstant.USER_RECEIVE_PRODUCT);
-        processOrders(receivedOrders, OrdersConstant.SUCCESSFUL_ORDER, 7);
-    }
-
-    private void processOrders(List<Orders> orders, int status, int days) {
-        LocalDateTime now = LocalDateTime.now();
-        List<Orders> ordersToUpdate = orders.stream()
-                .filter(item -> {
-                    LocalDateTime createTime = item.getCreateTime();
-                    return createTime.plusDays(days).isEqual(now);
-                })
-                .collect(Collectors.toList());
-
-        if (!ordersToUpdate.isEmpty()) {
-            ordersToUpdate.forEach(item -> item.setStatus(status));
-            ordersMapper.batchUpdate(ordersToUpdate);
-        }
-    }
 
     /**
      * 用户退款

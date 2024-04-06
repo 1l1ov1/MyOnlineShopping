@@ -41,23 +41,4 @@ public interface ManagerService {
      */
     void updateUser(UserPageQueryDTO userPageQueryDTO);
 
-    /**
-     * 获取用户总数
-     * @return
-     */
-    Integer userCount();
-
-    /**
-     * 查询某天的营业额
-     * @param day
-     * @return
-     */
-    StoreSalesVO queryStoreSalesInOneDay(Integer day);
-
-    /**
-     * 查询用户数量和注册人数在规定天数内
-     * @param day
-     * @return
-     */
-    UserCountVO queryUserCount(Integer day);
 }

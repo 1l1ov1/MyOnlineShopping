@@ -75,14 +75,14 @@
                     </if>
                 </foreach>
             </trim>
-            <trim prefix="goodsName=case" suffix="end,">
+            <trim prefix="goods_name=case" suffix="end,">
                 <foreach collection="ordersList" item="orders" index="index">
-                    <if test="orders.goodsName!=null">
+                    <if test="orders.goodsName != null">
                         when id=#{orders.id} then #{orders.goodsName}
                     </if>
                 </foreach>
             </trim>
-            <trim prefix="totalPrice=case" suffix="end,">
+            <trim prefix="total_price=case" suffix="end,">
                 <foreach collection="ordersList" item="orders" index="index">
                     <if test="orders.totalPrice!=null">
                         when id=#{orders.id} then #{orders.totalPrice}

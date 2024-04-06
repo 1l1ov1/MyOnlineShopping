@@ -199,7 +199,7 @@ public void buy(GoodsPurchaseDTO goodsPurchaseDTO) {
 
     // 获取当前用户ID
     Long userId = ThreadBaseContext.getCurrentId();
-
+    ThreadBaseContext.removeCurrentId();
     // 更新商品库存
     goods.decreaseStock(goodsPurchaseDTO.getNumber());
     goodsMapper.update(goods);
@@ -209,9 +209,6 @@ public void buy(GoodsPurchaseDTO goodsPurchaseDTO) {
     orders.setUserId(userId);
     ordersMapper.insertOrders(orders);
 
-    // 添加营业额
-    addTurnover(goodsPurchaseDTO, goods.getCategoryId());
-
     // 扣除用户余额
     User user = userMapper.getById(userId);
     BigDecimal userMoney = user.getMoney();
@@ -220,52 +217,6 @@ public void buy(GoodsPurchaseDTO goodsPurchaseDTO) {
     }
     user.decreaseBalance(goodsPurchaseDTO.getTotalPrice());
     userMapper.update(user);
-}
-
-/**
- * 向指定类别添加销售量和销售额。
- *
- * @param goodsPurchaseDTO 货品采购数据传输对象，包含采购的相关信息，如店铺ID、采购数量和总价格。
- * @param categoryId 商品类别ID，用于指定销售数据归属的类别。
- */
-private void addTurnover(GoodsPurchaseDTO goodsPurchaseDTO, Long categoryId) {
-    // 获取当前日期
-    LocalDate currentDate = LocalDate.now();
-    // 根据店铺ID、当前日期和类别ID获取或创建店铺销售对象
-    StoreSales storeSales = getOrCreateStoreSales(goodsPurchaseDTO.getStoreId(), currentDate, categoryId);
-    // 添加销售数量和总价格到店铺销售对象中
-    storeSales.addSales(goodsPurchaseDTO.getNumber(), goodsPurchaseDTO.getTotalPrice());
-    // 更新店铺销售对象到数据库
-    storeSalesMapper.update(storeSales);
-}
-
-
-/**
- * 获取或创建店铺指定日期和类别的销售信息。
- *
- * @param storeId 店铺ID，用于标识特定店铺。
- * @param date 指定的日期，格式为LocalDate。
- * @param categoryId 类别ID，用于标识销售商品的特定类别。
- * @return StoreSales 对象，包含指定店铺在指定日期和类别的销售详情。
- */
-private StoreSales getOrCreateStoreSales(Long storeId, LocalDate date, Long categoryId) {
-    // 尝试根据给定的店铺ID、日期和类别ID查找已存在的销售记录
-    StoreSales storeSales = storeSalesMapper.findSalesByCategoryInOneDay(storeId, date, categoryId);
-    if (storeSales == null) {
-        // 如果不存在，则创建新的销售记录，并初始化各项销售指标
-        storeSales = StoreSales.builder()
-                .storeId(storeId)
-                .date(date)
-                .categoryId(categoryId)
-                .dailySales(BigDecimal.ZERO)
-                .orderCount(0)
-                .avgOrderAmount(BigDecimal.ZERO)
-                .userCount(0)
-                .build();
-        // 将新创建的销售记录插入数据库
-        storeSalesMapper.insertStoreSales(storeSales);
-    }
-    return storeSales;
 }
 
 

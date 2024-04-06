@@ -4,13 +4,14 @@ import com.github.pagehelper.Page;
 import com.wan.annotation.AutoFill;
 import com.wan.dto.StorePageQueryDTO;
 import com.wan.entity.Store;
+import com.wan.entity.StoreSales;
 import com.wan.enumeration.OperationType;
-import com.wan.vo.GoodsPageQueryVO;
-import com.wan.vo.StoreAllGoodsVO;
-import com.wan.vo.StorePageQueryVO;
+import com.wan.vo.*;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @Mapper
@@ -43,10 +44,12 @@ public interface StoreMapper {
 
     /**
      * 批量查询商店
+     *
      * @param ids
      * @return
      */
     List<Store> findStoreByIds(List<Long> ids);
+
     /**
      * 根据用户id查询商店
      *
@@ -97,4 +100,5 @@ public interface StoreMapper {
 
     @Select("select * from store where status = 1 and store_name like concat('%', #{storeName}, '%')")
     List<Store> queryStores(String storeName);
+
 }

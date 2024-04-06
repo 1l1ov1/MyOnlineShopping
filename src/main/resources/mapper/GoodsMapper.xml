@@ -70,7 +70,7 @@
                           update_time,
                           create_time)
         VALUES (#{storeId}, #{goodsName}, #{price}, #{total}, #{discount},
-                #{description}, #{coverPic}, #{status}, #{categoryId}
+                #{description}, #{coverPic}, #{status}, #{categoryId},
                     #{updateTime}, #{createTime})
     </insert>
     <!--修改商品信息-->

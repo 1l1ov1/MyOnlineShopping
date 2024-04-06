@@ -4,9 +4,7 @@ import com.wan.dto.StorePageQueryDTO;
 import com.wan.result.PageResult;
 import com.wan.result.Result;
 import com.wan.service.StoreService;
-import com.wan.vo.StoreAllGoodsVO;
-import com.wan.vo.StorePageQueryVO;
-import com.wan.vo.StoreSearchVO;
+import com.wan.vo.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -88,4 +86,5 @@ public class StoreController {
         StoreSearchVO storeSearchVO = storeService.searchStores(storeName);
         return Result.success(storeSearchVO);
     }
+
 }

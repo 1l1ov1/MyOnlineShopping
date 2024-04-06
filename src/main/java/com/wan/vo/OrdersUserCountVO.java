@@ -1,5 +1,6 @@
 package com.wan.vo;
 
+import com.wan.entity.StoreSales;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,21 +10,21 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * 查询用户数量和注册用户数量
+ * 订单用户数量
  */
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class UserCountVO {
+public class OrdersUserCountVO {
     /**
-     * 每个阶段的用户总数
+     * 总用户数量
      */
-    private List<Integer> userCountList;
+    private Integer totalUserCount;
     /**
-     * 注册用户数量
+     * 营业额
      */
-    private List<Integer> registerUserCountList;
+    private List<StoreSalesAndCategoryName> storeSalesAndCategoryNameList;
 
     /**
      * 开始时间

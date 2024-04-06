@@ -139,6 +139,7 @@ public class UserController {
         log.info("用户退出...");
         // 得到用户id
         Long userId = ThreadBaseContext.getCurrentId();
+        ThreadBaseContext.removeCurrentId();
         //  创建用户
         User user = User.builder()
                 .id(userId)

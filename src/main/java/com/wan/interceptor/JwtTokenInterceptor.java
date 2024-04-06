@@ -2,6 +2,7 @@ package com.wan.interceptor;
 
 import com.wan.constant.JwtClaimConstant;
 import com.wan.context.ThreadBaseContext;
+import com.wan.mapper.UserMapper;
 import com.wan.properties.JwtProperties;
 import com.wan.utils.JwtUtils;
 import io.jsonwebtoken.Claims;
@@ -20,7 +21,8 @@ public class JwtTokenInterceptor implements HandlerInterceptor {
 
     @Autowired
     private JwtProperties jwtProperties;
-
+    @Autowired
+    private UserMapper userMapper;
     /**
      * 在执行方法前，先进行拦截校验jwt
      *

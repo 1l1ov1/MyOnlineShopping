@@ -72,10 +72,4 @@ public interface UserMapper {
      */
     Page<UserOrdersVO> queryOneTypeOrders(Long userId, Integer target);
 
-    /**
-     * 得到用户数量
-     * @return
-     */
-    @Select("select count(1) from user")
-    Integer getUserCount();
 }

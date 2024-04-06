@@ -3,28 +3,38 @@ package com.wan.service.impl;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.wan.constant.MessageConstant;
+import com.wan.constant.OrdersConstant;
 import com.wan.constant.StoreConstant;
 import com.wan.constant.UserConstant;
+import com.wan.context.ThreadBaseContext;
 import com.wan.dto.StorePageQueryDTO;
 import com.wan.entity.Goods;
 import com.wan.entity.Store;
+import com.wan.entity.StoreSales;
 import com.wan.entity.User;
+import com.wan.enumeration.StoreSalesRangeType;
 import com.wan.exception.AccountNotFountException;
 import com.wan.exception.StatusException;
 import com.wan.exception.StoreException;
 import com.wan.mapper.GoodsMapper;
+import com.wan.mapper.OrdersMapper;
 import com.wan.mapper.StoreMapper;
 import com.wan.mapper.UserMapper;
 import com.wan.result.PageResult;
 import com.wan.service.StoreService;
-import com.wan.vo.StoreAllGoodsVO;
-import com.wan.vo.StorePageQueryVO;
-import com.wan.vo.StoreSearchVO;
+import com.wan.vo.*;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,6 +48,8 @@ public class StoreServiceImpl implements StoreService {
     private UserMapper userMapper;
     @Autowired
     private GoodsMapper goodsMapper;
+    @Autowired
+    private OrdersMapper ordersMapper;
 
     /**
      * 添加商店

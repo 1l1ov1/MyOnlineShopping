@@ -33,34 +33,6 @@ public interface ManagerMapper {
     @AutoFill(OperationType.UPDATE)
     void update(UserPageQueryDTO userPageQueryDTO);
 
-    /**
-     * 查询某范围的营业额
-     *
-     * @param start
-     * @param end
-     * @return
-     */
-    List<StoreSalesWithStoreName> queryStoreSalesInOneDay(LocalDate start, LocalDate end);
 
-    /**
-     * 得到某个区间内的总营业额
-     * @param start
-     * @param end
-     * @return
-     */
-    BigDecimal getTotalRevenue(LocalDate start , LocalDate end);
 
-    /**
-     * 得到用户数量
-     * @return
-     */
-    Integer queryAllUserCountInOneDay();
-
-    /**
-     * 某区间的注册用户数量
-     * @param start
-     * @param end
-     * @return
-     */
-    List<Integer> queryRegisterUserCountInOneDay(LocalDate start, LocalDate end);
 }

@@ -65,27 +65,4 @@ public class ManagerController {
         return Result.success("修改成功");
     }
 
-    @GetMapping("/userCount")
-    @ApiOperation("查询用户人数")
-    public Result<Integer> userCount() {
-        log.info("查询用户人数");
-        Integer count = managerService.userCount();
-        return Result.success(count);
-    }
-
-    @GetMapping("/queryStoreSales/{day}")
-    @ApiOperation("查询规定天数的营业额")
-    public Result<StoreSalesVO> queryStoreSales(@PathVariable Integer day) {
-        log.info("查询规定天数的营业额 {}", day);
-        StoreSalesVO storeSalesVO = managerService.queryStoreSalesInOneDay(day);
-        return Result.success(storeSalesVO);
-    }
-
-    @GetMapping("/queryUserCount/{day}")
-    @ApiOperation("查询用户数量和在线用户数量")
-    public Result<UserCountVO> queryUserCount(@PathVariable Integer day) {
-        log.info("查询用户数量 {}" , day);
-        UserCountVO userCountVO = managerService.queryUserCount(day);
-        return Result.success(userCountVO);
-    }
 }

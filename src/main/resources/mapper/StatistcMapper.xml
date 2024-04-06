@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wan.mapper.StatisticMapper">
+
+
+    <select id="queryUserCountByDay" resultType="java.lang.Integer">
+        select count(id) from user
+        <where>
+            <if test="start != null">
+                and create_time &gt;= #{start}
+            </if>
+            <if test="end != null">
+                and create_time &lt;= #{end}
+            </if>
+        </where>
+    </select>
+
+    <select id="queryStoreSalesInOneDay" resultType="com.wan.vo.StoreSalesWithStoreName">
+        SELECT ss.*, s.store_name
+        FROM store_sales ss
+        INNER JOIN store s on ss.store_id = s.id
+        <where>
+            <if test="start != null">
+                and date &gt;= #{start}
+            </if>
+            <if test="end != null">
+                and date &lt;= #{end}
+            </if>
+            <if test="storeId != null">
+                and store_id = #{storeId}
+            </if>
+
+        </where>
+        ORDER BY date
+    </select>
+    <select id="getTotalRevenue" resultType="java.math.BigDecimal">
+        select SUM(daily_sales)
+        from store_sales
+        <where>
+            <if test="start != null">
+                and date &gt;= #{start}
+            </if>
+            <if test="end != null">
+                and date &lt;= #{end}
+            </if>
+            <if test="storeId != null">
+                and store_id = #{storeId}
+            </if>
+
+        </where>
+    </select>
+
+
+
+    <select id="getTotalOrdersCount" resultType="java.lang.Integer">
+        select sum(order_count)
+        from store_sales
+        <where>
+            <if test="start != null">
+                and date &gt;= #{start}
+            </if>
+            <if test="end != null">
+                and date &lt;= #{end}
+            </if>
+            <if test="storeId != null">
+                and store_id = #{storeId}
+            </if>
+
+        </where>
+    </select>
+
+    <resultMap id="storeSalesAndCategoryName" type="com.wan.vo.StoreSalesAndCategoryName">
+        <id column="id" property="id"></id>
+        <result property="storeId" column="store_id"></result>
+        <result property="userCount" column="user_count"></result>
+        <result property="dailySales" column="daily_sales"></result>
+        <result property="categoryId" column="category_id"></result>
+        <result property="categoryName" column="category_name"></result>
+        <result property="date" column="date"></result>
+        <result property="avgOrderAmount" column="avg_order_amount"></result>
+        <result property="orderCount" column="order_count"></result>
+        <result property="createTime" column="create_time"></result>
+        <result property="updateTime" column="update_time"></result>
+    </resultMap>
+    <select id="getStoreSales" resultMap="storeSalesAndCategoryName">
+        select ss.*, c.category_name
+        from store_sales ss
+        inner join category c on ss.category_id = c.id
+        <where>
+            <if test="start != null">
+                and date &gt;= #{start}
+            </if>
+            <if test="end != null">
+                and date &lt;= #{end}
+            </if>
+            <if test="storeId != null">
+                and store_id = #{storeId}
+            </if>
+
+        </where>
+    </select>
+
+
+    <select id="queryOrdersCount" resultType="java.lang.Integer">
+        select count(id) from orders
+        <where>
+            <if test="beginTime != null">
+                and create_time &gt;= #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and create_time &lt;= #{endTime}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+            <if test="storeId != null">
+                and store_id = #{storeId}
+            </if>
+        </where>
+    </select>
+    <select id="getSalesTop10" resultType="com.wan.dto.GoodsSalesDTO">
+        select
+            goods_name, sum(number) as number
+            from orders
+        <where>
+            <if test="start != null">
+                and create_time &gt;= #{start}
+            </if>
+            <if test="end != null">
+                and create_time &lt;= #{end}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+            <if test="storeId != null">
+                and store_id = #{storeId}
+            </if>
+        </where>
+        Group by goods_name
+        Order by number
+        limit 0, 10
+    </select>
+</mapper>

@@ -3,9 +3,7 @@ package com.wan.service;
 import com.wan.dto.StorePageQueryDTO;
 import com.wan.entity.Store;
 import com.wan.result.PageResult;
-import com.wan.vo.StoreAllGoodsVO;
-import com.wan.vo.StorePageQueryVO;
-import com.wan.vo.StoreSearchVO;
+import com.wan.vo.*;
 
 import java.util.List;
 
@@ -88,4 +86,6 @@ public interface StoreService {
      * @param updatingStore
      */
     void updateStore(Store updatingStore);
+
+
 }
