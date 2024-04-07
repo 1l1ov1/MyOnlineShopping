@@ -7,10 +7,12 @@
     <insert id="insertStoreSales" useGeneratedKeys="true" keyProperty="id">
         insert into store_sales(date, store_id, daily_sales, order_count,
                                 avg_order_amount, category_id,
-                                user_count, create_time, update_time)
+                                user_count, is_withdraw,
+                                create_time, update_time)
         VALUES (#{date}, #{storeId}, #{dailySales}, #{orderCount},
                 #{avgOrderAmount}, #{categoryId},
-                #{userCount}, #{createTime}, #{updateTime})
+                #{userCount}, #{isWithdraw},
+                #{createTime}, #{updateTime})
     </insert>
     <update id="update">
         UPDATE store_sales
@@ -22,6 +24,7 @@
             <if test="avgOrderAmount != null">avg_order_amount = #{avgOrderAmount},</if>
             <if test="categoryId != null">category_id = #{categoryId},</if>
             <if test="userCount != null">user_count = #{userCount},</if>
+            <if test="isWithdraw != null">is_withdraw = #{isWithdraw},</if>
         </set>
         WHERE id = #{id}
     </update>

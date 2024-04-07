@@ -1,19 +1,19 @@
 package com.wan.schedule;
 
 import com.wan.constant.OrdersConstant;
-import com.wan.entity.Goods;
-import com.wan.entity.Orders;
-import com.wan.entity.StoreSales;
-import com.wan.mapper.CategoryMapper;
-import com.wan.mapper.GoodsMapper;
-import com.wan.mapper.OrdersMapper;
-import com.wan.mapper.StoreSalesMapper;
+import com.wan.constant.StoreConstant;
+import com.wan.constant.StoreSalesConstant;
+import com.wan.constant.WithdrawRecordConstant;
+import com.wan.entity.*;
+import com.wan.mapper.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,15 +32,23 @@ public class OrdersSchedule {
     private StoreSalesMapper storeSalesMapper;
     @Autowired
     private GoodsMapper goodsMapper;
+    @Autowired
+    private WithdrawRecordMapper withdrawRecordMapper;
+    @Autowired
+    private StoreMapper storeMapper;
+    @Autowired
+    private UserMapper userMapper;
 
-    @Scheduled(cron = "0 0 0 * * ?") // 每天午夜执行，用于处理已发货3天后转为已签收的订单
+    // @Scheduled(cron = "0 0 0 * * ?") // 每天午夜执行，用于处理已发货3天后转为已签收的订单
+    @Scheduled(cron = "0/10 * * * * ?") // 每天午夜执行，用于处理已发货3天后转为已签收的订单
     public void processShippedOrders() {
         log.info("定时任务 已发货转为已签收 已启动");
         List<Orders> shippedOrders = ordersMapper.queryOneTypeOrders(OrdersConstant.SHIPPED_ORDER);
         processOrders(shippedOrders, OrdersConstant.USER_RECEIVE_PRODUCT, 3);
     }
 
-    @Scheduled(cron = "0 0 0 * * ?") // 每天午夜点执行，用于处理已签收7天后转为交易完成的订单
+    // @Scheduled(cron = "0 0 0 * * ?") // 每天午夜点执行，用于处理已签收7天后转为交易完成的订单
+    @Scheduled(cron = "0/10 * * * * ?") // 每天午夜点执行，用于处理已签收7天后转为交易完成的订单
     public void processReceivedOrders() {
         log.info("定时任务 签收转为交易完成 已启动");
         List<Orders> receivedOrders = ordersMapper.queryOneTypeOrders(OrdersConstant.USER_RECEIVE_PRODUCT);
@@ -113,8 +121,60 @@ public class OrdersSchedule {
         storeSales.addSales(orders.getNumber(), orders.getTotalPrice());
         // 更新店铺销售对象到数据库
         storeSalesMapper.update(storeSales);
+        // 然后将提现金额放到店铺提现记录中
+        insertWithdrawRecord(orders);
+        // 然后将提现的金额放到钱包中
     }
 
+    /**
+     * 插入一条提现记录。
+     *
+     * @param orders 订单信息，包含店铺ID、用户ID、商品数量、总价、支付方式和商品ID。
+     *               通过这些信息计算出提现金额，并为该订单生成一条提现记录。
+     */
+    @Transactional
+    private void insertWithdrawRecord(Orders orders) {
+        // 提取订单中的关键信息
+        Long storeId = orders.getStoreId();
+        Long userId = orders.getUserId();
+        Integer number = orders.getNumber();
+        BigDecimal totalPrice = orders.getTotalPrice();
+        Integer pay = orders.getPay();
+
+        // 查询商品名称
+        String goodsName = goodsMapper.findGoodsById(orders.getGoodsId()).getGoodsName();
+
+        // 计算提现金额（总价乘以提现费率）
+        BigDecimal feeMultiplier = new BigDecimal(WithdrawRecordConstant.fee);
+        BigDecimal fee = totalPrice.multiply(feeMultiplier);
+        BigDecimal roundedFee = fee.setScale(2, RoundingMode.HALF_UP);
+
+        BigDecimal withdrawMoney = totalPrice.subtract(roundedFee);
+
+
+        // 查询店铺对应的卖家ID
+        Long sellerId = storeMapper.findStoreById(storeId).getUserId();
+        // 查询该店家原先的钱
+        BigDecimal originMoney = userMapper.getById(userId).getMoney();
+        // 插入提现记录
+        withdrawRecordMapper.insertWithdrawRecord(WithdrawRecord.builder()
+                .storeId(storeId)
+                .userId(userId)
+                .number(number)
+                .totalPrice(totalPrice)
+                .pay(pay)
+                .goodsName(goodsName)
+                .withdrawMoney(withdrawMoney)
+                .originMoney(originMoney)
+                .sellerId(sellerId)
+                .build());
+
+        // 更新商家钱包
+        userMapper.update(User.builder()
+                .id(sellerId)
+                .money(originMoney.add(withdrawMoney))
+                .build());
+    }
 
     /**
      * 获取或创建店铺指定日期和类别的销售信息。
@@ -136,6 +196,7 @@ public class OrdersSchedule {
                     .dailySales(BigDecimal.ZERO)
                     .orderCount(0)
                     .avgOrderAmount(BigDecimal.ZERO)
+                    .isWithdraw(StoreSalesConstant.NOT_WITHDRAWN)
                     .userCount(0)
                     .build();
             // 将新创建的销售记录插入数据库

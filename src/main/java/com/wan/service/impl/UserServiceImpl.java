@@ -24,7 +24,9 @@ import org.springframework.util.DigestUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Map;
 
@@ -44,6 +46,7 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private StoreSalesMapper storeSalesMapper;
+
     /**
      * 用户登录
      *
@@ -183,42 +186,41 @@ public class UserServiceImpl implements UserService {
      *
      * @param goodsPurchaseDTO
      */
-@Override
-@Transactional
-public void buy(GoodsPurchaseDTO goodsPurchaseDTO) {
-    // 获取商品信息
-    Goods goods = goodsMapper.findGoodsById(goodsPurchaseDTO.getGoodsId());
-    if (goods == null) {
-        throw new GoodsException(MessageConstant.GOODS_IS_NOT_EXIST);
+    @Override
+    @Transactional
+    public void buy(GoodsPurchaseDTO goodsPurchaseDTO) {
+        // 获取商品信息
+        Goods goods = goodsMapper.findGoodsById(goodsPurchaseDTO.getGoodsId());
+        if (goods == null) {
+            throw new GoodsException(MessageConstant.GOODS_IS_NOT_EXIST);
+        }
+
+        // 检查库存
+        if (goods.getTotal() < goodsPurchaseDTO.getNumber()) {
+            throw new GoodsException(MessageConstant.GOODS_TOTAL_IS_OUT_OF_VALID_RANGE);
+        }
+
+        // 获取当前用户ID
+        Long userId = ThreadBaseContext.getCurrentId();
+        ThreadBaseContext.removeCurrentId();
+        // 更新商品库存
+        goods.decreaseStock(goodsPurchaseDTO.getNumber());
+        goodsMapper.update(goods);
+
+        // 创建订单
+        Orders orders = createOrders(goodsPurchaseDTO);
+        orders.setUserId(userId);
+        ordersMapper.insertOrders(orders);
+
+        // 扣除用户余额
+        User user = userMapper.getById(userId);
+        BigDecimal userMoney = user.getMoney();
+        if (userMoney.compareTo(goodsPurchaseDTO.getTotalPrice()) < 0) {
+            throw new OrdersException(MessageConstant.THE_AMOUNT_IS_INSUFFICIENT);
+        }
+        user.decreaseBalance(goodsPurchaseDTO.getTotalPrice());
+        userMapper.update(user);
     }
-
-    // 检查库存
-    if (goods.getTotal() < goodsPurchaseDTO.getNumber()) {
-        throw new GoodsException(MessageConstant.GOODS_TOTAL_IS_OUT_OF_VALID_RANGE);
-    }
-
-    // 获取当前用户ID
-    Long userId = ThreadBaseContext.getCurrentId();
-    ThreadBaseContext.removeCurrentId();
-    // 更新商品库存
-    goods.decreaseStock(goodsPurchaseDTO.getNumber());
-    goodsMapper.update(goods);
-
-    // 创建订单
-    Orders orders = createOrders(goodsPurchaseDTO);
-    orders.setUserId(userId);
-    ordersMapper.insertOrders(orders);
-
-    // 扣除用户余额
-    User user = userMapper.getById(userId);
-    BigDecimal userMoney = user.getMoney();
-    if (userMoney.compareTo(goodsPurchaseDTO.getTotalPrice()) < 0) {
-        throw new OrdersException(MessageConstant.THE_AMOUNT_IS_INSUFFICIENT);
-    }
-    user.decreaseBalance(goodsPurchaseDTO.getTotalPrice());
-    userMapper.update(user);
-}
-
 
 
     /**
@@ -250,6 +252,47 @@ public void buy(GoodsPurchaseDTO goodsPurchaseDTO) {
                 .total(page.getTotal())
                 .build();
     }
+
+    /**
+     * 用户申请退款
+     *
+     * @param id
+     */
+    @Transactional
+    @Override
+    public void applyRefund(Long id) {
+        Orders orders = ordersMapper.findOrders(id);
+        if (orders == null) {
+            throw new OrdersException(MessageConstant.ORDERS_NUMBER_IS_NOT_EXIST);
+        }
+        Integer status = orders.getStatus();
+        // 如果订单状态是未发货
+        if (OrdersConstant.UNSHIPPED_ORDER.equals(status)) {
+            orders.setStatus(OrdersConstant.REFUNDED_ORDER);
+        } else if (OrdersConstant.USER_RECEIVE_PRODUCT.equals(status)) {
+            // 如果是已签收的7天内 不包含
+            if (LocalDateTime.now()
+                    .isBefore(orders.getCreateTime()
+                            .plus(Duration.ofDays(7)))) {
+                orders.setStatus(OrdersConstant.REFUNDED_ORDER);
+            } else {
+                throw new OrdersException(MessageConstant.THE_AMOUNT_IS_INSUFFICIENT);
+            }
+        } else {
+            throw new OrdersException(MessageConstant.ORDERS_STATUS_IS_WRONG);
+        }
+        // 修改订单
+        ordersMapper.update(orders);
+        // 退款
+        Long userId = orders.getUserId();
+        User refund = userMapper.getById(userId);
+        if (refund == null) {
+            throw new AccountNotFountException(MessageConstant.ACCOUNT_NOT_FOUND);
+        }
+        refund.setMoney(refund.getMoney().add(orders.getTotalPrice()));
+        userMapper.update(refund);
+    }
+
 
     private Orders createOrders(GoodsPurchaseDTO goodsPurchaseDTO) {
         return Orders.builder()

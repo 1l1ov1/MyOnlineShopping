@@ -7,11 +7,7 @@ import com.wan.result.PageResult;
 import java.util.List;
 
 public interface OrdersService {
-    /**
-     * 添加订单
-     * @param orders
-     */
-    void addOrder(Orders orders);
+
 
     /**
      * 订单分页查询
@@ -31,4 +27,6 @@ public interface OrdersService {
      * @param orders
      */
     void updateOrders(Orders orders);
+
+
 }

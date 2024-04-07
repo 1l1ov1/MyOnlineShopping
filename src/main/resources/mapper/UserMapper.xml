@@ -34,7 +34,7 @@
                 avatar = #{avatar},
             </if>
             <if test="money != null">
-                money = #{money}
+                money = #{money},
             </if>
         </set>
         where id = #{id}
@@ -127,7 +127,7 @@
         <result property="createTime" column="create_time"></result>
         <result property="updateTime" column="update_time"></result>
         <association property="goods" javaType="com.wan.entity.Goods"
-        columnPrefix="g_">
+                     columnPrefix="g_">
             <id column="id" property="id"></id>
             <result column="goods_name" property="goodsName"></result>
             <result column="price" property="price"></result>
@@ -136,7 +136,7 @@
             <result column="description" property="description"></result>
         </association>
         <association property="store" javaType="com.wan.entity.Store"
-        columnPrefix="s_">
+                     columnPrefix="s_">
             <id column="id" property="id"></id>
             <result column="store_name" property="storeName"></result>
             <result column="logo" property="logo"></result>
@@ -161,10 +161,14 @@
         FROM orders o
         INNER JOIN goods g on o.goods_id = g.id
         INNER JOIN store s ON o.store_id = s.id
-        where o.user_id = 1
-        <if test="target != null and target != 0">
-            and o.status = #{target}
-        </if>
-    order by o.create_time desc
+        <where>
+            <if test="userId != null">
+                and o.user_id = #{userId}
+            </if>
+            <if test="target != null and target != 0">
+                and o.status = #{target}
+            </if>
+        </where>
+        order by o.create_time desc
     </select>
 </mapper>

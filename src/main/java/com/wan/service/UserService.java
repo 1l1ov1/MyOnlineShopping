@@ -66,4 +66,10 @@ public interface UserService {
      * @return
      */
     PageResult queryOneTypeOrders(Long userId, Integer target, Integer currentPage, Integer pageSize);
+
+    /**
+     * 申请退款
+     * @param id
+     */
+    void applyRefund(Long id);
 }

@@ -264,4 +264,13 @@ public class UserController {
         PageResult pageResult = userService.queryOneTypeOrders(userId, target, currentPage, pageSize);
         return Result.success(pageResult);
     }
+
+
+    @GetMapping("/applyRefund/{id}")
+    @ApiOperation("申请退款")
+    public Result<String> applyRefund(@PathVariable  Long id) {
+        log.info("申请退款, {}", id);
+        userService.applyRefund(id);
+        return Result.success("申请退款成功");
+    }
 }

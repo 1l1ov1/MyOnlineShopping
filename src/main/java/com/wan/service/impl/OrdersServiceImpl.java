@@ -7,6 +7,7 @@ import com.wan.constant.OrdersConstant;
 import com.wan.dto.OrdersPageQueryDTO;
 import com.wan.entity.Orders;
 import com.wan.entity.User;
+import com.wan.exception.AccountNotFountException;
 import com.wan.exception.OrdersException;
 import com.wan.mapper.OrdersMapper;
 import com.wan.mapper.UserMapper;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -96,18 +98,6 @@ public class OrdersServiceImpl implements OrdersService {
         ordersMapper.update(orders);
     }
 
-    /**
-     * 添加订单
-     *
-     * @param orders
-     */
-    @Override
-    public void addOrder(Orders orders) {
-
-    }
-
-
-
 
     /**
      * 用户退款
@@ -120,6 +110,9 @@ public class OrdersServiceImpl implements OrdersService {
         Long userId = refundOrders.getUserId();
         // 得到该用户
         User user = userMapper.getById(userId);
+        if (user == null) {
+            throw new AccountNotFountException(MessageConstant.ACCOUNT_NOT_FOUND);
+        }
         // 得到总价
         BigDecimal totalPrice = refundOrders.getTotalPrice();
         // 加回去

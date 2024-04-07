@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wan.mapper.WithdrawRecordMapper">
+
+    <resultMap id="withdrawRecordPageQueryVO" type="com.wan.vo.WithdrawRecordPageQueryVO">
+        <id property="id" column="id"></id>
+        <result property="userId" column="user_id"></result>
+        <result property="phone" column="phone"></result>
+        <result property="sellerId" column="seller_id"></result>
+        <result property="username" column="username"></result>
+        <result property="sellerName" column="seller_name"></result>
+        <result property="storeId" column="store_id"></result>
+        <result property="storeName" column="store_name"></result>
+        <result property="withdrawMoney" column="withdraw_money"></result>
+        <result property="originMoney" column="origin_money"></result>
+        <result property="number" column="number"></result>
+        <result property="totalPrice" column="total_price"></result>
+        <result property="pay" column="pay"></result>
+        <result property="goodsName" column="goods_name"></result>
+        <result property="createTime" column="create_time"></result>
+        <result property="updateTime" column="update_time"></result>
+    </resultMap>
+    <insert id="insertWithdrawRecord">
+        insert into withdraw_record(user_id, seller_id, store_id,
+                                    total_price, withdraw_money, number,
+                                    pay, goods_name, origin_money,
+                                    create_time, update_time)
+        VALUES (#{userId}, #{sellerId}, #{storeId},
+                #{totalPrice}, #{withdrawMoney}, #{number},
+                #{pay}, #{goodsName}, #{originMoney},
+                #{createTime}, #{updateTime})
+    </insert>
+
+    <select id="queryWithdrawRecord" resultMap="withdrawRecordPageQueryVO">
+        SELECT
+        wr.id,
+        wr.store_id,
+        wr.seller_id,
+        wr.user_id,
+        s.store_name,
+        u.username,
+        u.phone,
+        bu.username as seller_name,
+        wr.goods_name,
+        wr.total_price,
+        wr.number,
+        wr.pay,
+        wr.withdraw_money,
+        wr.origin_money,
+        wr.create_time
+        FROM
+        withdraw_record wr
+        INNER JOIN store s on s.id = wr.store_id
+        INNER JOIN `user` u on u.id = wr.user_id
+        INNER JOIN `user` bu on bu.id = wr.seller_id
+        <where>
+            <if test="storeId != null">
+                and wr.store_id = #{storeId}
+            </if>
+            <if test="storeName != null">
+                and s.store_name like concat('%', #{storeName}, '%')
+            </if>
+            <if test="username != null">
+                and u.username like concat('%', #{username}, '%')
+            </if>
+
+        </where>
+        ORDER BY wr.create_time
+        <if test="sort != null">
+            <if test="sort == 1">
+                ASC
+            </if>
+            <if test="sort == 0">
+                DESC
+            </if>
+        </if>
+    </select>
+</mapper>

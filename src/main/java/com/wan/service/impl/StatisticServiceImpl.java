@@ -249,7 +249,6 @@ public class StatisticServiceImpl implements StatisticService {
         // 得到迭代器
         LocalDate start = pair.getLeft();
         LocalDate end = pair.getRight();
-        List<LocalDate> dateRange = new ArrayList<>();
 
         List<GoodsSalesDTO> goodsSalesDTOList = statisticMapper.getSalesTop10(start, end, storeId, OrdersConstant.SUCCESSFUL_ORDER);
         List<String> goodsNameList = goodsSalesDTOList.stream()
@@ -271,8 +270,11 @@ public class StatisticServiceImpl implements StatisticService {
      */
     @Override
     public void exportData(HttpServletResponse response) {
-        LocalDate start = LocalDate.now().minusDays(30);
-        LocalDate end = LocalDate.now().minusDays(1);
+        // 得到一个月的日期开始和结束
+        Pair<LocalDate, LocalDate> pair = calculateDateRange(StoreSalesRangeType.LAST_30_DAYS);
+        LocalDate start = pair.getLeft();
+        LocalDate end = pair.getRight();
+        // 获得数据
         ExportDataVO exportDataVO = getExportDataVO(start, end);
 
         InputStream in = this.getClass().getClassLoader()
@@ -298,7 +300,8 @@ public class StatisticServiceImpl implements StatisticService {
             row.getCell(2).setCellValue(exportDataVO.getSuccessfulOrdersCount());
             row.getCell(4).setCellValue(exportDataVO.getUnitPrice().doubleValue());
             // 填充明细数据
-            for (int i = 0; i < 30; i++) {
+            // lengthOfMonth 返回一个月有多少天
+            for (int i = 0; i < start.lengthOfMonth(); i++) {
                 LocalDate date = start.plusDays(i);
                 // 准备明细数据
                 exportDataVO = getExportDataVO(date, date);
@@ -325,47 +328,54 @@ public class StatisticServiceImpl implements StatisticService {
     }
 
 
+    /**
+     * 根据给定的日期范围获取导出数据的视图对象。
+     *
+     * @param start 开始日期
+     * @param end 结束日期
+     * @return ExportDataVO 导出数据的视图对象，包含总营收、总订单数、成功订单数、订单完成率、平均客单价和新增用户数。
+     */
     private ExportDataVO getExportDataVO(LocalDate start, LocalDate end) {
         Long storeId;
         if (isAdministrator()) {
-            // 如果是管理员
+            // 判断是否为管理员，是则storeId设为null
             storeId = null;
         } else {
-            // 如果不是管理员
+            // 验证用户ID的有效性，并获取对应的商店
             Long userId = validateUserId();
-            // 得到对应的商店
             Store store = validateStore(userId);
-            // 得到对应的商店id
+            // 获取商店ID
             storeId = store.getId();
-
         }
-        // 营业额
+
+        // 统计指定日期范围内的总营收  月底
         BigDecimal totalRevenue = statisticMapper.getTotalRevenue(start, end, storeId);
         totalRevenue = totalRevenue == null ? BigDecimal.valueOf(0.0) : totalRevenue;
-        // 查询总订单数
+
+        // 统计指定日期范围内的总订单数
         Integer totalOrdersCount = statisticMapper.getTotalOrdersCount(start, end, storeId) == null
                 ? 0 : statisticMapper.getTotalOrdersCount(start, end, storeId);
-        // 成功的订单数
+
+        // 统计指定日期范围内成功的订单数
         Integer successfulOrdersCount = statisticMapper
                 .queryOrdersCount(LocalDateTime.of(start, LocalTime.MIN),
                         LocalDateTime.of(end, LocalTime.MAX),
                         OrdersConstant.SUCCESSFUL_ORDER, storeId);
-
         BigDecimal unitPrice = BigDecimal.valueOf(0.0);
 
         Double orderCompletionRate = 0.0;
         if (totalOrdersCount != 0 && successfulOrdersCount != 0) {
-            // 订单完成率
+            // 计算订单完成率和平均客单价
             orderCompletionRate = successfulOrdersCount.doubleValue() / totalOrdersCount;
-            // 平均客单价
             unitPrice = totalRevenue
                     .divide(BigDecimal.valueOf(successfulOrdersCount), 2, RoundingMode.HALF_UP);
         }
 
-        // 新增用户数
+        // 统计指定日期范围内的新增用户数
         Integer newUsers = statisticMapper.queryUserCountByDay(LocalDateTime.of(start, LocalTime.MIN),
                 LocalDateTime.of(end, LocalTime.MAX));
 
+        // 构建并返回导出数据的视图对象
         return buildExportDataVO(totalRevenue,
                 successfulOrdersCount,
                 orderCompletionRate,

@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
 
+import com.wan.constant.StoreSalesConstant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -63,6 +64,10 @@ public class StoreSales implements Serializable {
     private Integer userCount;
 
     /**
+     * 是否被提现
+     */
+    private Integer isWithdraw;
+    /**
      * 创建时间
      */
     private LocalDateTime createTime;
@@ -89,6 +94,8 @@ public class StoreSales implements Serializable {
         // 计算平均订单金额
         setAvgOrderAmount(getDailySales()
                 .divide(new BigDecimal(getOrderCount()), 2, RoundingMode.HALF_UP));
+        // 将营业额状态该已提现状态
+        setIsWithdraw(StoreSalesConstant.WITHDRAWN);
     }
 
 }
