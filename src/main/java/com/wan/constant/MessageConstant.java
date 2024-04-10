@@ -4,6 +4,7 @@ package com.wan.constant;
  * 信息提示常量类
  */
 public class MessageConstant {
+
     private MessageConstant() {
 
     }
@@ -77,5 +78,12 @@ public class MessageConstant {
 
     // 收藏夹
     public static final String THIS_FAVORITE_IS_NOT_EXIST = "该收藏品不存在";
+
+    // 地址
+    public static final String ADDRESS_IS_EXIST = "地址已经存在";
+
+    public static final String ADDRESS_IS_NOT_EXIST = "地址不存在";
+
+    public static final String OUT_OF_MAX_ADDRESS_NUMBER = "超出最大地址数";
 
 }

@@ -1,15 +1,19 @@
 package com.wan.service;
 
 import com.wan.dto.GoodsPurchaseDTO;
+import com.wan.dto.UpdatePasswordDTO;
 import com.wan.dto.UserCreateStoreDTO;
 import com.wan.dto.UserLoginDTO;
+import com.wan.entity.Address;
 import com.wan.entity.User;
 import com.wan.result.PageResult;
+
 import java.util.Map;
 
 public interface UserService {
     /**
      * 用户登录
+     *
      * @param userLoginDTO
      * @return
      */
@@ -17,12 +21,14 @@ public interface UserService {
 
     /**
      * 用户注册
+     *
      * @param userLoginDTO
      */
     void addUser(UserLoginDTO userLoginDTO);
 
     /**
      * 根据用户id查询
+     *
      * @param userId
      * @return
      */
@@ -30,12 +36,14 @@ public interface UserService {
 
     /**
      * 修改用户
+     *
      * @param user
      */
     User update(User user);
 
     /**
      * 根据用户id得到用户的详细信息
+     *
      * @param id
      * @return
      */
@@ -43,22 +51,24 @@ public interface UserService {
 
     /**
      * 用户重置密码
-     * @param pwdData
-     * @param id
+     *
+     * @param updatePasswordDTO
      */
-    void updatePassword(Map<String, String> pwdData, Long id);
+    void updatePassword(UpdatePasswordDTO updatePasswordDTO);
 
 
     void createStore(UserCreateStoreDTO userCreateStoreDTO);
 
     /**
      * 购买商品
+     *
      * @param goodsPurchaseDTO
      */
     void buy(GoodsPurchaseDTO goodsPurchaseDTO);
 
     /**
      * 查询某种类型的订单
+     *
      * @param userId
      * @param target
      * @param currentPage
@@ -69,7 +79,20 @@ public interface UserService {
 
     /**
      * 申请退款
+     *
      * @param id
      */
     void applyRefund(Long id);
+
+    /**
+     * 给用户添加地址
+     * @param address
+     */
+    void addAddress(Address address);
+
+    /**
+     * 删除非默认地址
+     * @param id
+     */
+    void deleteAddress(Long id);
 }

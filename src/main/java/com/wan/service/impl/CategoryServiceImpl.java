@@ -64,7 +64,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void updateCategory(CategoryDTO categoryDTO) {
         try {
-            if (CheckObjectFieldUtils.allFieldsNotNull(categoryDTO)) {
+            if (CheckObjectFieldUtils.areAllNonExcludedFieldsNotNullByDefault(categoryDTO)) {
                 // 如果都不空
                 Category category = categoryMapper.findCategory(categoryDTO.getId());
                 if (category == null) {
@@ -74,7 +74,7 @@ public class CategoryServiceImpl implements CategoryService {
                 if (checkCategoryName(categoryDTO.getCategoryName())
                         && checkCategoryStatus(categoryDTO.getCategoryStatus())) {
                     // 如果分类为禁止状态的话
-                    if (categoryDTO.getCategoryStatus() == CategoryConstant.DISABLED) {
+                    if (categoryDTO.getCategoryStatus().equals(CategoryConstant.DISABLED)) {
                         // 就去查询商品该分类是否全部下架，只有全部下架才能该为禁止
                         List<Goods> goodsList = goodsMapper.findGoodsByCategoryId(categoryDTO.getId());
                         // 如果有该分类的上架商品存在

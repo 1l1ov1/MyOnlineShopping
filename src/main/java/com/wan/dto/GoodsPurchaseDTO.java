@@ -1,5 +1,6 @@
 package com.wan.dto;
 
+import com.wan.entity.Address;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,6 +21,7 @@ public class GoodsPurchaseDTO {
     private Double price;
     private Double discount;
     private BigDecimal totalPrice;
+    private Address address;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
 }

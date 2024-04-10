@@ -18,7 +18,7 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public Address getAddressByUserId(Long userId, Integer isDefault) {
-        return addressMapper.getAddressByUserId(userId, isDefault);
+        return addressMapper.getAddressByUserId(userId, isDefault).get(0);
     }
 
     /**
@@ -28,7 +28,7 @@ public class AddressServiceImpl implements AddressService {
      * @return
      */
     public List<Address> getAllAddressByUserId(Long userId) {
-        return addressMapper.getAllAddressByUserId(userId);
+        return addressMapper.getAddressByUserId(userId, null);
     }
 
     /**
@@ -51,7 +51,7 @@ public class AddressServiceImpl implements AddressService {
         Long userId = address.getUserId();
         Long id = address.getId();
         // 查找到该用户的所有地址
-        List<Address> addressList = addressMapper.getAllAddressByUserId(userId);
+        List<Address> addressList = addressMapper.getAddressByUserId(userId, null);
         // 更新地址
         List<Address> newAddressList = addressList.stream()
                 .peek(item -> {

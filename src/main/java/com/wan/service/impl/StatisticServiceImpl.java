@@ -478,9 +478,9 @@ public class StatisticServiceImpl implements StatisticService {
         if (user == null) {
             throw new AccountNotFountException(MessageConstant.USER_IS_NOT_EXIST);
         }
-
+        Integer status = user.getStatus();
         // 判断用户状态是否为管理员状态
-        return user.getStatus() == UserConstant.MANAGER;
+        return status == UserConstant.MANAGER || status == UserConstant.SUPER_ADMINISTRATOR;
     }
 
 
