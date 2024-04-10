@@ -22,7 +22,7 @@ public class Orders {
     private BigDecimal totalPrice;
     private Integer pay;
     private Integer status;
-
+    private Address address;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
 }

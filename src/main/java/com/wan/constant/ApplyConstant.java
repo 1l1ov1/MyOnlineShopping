@@ -11,6 +11,7 @@ public class ApplyConstant {
     /**
      * 审核通过
      */
+
     public static final Integer APPROVED = 1;
     /**
      * 审核拒绝

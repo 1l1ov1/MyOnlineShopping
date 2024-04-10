@@ -26,23 +26,19 @@
                          select="com.wan.mapper.StoreMapper.getStoreAddress">
             </association>
         </association>
-        <association property="address" javaType="com.wan.entity.Address"
-                     column="username" select="userDefaultAddress">
-
+        <association property="address" javaType="com.wan.entity.Address">
+            <id column="id" property="id"></id>
+            <result column="user_id" property="userId"></result>
+            <result column="province_code" property="provinceCode"></result>
+            <result column="province_name" property="provinceName"></result>
+            <result column="city_code" property="cityCode"></result>
+            <result column="city_name" property="cityName"></result>
+            <result column="district_code" property="districtCode"></result>
+            <result column="district_name" property="districtName"></result>
+            <result column="detail" property="detail"></result>
+            <result property="createTime" column="create_time"></result>
+            <result property="updateTime" column="update_time"></result>
         </association>
-    </resultMap>
-    <resultMap id="userDefaultAddressMap" type="com.wan.entity.Address">
-        <id column="id" property="id"></id>
-        <result column="user_id" property="userId"></result>
-        <result column="province_code" property="provinceCode"></result>
-        <result column="province_name" property="provinceName"></result>
-        <result column="city_code" property="cityCode"></result>
-        <result column="city_name" property="cityName"></result>
-        <result column="district_code" property="districtCode"></result>
-        <result column="district_name" property="districtName"></result>
-        <result column="is_default" property="isDefault"></result>
-        <result property="createTime" column="create_time"></result>
-        <result property="updateTime" column="update_time"></result>
     </resultMap>
     <update id="update">
         update orders
@@ -115,31 +111,39 @@
             #{id}
         </foreach>
     </delete>
-    <select id="userDefaultAddress" resultMap="userDefaultAddressMap">
-        select *
-        from address_book
-        where is_default = 1
-          and user_id = (select id
-                         from user
-                         where username = #{username})
-    </select>
     <insert id="batchInsertOrder">
-        insert into orders(goods_name, user_id, goods_id, store_id,number,
-        total_price, pay, status, create_time,
-        update_time) VALUES
+        insert into orders(goods_name, user_id, goods_id, store_id,
+        total_price, pay, status, number,
+        province_code, province_name,
+        city_code, city_name,
+        district_code, district_name,
+        detail,
+        create_time, update_time) VALUES
         <foreach collection="ordersList" item="orders" separator=",">
-            (#{orders.goodsName}, #{orders.userId}, #{orders.goodsId},#{orders.storeId},
-            #{orders.number}, #{orders.totalPrice}, #{orders.pay},
-            #{orders.status}, #{orders.createTime}, #{orders.updateTime})
+            (#{goodsName}, #{userId}, #{goodsId}, #{storeId},
+            #{totalPrice}, #{pay}, #{status}, #{number},
+            #{address.provinceCode}, #{address.provinceName},
+            #{address.cityCode}, #{address.cityName},
+            #{address.districtCode}, #{address.districtName},
+            #{address.detail},
+            #{createTime}, #{updateTime})
         </foreach>
     </insert>
     <insert id="insertOrders">
         insert into orders(goods_name, user_id, goods_id, store_id,
-                           total_price, pay, status, create_time,
-                           update_time, number)
+                           total_price, pay, status, number,
+                           province_code, province_name,
+                           city_code, city_name,
+                           district_code, district_name,
+                           detail,
+                           create_time, update_time)
         VALUES (#{goodsName}, #{userId}, #{goodsId}, #{storeId},
-                #{totalPrice}, #{pay}, #{status},
-                #{createTime}, #{updateTime}, #{number})
+                #{totalPrice}, #{pay}, #{status}, #{number},
+                #{address.provinceCode}, #{address.provinceName},
+                #{address.cityCode}, #{address.cityName},
+                #{address.districtCode}, #{address.districtName},
+                #{address.detail},
+                #{createTime}, #{updateTime})
     </insert>
     <select id="pageQuery" resultMap="ordersPageQueryVO">
         SELECT o.id,
@@ -147,6 +151,13 @@
         o.total_price,
         o.number,
         o.pay,
+        o.province_code,
+        o.province_name,
+        o.city_code,
+        o.city_name,
+        o.district_code,
+        o.district_name,
+        o.detail,
         o.create_time,
         g.goods_name,
         g.cover_pic,

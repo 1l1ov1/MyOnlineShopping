@@ -143,7 +143,7 @@ public class ManagerServiceImpl implements ManagerService {
         // 从前端得到地址
         List<Address> addressList = userPageQueryDTO.getAddressList();
         // 先判断之前是否有默认地址，因为已经规定了如果有地址那么一定有一个默认地址
-        Address defaultAddress = addressMapper.getAddressByUserId(userPageQueryDTO.getId(), AddressConstant.IS_DEFAULT);
+        Address defaultAddress = addressMapper.getAddressByUserId(userPageQueryDTO.getId(), AddressConstant.IS_DEFAULT).get(0);
         // 如果数据库中没有， 即没有地址
         if (defaultAddress == null) {
             // 如果没有就是添加

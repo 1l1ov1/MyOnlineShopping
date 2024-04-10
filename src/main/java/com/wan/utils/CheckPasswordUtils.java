@@ -27,4 +27,19 @@ public class CheckPasswordUtils {
 
         return true;
     }
+
+    public static Boolean checkPassword(String newPwd, String rePwd) {
+        // 如果密码为空
+        if (newPwd == null || rePwd == null
+                 || "".equals(newPwd) || "".equals(rePwd)) {
+            throw new PasswordErrorException(PasswordConstant.PASSWORD_IS_NULL);
+        }
+
+        // 新密码和验证密码不同
+        if (!newPwd.equals(rePwd)) {
+            throw new PasswordErrorException(PasswordConstant.NEW_PASSWORD_IS_NOT_EQUALS_RE_PASSWORD);
+        }
+
+        return true;
+    }
 }

@@ -3,6 +3,7 @@ package com.wan.mapper;
 import com.wan.annotation.AutoFill;
 import com.wan.entity.Address;
 import com.wan.enumeration.OperationType;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
@@ -12,22 +13,17 @@ import java.util.List;
 public interface AddressMapper {
     /**
      * 根据用户id查询地址
+     *
      * @param userId
      * @param isDefault
      * @return
      */
 
-    Address getAddressByUserId(Long userId, Integer isDefault);
+    List<Address> getAddressByUserId(Long userId, Integer isDefault);
 
     /**
-     * 得到用户的所有地址
-     * @param userId
-     * @return
-     */
-    @Select("select * from address_book where user_id = #{userId}")
-    List<Address> getAllAddressByUserId(Long userId);
-    /**
      * 修改默认地址
+     *
      * @param address
      */
     @AutoFill(OperationType.UPDATE)
@@ -35,6 +31,7 @@ public interface AddressMapper {
 
     /**
      * 添加地址
+     *
      * @param address
      */
     @AutoFill(OperationType.INSERT)
@@ -42,6 +39,7 @@ public interface AddressMapper {
 
     /**
      * 批量修改地址信息
+     *
      * @param addressList
      */
     @AutoFill(OperationType.UPDATE)
@@ -49,4 +47,21 @@ public interface AddressMapper {
 
     @AutoFill(OperationType.INSERT)
     void insertStoreAddress(Address address);
+
+    /**
+     * 查找地址
+     *
+     * @param id
+     * @return
+     */
+    @Select("select * from address_book where id = #{id}")
+    Address findAddressById(Long id);
+
+    /**
+     * 删除地址
+     *
+     * @param id
+     */
+    @Delete("delete from address_book where id = #{id}")
+    void deleteAddress(Long id);
 }

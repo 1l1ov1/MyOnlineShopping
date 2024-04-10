@@ -72,4 +72,10 @@ public interface UserMapper {
      */
     Page<UserOrdersVO> queryOneTypeOrders(Long userId, Integer target);
 
+    /**
+     * 得到管理员
+     * @return
+     */
+    @Select("select * from user where status = #{status}")
+    User getAdministrator(Integer status);
 }

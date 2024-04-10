@@ -1,15 +1,13 @@
 package com.wan.schedule;
 
-import com.wan.constant.OrdersConstant;
-import com.wan.constant.StoreConstant;
-import com.wan.constant.StoreSalesConstant;
-import com.wan.constant.WithdrawRecordConstant;
+import com.wan.constant.*;
 import com.wan.entity.*;
 import com.wan.mapper.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -40,7 +38,7 @@ public class OrdersSchedule {
     private UserMapper userMapper;
 
     // @Scheduled(cron = "0 0 0 * * ?") // 每天午夜执行，用于处理已发货3天后转为已签收的订单
-    @Scheduled(cron = "0/10 * * * * ?") // 每天午夜执行，用于处理已发货3天后转为已签收的订单
+    @Scheduled(cron = "0/60 * * * * ?") // 每天午夜执行，用于处理已发货3天后转为已签收的订单
     public void processShippedOrders() {
         log.info("定时任务 已发货转为已签收 已启动");
         List<Orders> shippedOrders = ordersMapper.queryOneTypeOrders(OrdersConstant.SHIPPED_ORDER);
@@ -48,7 +46,7 @@ public class OrdersSchedule {
     }
 
     // @Scheduled(cron = "0 0 0 * * ?") // 每天午夜点执行，用于处理已签收7天后转为交易完成的订单
-    @Scheduled(cron = "0/10 * * * * ?") // 每天午夜点执行，用于处理已签收7天后转为交易完成的订单
+    @Scheduled(cron = "0/60 * * * * ?") // 每天午夜点执行，用于处理已签收7天后转为交易完成的订单
     public void processReceivedOrders() {
         log.info("定时任务 签收转为交易完成 已启动");
         List<Orders> receivedOrders = ordersMapper.queryOneTypeOrders(OrdersConstant.USER_RECEIVE_PRODUCT);
@@ -132,8 +130,8 @@ public class OrdersSchedule {
      * @param orders 订单信息，包含店铺ID、用户ID、商品数量、总价、支付方式和商品ID。
      *               通过这些信息计算出提现金额，并为该订单生成一条提现记录。
      */
-    @Transactional
-    private void insertWithdrawRecord(Orders orders) {
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    protected void insertWithdrawRecord(Orders orders) {
         // 提取订单中的关键信息
         Long storeId = orders.getStoreId();
         Long userId = orders.getUserId();
@@ -174,6 +172,51 @@ public class OrdersSchedule {
                 .id(sellerId)
                 .money(originMoney.add(withdrawMoney))
                 .build());
+
+        // 使用抽取的方法来更新管理员钱包并插入手续费记录
+        updateAndInsertAdminWallet(fee, sellerId, totalPrice, goodsName, number, pay, storeId);
+    }
+
+    /**
+     * 修改管理员的钱包
+     *
+     * @param fee
+     * @param sellerId
+     * @param totalPrice
+     * @param goodsName
+     * @param number
+     * @param pay
+     * @param storeId
+     */
+    private void updateAndInsertAdminWallet(BigDecimal fee, Long sellerId, BigDecimal totalPrice,
+                                            String goodsName, Integer number, Integer pay, Long storeId) {
+        User administrator = getAdministrator();
+
+        // 插入提现记录（手续费）
+        withdrawRecordMapper.insertWithdrawRecord(WithdrawRecord.builder()
+                .storeId(storeId)
+                .userId(sellerId) // 给予的userId 该为卖家的id
+                .withdrawMoney(fee)
+                .originMoney(administrator.getMoney())
+                .sellerId(administrator.getId())
+                .totalPrice(totalPrice)
+                .goodsName(goodsName)
+                .number(number)
+                .pay(pay)
+                .build());
+
+        // 更新管理员钱包
+        administrator.setMoney(administrator.getMoney().add(fee));
+        userMapper.update(administrator);
+    }
+
+    /**
+     * 得到管理员
+     *
+     * @return
+     */
+    private User getAdministrator() {
+        return userMapper.getAdministrator(UserConstant.SUPER_ADMINISTRATOR);
     }
 
     /**

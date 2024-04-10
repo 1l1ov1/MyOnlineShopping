@@ -139,12 +139,13 @@ public class StoreServiceImpl implements StoreService {
         if (user == null) {
             throw new AccountNotFountException(MessageConstant.ACCOUNT_NOT_FOUND);
         }
+        Integer status = user.getStatus();
         // 如果用户身份为管理员
-        if (UserConstant.MANAGER == user.getStatus()) {
+        if (UserConstant.MANAGER == status || UserConstant.SUPER_ADMINISTRATOR == status) {
             throw new StoreException(MessageConstant.MANAGE_IS_NOT_ALLOWED_TO_OPEN_STORE);
         }
         // 如果用户身份为普通用户
-        if (UserConstant.COMMON_USER == user.getStatus()) {
+        if (UserConstant.COMMON_USER == status) {
             throw new StoreException(MessageConstant.COMMON_USER_IS_NOT_ALLOWED_TO_OPEN_STORE);
         }
         // 根据店名查询商店

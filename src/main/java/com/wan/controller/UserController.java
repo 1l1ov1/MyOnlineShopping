@@ -19,6 +19,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.annotations.Delete;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -170,12 +171,20 @@ public class UserController {
 
     @PatchMapping("/updatePwd")
     @ApiOperation("重置密码")
-    public Result<String> updatePwd(@RequestBody Map<String, String> pwdData) {
-        log.info("用户重置密码{}", pwdData);
-        Long id = ThreadBaseContext.getCurrentId();
-        userService.updatePassword(pwdData, id);
+    public Result<String> updatePwd(@RequestBody UpdatePasswordDTO updatePasswordDTO) {
+        log.info("用户重置密码{}", updatePasswordDTO);
+        userService.updatePassword(updatePasswordDTO);
         return Result.success("密码修改成功");
     }
+
+    @PatchMapping("/forgetPwd")
+    @ApiOperation("忘记密码")
+    public Result<String> forgetPwd(@RequestBody UpdatePasswordDTO updatePasswordDTO) {
+        log.info("用户重置密码{}", updatePasswordDTO);
+        userService.updatePassword(updatePasswordDTO);
+        return Result.success("密码修改成功");
+    }
+
 
     @PutMapping("/updateUser")
     @ApiOperation("修改用户自己的信息")
@@ -268,9 +277,25 @@ public class UserController {
 
     @GetMapping("/applyRefund/{id}")
     @ApiOperation("申请退款")
-    public Result<String> applyRefund(@PathVariable  Long id) {
+    public Result<String> applyRefund(@PathVariable Long id) {
         log.info("申请退款, {}", id);
         userService.applyRefund(id);
         return Result.success("申请退款成功");
+    }
+
+    @PostMapping("/addAddress")
+    @ApiOperation("添加收货地址")
+    public Result<String> addAddress(@RequestBody Address address) {
+        log.info("添加收货地址 {}", address);
+        userService.addAddress(address);
+        return Result.success("添加成功");
+    }
+
+    @DeleteMapping("/deleteAddress")
+    @ApiOperation("删除非默认地址")
+    public Result<String> addAddress(@RequestParam Long id) {
+        log.info("删除收货地址 {}", id);
+        userService.deleteAddress(id);
+        return Result.success("删除成功");
     }
 }

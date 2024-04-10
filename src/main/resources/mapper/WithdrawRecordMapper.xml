@@ -64,7 +64,9 @@
             <if test="username != null">
                 and u.username like concat('%', #{username}, '%')
             </if>
-
+            <if test="userId != null">
+                and wr.seller_id = #{userId}
+            </if>
         </where>
         ORDER BY wr.create_time
         <if test="sort != null">

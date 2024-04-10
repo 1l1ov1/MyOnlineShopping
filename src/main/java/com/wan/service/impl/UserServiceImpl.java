@@ -5,6 +5,7 @@ import com.github.pagehelper.PageHelper;
 import com.wan.constant.*;
 import com.wan.context.ThreadBaseContext;
 import com.wan.dto.GoodsPurchaseDTO;
+import com.wan.dto.UpdatePasswordDTO;
 import com.wan.dto.UserCreateStoreDTO;
 import com.wan.dto.UserLoginDTO;
 import com.wan.entity.*;
@@ -13,6 +14,7 @@ import com.wan.mapper.*;
 import com.wan.result.PageResult;
 import com.wan.service.UserService;
 
+import com.wan.utils.CheckObjectFieldUtils;
 import com.wan.utils.CheckPasswordUtils;
 import com.wan.vo.UserOrdersVO;
 import lombok.extern.slf4j.Slf4j;
@@ -22,13 +24,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
+import javax.security.auth.login.AccountNotFoundException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -121,23 +126,60 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updatePassword(Map<String, String> pwdData, Long id) {
-        String oldPwd = pwdData.get("oldPwd");
-        String newPwd = pwdData.get("newPwd");
-        String rePwd = pwdData.get("rePwd");
-
-        // 如果密码正确
-        if (CheckPasswordUtils.checkPassword(oldPwd, newPwd, rePwd)) {
-            // 创建对象
-            User user = User.builder()
-                    .id(id)
-                    .password(DigestUtils.md5DigestAsHex(newPwd.getBytes()))
-                    .build();
-            // 更新密码
-            userMapper.update(user);
+    public void updatePassword(UpdatePasswordDTO updatePasswordDTO) {
+        Integer type = updatePasswordDTO.getType();
+        if (type == null) {
+            throw new IllegalArgumentException("非法类型");
+        }
+        User user = null;
+        if (type.equals(PasswordConstant.FORGET)) {
+            user = handleForgetPassword(updatePasswordDTO);
+        } else if (type.equals(PasswordConstant.UPDATE)) {
+            user = handleUpdatePassword(updatePasswordDTO);
         }
 
+        userMapper.update(user);
+    }
 
+    private User handleForgetPassword(UpdatePasswordDTO updatePasswordDTO) {
+        String username = updatePasswordDTO.getUsername();
+        if (username == null || "".equals(username)) {
+            throw new AccountNotFountException(MessageConstant.ACCOUNT_NOT_FOUND);
+        }
+
+        User user = userMapper.getByUsername(username);
+        if (user == null) {
+            throw new AccountNotFountException(MessageConstant.USER_IS_NOT_EXIST);
+        }
+
+        if (CheckPasswordUtils.checkPassword(updatePasswordDTO.getNewPwd(),
+                updatePasswordDTO.getRePwd())) {
+            if (user.getPassword().equals(DigestUtils.md5DigestAsHex(updatePasswordDTO.getNewPwd().getBytes()))) {
+                throw new PasswordErrorException(PasswordConstant.NEW_PASSWORD_EQUALS_OLD_PASSWORD);
+            }
+            user.setPassword(DigestUtils.md5DigestAsHex(updatePasswordDTO.getNewPwd().getBytes()));
+        }
+
+        return user;
+    }
+
+    private User handleUpdatePassword(UpdatePasswordDTO updatePasswordDTO) {
+        Long userId = ThreadBaseContext.getCurrentId();
+        if (userId == null) {
+            throw new AccountNotFountException(MessageConstant.ACCOUNT_NOT_FOUND);
+        }
+
+        User user = userMapper.getById(userId);
+        if (user == null) {
+            throw new AccountLockedException(MessageConstant.USER_IS_NOT_EXIST);
+        }
+
+        if (CheckPasswordUtils.checkPassword(updatePasswordDTO.getOldPwd(),
+                updatePasswordDTO.getNewPwd(), updatePasswordDTO.getRePwd())) {
+            user.setPassword(DigestUtils.md5DigestAsHex(updatePasswordDTO.getNewPwd().getBytes()));
+        }
+
+        return user;
     }
 
     @Override
@@ -293,8 +335,71 @@ public class UserServiceImpl implements UserService {
         userMapper.update(refund);
     }
 
+    /**
+     * 添加地址
+     * @param address
+     */
+
+    @Override
+    public void addAddress(Address address) {
+        Long userId = address.getUserId();
+        User user = userMapper.getById(userId);
+        if (user == null) {
+            throw new AccountNotFountException(MessageConstant.ACCOUNT_NOT_FOUND);
+        }
+        // 如果用户不空
+        try {
+            // 检查字段为空吗
+            if (CheckObjectFieldUtils.areAllNonExcludedFieldsNotNull(address, "id", "storeId")) {
+                // 如果不空
+                // 就去检查该用户是否已经拥有了相同的地址
+                // 得到该用户的所有地址
+                List<Address> addressList = addressMapper.getAddressByUserId(userId, null);
+                // 如果说还没到达最大的地址数
+                if (addressList.size() < AddressConstant.MAX_ADDRESS_NUMBER) {
+                    // 就允许添加
+                    List<Address> collect = addressList.stream()
+                            // 过滤，查找相同的地址
+                            .filter(item -> item.getProvinceName().equals(address.getProvinceName()))
+                            .filter(item -> item.getCityName().equals(address.getCityName()))
+                            .filter(item -> item.getDistrictName().equals(address.getDistrictName()))
+                            .collect(Collectors.toList());
+
+                    // 如果过滤集合为空， 即没有相同的地址
+                    if (collect.isEmpty()) {
+                        addressMapper.insertAddress(address);
+                    } else {
+                        throw new AddressException(MessageConstant.ADDRESS_IS_EXIST);
+                    }
+                } else {
+                    // 如果到了
+                    throw new AddressException(MessageConstant.OUT_OF_MAX_ADDRESS_NUMBER);
+                }
+
+
+            }
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    /**
+     * 删除地址
+     * @param id
+     */
+    @Override
+    public void deleteAddress(Long id) {
+        Address address = addressMapper.findAddressById(id);
+        if (address == null) {
+            throw new AddressException(MessageConstant.ADDRESS_IS_NOT_EXIST);
+        }
+
+        addressMapper.deleteAddress(id);
+    }
 
     private Orders createOrders(GoodsPurchaseDTO goodsPurchaseDTO) {
+
         return Orders.builder()
                 .goodsId(goodsPurchaseDTO.getGoodsId())
                 .goodsName(goodsPurchaseDTO.getGoodsName())
@@ -303,6 +408,7 @@ public class UserServiceImpl implements UserService {
                 .storeId(goodsPurchaseDTO.getStoreId())
                 .totalPrice(goodsPurchaseDTO.getTotalPrice())
                 .status(OrdersConstant.UNSHIPPED_ORDER)
+                .address(goodsPurchaseDTO.getAddress())
                 .build();
     }
 
