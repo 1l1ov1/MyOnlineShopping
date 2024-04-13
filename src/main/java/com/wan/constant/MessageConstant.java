@@ -18,6 +18,7 @@ public class MessageConstant {
     public static final String USER_NOT_LOGIN = "用户未登录";
     public static final String LOGIN_FAILED = "登录失败";
     public static final String VERIFY_CODE_ERROR = "验证码错误";
+    public static final String VERIFY_CODE_IS_NOT_EXIST = "验证码不存在，请刷新页面";
     public static final String ACCOUNT_EXIST = "账号已存在";
     // 商店
 

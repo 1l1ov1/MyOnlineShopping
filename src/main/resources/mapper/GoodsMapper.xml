@@ -143,12 +143,9 @@
             <if test="updateTime != null">
                 and g.update_time = #{updateTime}
             </if>
-            <!--  <if test="store != null and store.storeName != null">
-                  and s.store_name like concat('%', #{store.storeName}, '%')
+              <if test="storeId != null">
+                  and g.store_id  = #{storeId}
               </if>
-              <if test="store != null and store.userId != null">
-                  and s.user_id = #{store.userId}
-              </if>-->
         </where>
         order by g.create_time
         <if test="sort == 1">

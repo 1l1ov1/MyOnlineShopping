@@ -3,6 +3,7 @@ package com.wan.vo;
 import lombok.Builder;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.List;
 
 
@@ -12,7 +13,7 @@ import java.util.List;
  */
 @Data
 @Builder
-public class SalesTop10VO {
+public class SalesTop10VO implements Serializable {
     private List<String> goodsNameList; // 商品名称列表
 
     private List<Integer> numberList; // 销售数量列表

@@ -92,10 +92,6 @@ public class GoodsServiceImpl implements GoodsService {
      */
     @Override
     public void batchDelete(List<Long> ids) {
-        if (ids == null || ids.size() == 0) {
-            throw new GoodsException(MessageConstant.PLEASE_CHOOSE_ONE_MORE_DATA_TO_DELETE);
-        }
-
         goodsMapper.delete(ids);
     }
 

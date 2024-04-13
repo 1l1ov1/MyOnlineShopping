@@ -1,17 +1,17 @@
 package com.wan.controller;
 
-import com.wan.constant.JwtClaimConstant;
-import com.wan.constant.MessageConstant;
-import com.wan.constant.UserConstant;
+import com.wan.constant.*;
 import com.wan.context.ThreadBaseContext;
 import com.wan.dto.*;
 import com.wan.entity.*;
+import com.wan.exception.AccountNotFountException;
 import com.wan.properties.JwtProperties;
 import com.wan.result.PageResult;
 import com.wan.result.Result;
 import com.wan.service.*;
 import com.wan.utils.JwtUtils;
 
+import com.wan.utils.RedisUtils;
 import com.wan.vo.UserLoginVO;
 import com.wan.vo.UserPageQueryVO;
 
@@ -23,9 +23,11 @@ import org.apache.ibatis.annotations.Delete;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -34,6 +36,8 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/user")
@@ -54,6 +58,9 @@ public class UserController {
     @Autowired
     private GoodsService goodsService;
 
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+
     /**
      * 用户登录
      *
@@ -64,11 +71,22 @@ public class UserController {
     @ApiOperation("用户登录")
     public Result<UserLoginVO> login(@RequestBody UserLoginDTO userLoginDTO, HttpServletRequest request) {
         log.info("用户登录：{}", userLoginDTO);
-        String code = (String) request.getSession().getAttribute("verify_code");
+        // String code = (String) request.getSession().getAttribute("verify_code");
+        String KEY = Arrays.stream(request.getCookies())
+                .filter(cookie -> RedisConstant.VERIFY_CODE.equals(cookie.getName()))
+                .findFirst() // 只取第一个匹配的Cookie，如果有多个同名Cookie，只取第一个
+                .map(Cookie::getValue) // 从找到的Cookie中提取值
+                .orElse(null); // 如果没有找到匹配的Cookie，返回null
+        // 得到缓存中的键后，在得到值
+        String code = (String) redisTemplate.opsForValue().get(KEY);
+        if (code == null) {
+            return Result.error(MessageConstant.VERIFY_CODE_ERROR);
+        }
         // 忽略大小写
         if (!code.equalsIgnoreCase(userLoginDTO.getVerifyCode())) {
             return Result.error(MessageConstant.VERIFY_CODE_ERROR);
         }
+
         // 开始登录
         User user = userService.login(userLoginDTO);
         // 创建Map集合
@@ -111,8 +129,22 @@ public class UserController {
         VerificationCode code = new VerificationCode(130, 30);
         BufferedImage image = code.getImage(5, 3);
         String text = code.getText();
-        HttpSession session = request.getSession(true);
-        session.setAttribute("verify_code", text);
+        // HttpSession session = request.getSession(true);
+        // session.setAttribute("verify_code", text);
+        // 随机键名
+        String KEY = UUID.randomUUID().toString();
+        // 存放到cookie中
+        Cookie cookie = new Cookie(RedisConstant.VERIFY_CODE, KEY);
+        cookie.setMaxAge(120); // 2分钟
+        // 设置为前端应用的域名（这里为localhost）
+        cookie.setDomain("localhost");
+        // 设置为登录页面路径
+        cookie.setPath("/");
+        resp.addCookie(cookie);
+        // 保存到缓存中
+        redisTemplate.opsForValue().set(KEY, text);
+        // 设置过期时间 2分钟
+        redisTemplate.expire(KEY, 120 * 1000, TimeUnit.MILLISECONDS);
         System.out.println("验证码为：" + text);
         VerificationCode.output(image, resp.getOutputStream());
         return Result.success();
@@ -125,6 +157,9 @@ public class UserController {
         // 使用完后就删除
         ThreadBaseContext.removeCurrentId();
         User user = userService.getUserById(userId);
+        if (user == null) {
+            throw new AccountNotFountException(MessageConstant.ACCOUNT_NOT_FOUND);
+        }
         UserPageQueryVO userPageQueryVO = new UserPageQueryVO();
         BeanUtils.copyProperties(user, userPageQueryVO);
         List<Address> addressList = addressService.getAllAddressByUserId(userId);
@@ -155,6 +190,8 @@ public class UserController {
     @ApiOperation("得到用户信息")
     public Result<UserPageQueryVO> getDetail(Long id, Integer isDefault) {
         log.info("得到用户信息{}, {}", id, isDefault);
+
+        // 否则去数据库查询
         User user = userService.getDetail(id);
         // 查询其对应的默认地址
         Address address = addressService.getAddressByUserId(id, isDefault);
@@ -263,6 +300,11 @@ public class UserController {
     public Result<String> buyGoods(@RequestBody GoodsPurchaseDTO goodsPurchaseDTO) {
         log.info("立即购买 {}", goodsPurchaseDTO);
         userService.buy(goodsPurchaseDTO);
+        // 清除该用户未发货订单的缓存
+        Long userId = ThreadBaseContext.getCurrentId();
+        ThreadBaseContext.removeCurrentId();
+        RedisUtils.clearRedisCache(redisTemplate,
+                RedisConstant.USER_ORDERS + OrdersConstant.UNSHIPPED_ORDER + '-' + userId);
         return Result.success("购买成功");
     }
 
@@ -270,7 +312,15 @@ public class UserController {
     @ApiOperation("用户查询某种类型的订单")
     public Result<PageResult> userQueryOrders(@PathVariable Long userId, @RequestParam Integer target, @RequestParam Integer currentPage, @RequestParam Integer pageSize) {
         log.info("用户查询某种类型的订单 {}, {}, {}, {}", userId, target, currentPage, pageSize);
-        PageResult pageResult = userService.queryOneTypeOrders(userId, target, currentPage, pageSize);
+        PageResult pageResult = RedisUtils.redisGetHashValues(redisTemplate,
+                RedisConstant.USER_ORDERS + target + '-' + userId, PageResult.class);
+        if (pageResult != null) {
+            return Result.success(pageResult);
+        }
+        pageResult = userService.queryOneTypeOrders(userId, target, currentPage, pageSize);
+        RedisUtils.redisHashPut(redisTemplate,
+                RedisConstant.USER_ORDERS + target + '-' + userId, pageResult,
+                1L, TimeUnit.HOURS);
         return Result.success(pageResult);
     }
 

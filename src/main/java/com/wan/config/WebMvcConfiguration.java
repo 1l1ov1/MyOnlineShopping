@@ -1,5 +1,8 @@
 package com.wan.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.wan.interceptor.JwtTokenInterceptor;
 import com.wan.json.JacksonObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -8,10 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
+import org.springframework.web.servlet.config.annotation.*;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
@@ -47,6 +47,20 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
                         "/user/userLogout", "/user/forgetPwd");
     }
 
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/**")
+                        .allowedOrigins("http://localhost:7070") // 替换为前端域名
+                        .allowCredentials(true)
+                        .allowedMethods("*")
+                        .maxAge(3600);
+            }
+        };
+    }
+
     /**
      * 设置静态资源映射
      *
@@ -75,14 +89,17 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
         return docket;
     }
 
+
     /**
-     * 扩展springmvc的消息转换器
+     * 配置消息转换器，用于支持JSON序列化和反序列化时的日期时间处理。
+     * 这个方法覆盖了Spring MVC中默认的消息转换器配置，加入了对Java 8日期时间API的支持。
      *
-     * @param converters
+     * @param converters 一个HttpMessageConverter类型的列表，用于将HTTP消息与对象之间进行转换。
+     *                   这个参数允许我们向Spring MVC框架注册自定义的消息转换器，以处理特定的数据类型。
      */
     @Override
-    protected void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
-        log.info("扩展消息转换器...");
+    public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+        log.info("配置消息转换器...");
         // 创建一个消息转换器对象
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         // 需要为消息转换器设置对象转换器，对象转换器可以将json对象序列化为json数据
@@ -90,4 +107,5 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
         // 将自己的消息转换器加入容器中（优先使用）
         converters.add(0, converter);
     }
+
 }

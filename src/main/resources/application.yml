@@ -10,7 +10,10 @@ spring:
     username: ${spring.datasource.username}
     password: ${spring.datasource.password}
     url: jdbc:mysql:// ${spring.datasource.host}:${spring.datasource.port}/${spring.datasource.database}?allowMultiQueries=true
-
+  redis:
+    port: ${spring.redis.host}
+    host: ${spring.redis.host}
+    database: ${spring.redis.database}
 mybatis:
   #mapper配置文件
   mapper-locations: classpath:mapper/*.xml

@@ -6,13 +6,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class StoreAllGoodsVO {
+public class StoreAllGoodsVO implements Serializable {
     // 商店id
     private Long id;
     // 商店的商品

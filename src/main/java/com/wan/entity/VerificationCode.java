@@ -5,9 +5,10 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.util.Random;
 
-public class VerificationCode {
+public class VerificationCode implements Serializable {
     private int width = 120;// 生成验证码图片的宽度
     private int height = 30;// 生成验证码图片的高度
     private String[] fontNames = { "宋体", "楷体", "隶书", "微软雅黑" };

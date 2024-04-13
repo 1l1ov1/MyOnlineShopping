@@ -1,14 +1,17 @@
 package com.wan.controller;
 
+import com.wan.constant.RedisConstant;
 import com.wan.dto.CategoryDTO;
 import com.wan.result.PageResult;
 import com.wan.result.Result;
 import com.wan.service.CategoryService;
+import com.wan.utils.RedisUtils;
 import com.wan.vo.CategoryVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +24,8 @@ public class CategoryController {
 
     @Autowired
     private CategoryService categoryService;
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     @PostMapping("/page")
     @ApiOperation("分页查询")
@@ -35,6 +40,7 @@ public class CategoryController {
     public Result<String> updateCategory(@RequestBody CategoryDTO categoryDTO) {
         log.info("修改分类 {}", categoryDTO);
         categoryService.updateCategory(categoryDTO);
+
         return Result.success("修改成功");
     }
 
@@ -43,6 +49,7 @@ public class CategoryController {
     public Result<String> batchDeleteCategory(@RequestParam List<Long> ids) {
         log.info("分类批量删除 {}", ids);
         categoryService.batchDelete(ids);
+
         return Result.success("删除成功");
     }
 
@@ -51,6 +58,7 @@ public class CategoryController {
     public Result<String> addCategory(@RequestBody CategoryDTO categoryDTO) {
         log.info("添加分类 {}", categoryDTO);
         categoryService.addCategory(categoryDTO);
+
         return Result.success("添加成功");
     }
 

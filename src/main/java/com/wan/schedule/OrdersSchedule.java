@@ -3,8 +3,10 @@ package com.wan.schedule;
 import com.wan.constant.*;
 import com.wan.entity.*;
 import com.wan.mapper.*;
+import com.wan.utils.RedisUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -36,6 +38,8 @@ public class OrdersSchedule {
     private StoreMapper storeMapper;
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     // @Scheduled(cron = "0 0 0 * * ?") // 每天午夜执行，用于处理已发货3天后转为已签收的订单
     @Scheduled(cron = "0/60 * * * * ?") // 每天午夜执行，用于处理已发货3天后转为已签收的订单
@@ -79,6 +83,9 @@ public class OrdersSchedule {
             ordersToUpdate.forEach(item -> item.setStatus(status));
             // 批量更新订单状态到数据库
             ordersMapper.batchUpdate(ordersToUpdate);
+
+            // 订单更新完，就清除订单缓存
+            // RedisUtils.clearRedisCache(redisTemplate, RedisConstant.ADMINISTRATOR_CLEAR_ORDERS_PATTERN);
             // 如果已经是交易完成了，就将营业额添加到指定的商店
             if (status == OrdersConstant.SUCCESSFUL_ORDER) {
                 updateTurnoverForSuccessfulOrders(ordersToUpdate);
@@ -208,6 +215,10 @@ public class OrdersSchedule {
         // 更新管理员钱包
         administrator.setMoney(administrator.getMoney().add(fee));
         userMapper.update(administrator);
+        // 清除提现缓存和用户的缓存
+        // RedisUtils.clearRedisCache(redisTemplate,
+        //         RedisConstant.ADMINISTRATOR_WITHDRAW_RECORD_PAGE,
+        //         RedisConstant.ADMINISTRATOR_USER_PAGE);
     }
 
     /**

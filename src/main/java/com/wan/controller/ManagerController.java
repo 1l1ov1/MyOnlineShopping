@@ -1,15 +1,18 @@
 package com.wan.controller;
 
+import com.wan.constant.RedisConstant;
 import com.wan.dto.UserPageQueryDTO;
 import com.wan.result.PageResult;
 import com.wan.result.Result;
 import com.wan.service.ManagerService;
+import com.wan.utils.RedisUtils;
 import com.wan.vo.StoreSalesVO;
 import com.wan.vo.UserCountVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +24,8 @@ import java.util.List;
 public class ManagerController {
     @Autowired
     private ManagerService managerService;
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     // 用户
     @GetMapping("/page")
@@ -29,7 +34,6 @@ public class ManagerController {
         log.info("用户分页查询，参数为：{}", userPageQueryDTO);
         // 分页查询
         PageResult pageResult = managerService.pageQuery(userPageQueryDTO);
-
         return Result.success(pageResult);
     }
 

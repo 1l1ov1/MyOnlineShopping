@@ -1,14 +1,18 @@
 package com.wan.controller;
 
+import com.wan.constant.RedisConstant;
 import com.wan.dto.StorePageQueryDTO;
 import com.wan.result.PageResult;
 import com.wan.result.Result;
 import com.wan.service.StoreService;
+import com.wan.utils.RedisUtils;
 import com.wan.vo.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,11 +24,14 @@ import java.util.List;
 public class StoreController {
     @Autowired
     private StoreService storeService;
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     @GetMapping("/page")
     @ApiOperation("商店分页查询")
     public Result<PageResult> pageQuery(StorePageQueryDTO storePageQueryDTO) {
         log.info("商店分页查询{}", storePageQueryDTO);
+
         PageResult pageResult = storeService.pageQuery(storePageQueryDTO);
 
         return Result.success(pageResult);
@@ -52,6 +59,7 @@ public class StoreController {
     public Result<String> addStore(@RequestBody StorePageQueryDTO storePageQueryDTO) {
         log.info("添加商店信息 {}", storePageQueryDTO);
         storeService.addStore(storePageQueryDTO);
+
         return Result.success("添加成功");
     }
 
@@ -60,6 +68,7 @@ public class StoreController {
     public Result<String> deleteStore(@RequestParam List<Long> ids) {
         log.info("删除商店：{}", ids);
         storeService.deleteBatchStore(ids);
+
         return Result.success("删除成功");
     }
 
@@ -68,6 +77,7 @@ public class StoreController {
     public Result<String> openOrClose(@PathVariable Integer status, Long id) {
         log.info("开店和关店{}, {}", status, id);
         storeService.openOrClose(status, id);
+
         return Result.success("修改成功");
     }
 

@@ -62,6 +62,7 @@ public class UploadImgController {
             file.transferTo(dest);
             // 写入数据库 （规定了只能自己修改自己的图片 管理员无法修改图片）
             Long userId = ThreadBaseContext.getCurrentId();
+            ThreadBaseContext.removeCurrentId();
             // 先查询
             User user = userService.getUserById(userId);
             // 得到路径

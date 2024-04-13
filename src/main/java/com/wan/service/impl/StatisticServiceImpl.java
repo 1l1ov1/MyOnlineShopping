@@ -487,7 +487,7 @@ public class StatisticServiceImpl implements StatisticService {
     private Long validateUserId() {
         // 得到该商家的用户id
         Long userId = ThreadBaseContext.getCurrentId();
-        // 这里不再删除ThreadLocal中用户id，避免影响其他操作
+        ThreadBaseContext.removeCurrentId();
         if (userId == null) {
             throw new AccountNotFountException(MessageConstant.USER_IS_NOT_EXIST);
         }

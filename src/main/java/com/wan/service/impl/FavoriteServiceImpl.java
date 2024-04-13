@@ -158,7 +158,8 @@ public class FavoriteServiceImpl implements FavoriteService {
     private void batchDeleteFavorites(List<Long> ids, FavoriteType favoriteType) {
         // 得到用户id
         Long userId = ThreadBaseContext.getCurrentId();
-        ThreadBaseContext.removeCurrentId();
+        // 不在这里进行remove，因为后面还需要靠得到userId来删除缓存，等删除缓存的时候在清除
+        // ThreadBaseContext.removeCurrentId();
         // 得到对应的收藏
         List<Favorite> favorites = favoriteMapper.queryOneTypeFavorite(ids, userId, favoriteType.getTarget());
         // 如果收藏为空
@@ -210,8 +211,13 @@ public class FavoriteServiceImpl implements FavoriteService {
         ThreadBaseContext.removeCurrentId();
         List<Long> targetIds = new ArrayList<>(); // 根据需要可能改为 goodsId 或 storeId
         targetIds.add(id);
-        List<Favorite> favorites = favoriteMapper.queryOneTypeFavorite(targetIds, userId, favoriteType.getTarget());
-
+        // 如果是商店
+        List<Favorite> favorites = FavoriteType.STORE.getTarget().equals(favoriteType.getTarget()) ? favoriteMapper
+                .queryOneTypeFavorite(targetIds, userId, favoriteType.getTarget()).stream()
+                .filter(favorite -> favorite.getGoodsId() == null && favorite.getStoreId() != null).collect(Collectors.toList())
+                // 如果是商品
+                : favoriteMapper
+                .queryOneTypeFavorite(targetIds, userId, favoriteType.getTarget());
         return FavoriteVO.builder()
                 .favoriteList(favorites)
                 .build();

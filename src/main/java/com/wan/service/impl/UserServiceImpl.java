@@ -165,6 +165,7 @@ public class UserServiceImpl implements UserService {
 
     private User handleUpdatePassword(UpdatePasswordDTO updatePasswordDTO) {
         Long userId = ThreadBaseContext.getCurrentId();
+        ThreadBaseContext.removeCurrentId();
         if (userId == null) {
             throw new AccountNotFountException(MessageConstant.ACCOUNT_NOT_FOUND);
         }
