@@ -4,6 +4,7 @@
 <mapper namespace="com.wan.mapper.OrdersMapper">
     <resultMap id="ordersPageQueryVO" type="com.wan.vo.OrdersPageQueryVO">
         <id column="id" property="id"></id>
+        <result property="ordersNumber" column="orders_number"></result>
         <result property="goodsName" column="goods_name"></result>
         <result property="totalPrice" column="total_price"></result>
         <result property="number" column="number"></result>
@@ -112,7 +113,7 @@
         </foreach>
     </delete>
     <insert id="batchInsertOrder">
-        insert into orders(goods_name, user_id, goods_id, store_id,
+        insert into orders(orders_number,goods_name, user_id, goods_id, store_id,
         total_price, pay, status, number,
         province_code, province_name,
         city_code, city_name,
@@ -120,7 +121,7 @@
         detail,
         create_time, update_time) VALUES
         <foreach collection="ordersList" item="orders" separator=",">
-            (#{goodsName}, #{userId}, #{goodsId}, #{storeId},
+            (#{ordersNumber},#{goodsName}, #{userId}, #{goodsId}, #{storeId},
             #{totalPrice}, #{pay}, #{status}, #{number},
             #{address.provinceCode}, #{address.provinceName},
             #{address.cityCode}, #{address.cityName},
@@ -130,14 +131,14 @@
         </foreach>
     </insert>
     <insert id="insertOrders">
-        insert into orders(goods_name, user_id, goods_id, store_id,
+        insert into orders(orders_number, goods_name, user_id, goods_id, store_id,
                            total_price, pay, status, number,
                            province_code, province_name,
                            city_code, city_name,
                            district_code, district_name,
                            detail,
                            create_time, update_time)
-        VALUES (#{goodsName}, #{userId}, #{goodsId}, #{storeId},
+        VALUES (#{ordersNumber}, #{goodsName}, #{userId}, #{goodsId}, #{storeId},
                 #{totalPrice}, #{pay}, #{status}, #{number},
                 #{address.provinceCode}, #{address.provinceName},
                 #{address.cityCode}, #{address.cityName},
@@ -149,6 +150,7 @@
         SELECT o.id,
         o.`status`,
         o.total_price,
+        o.orders_number,
         o.number,
         o.pay,
         o.province_code,
@@ -183,6 +185,9 @@
             </if>
             <if test="store != null and store.id != null">
                 and s.id = #{store.id}
+            </if>
+            <if test="ordersNumber != null">
+                and o.orders_number like concat(#{ordersNumber}, '%')
             </if>
         </where>
         order by o.create_time

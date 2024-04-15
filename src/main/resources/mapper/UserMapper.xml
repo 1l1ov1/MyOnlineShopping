@@ -120,6 +120,7 @@
 
     <resultMap id="userOrdersVO" type="com.wan.vo.UserOrdersVO">
         <id property="id" column="id"></id>
+        <result property="ordersNumber" column="orders_number"></result>
         <result property="status" column="status"></result>
         <result property="number" column="number"></result>
         <result property="pay" column="pay"></result>
@@ -147,6 +148,7 @@
         o.`status`,
         o.pay,
         o.number,
+        o.orders_number,
         o.total_price,
         g.id g_id,
         g.goods_name g_goods_name,

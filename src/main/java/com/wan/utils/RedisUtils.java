@@ -107,6 +107,7 @@ public class RedisUtils {
         }
         // 从Redis获取指定键的所有值
         List<Object> values = redisTemplate.opsForHash().values(key);
+
         // 如果values是空数组， 即缓存中没有值，则返回null
         if (values.isEmpty()) {
             return null;
@@ -115,13 +116,13 @@ public class RedisUtils {
             // 通过类字节码文件获取对象的无参构造函数创建对象
             T entity = cls.getDeclaredConstructor().newInstance();
 
-            int index = values.size() - 1;
+            int index = 0;
             // 遍历类的字段
             for (Field field : cls.getDeclaredFields()) {
                 // 设置所有字段可访问
                 field.setAccessible(true);
                 // 将字段的值设置到新实例中
-                field.set(entity, values.get(index--));
+                field.set(entity, values.get(index++));
             }
             return entity;
         } catch (InstantiationException | IllegalAccessException e) {
@@ -206,6 +207,10 @@ public class RedisUtils {
      *                      该方法通过传入的键值，从Redis缓存中删除对应的数据。
      */
     public static void clearRedisCache(RedisTemplate<String, Object> redisTemplate, String... keys) {
+        if (redisTemplate == null) {
+            // 如果Redis模板为空，则直接返回
+            return;
+        }
         if (keys.length == 0) {
             // 如果没有要删除的键，直接返回，避免执行无效操作
             return;

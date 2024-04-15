@@ -74,7 +74,7 @@ public class OrdersServiceImpl implements OrdersService {
 
     @Override
     @Transactional
-    public void updateOrders(Orders orders) {
+    public Orders updateOrders(Orders orders) {
         Long id = orders.getId();
         Integer status = orders.getStatus();
         // 根据id查询该订单
@@ -96,6 +96,7 @@ public class OrdersServiceImpl implements OrdersService {
             userMapper.update(user);
         }
         ordersMapper.update(orders);
+        return findOrders;
     }
 
 

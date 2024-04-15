@@ -10,6 +10,7 @@ import com.wan.exception.CartException;
 import com.wan.exception.GoodsException;
 import com.wan.mapper.*;
 import com.wan.service.CartService;
+import com.wan.utils.SnowFlakeUtil;
 import com.wan.vo.CartVO;
 import com.wan.vo.UserCartVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -176,6 +177,7 @@ public class CartServiceImpl implements CartService {
     private Orders createOrders(Cart cart, Long userId) {
         Orders orders = new Orders();
         orders.setGoodsId(cart.getGoodsId());
+        orders.setOrdersNumber(SnowFlakeUtil.nextId());
         orders.setGoodsName(cart.getGoodsName());
         orders.setNumber(cart.getNumber());
         orders.setTotalPrice(cart.getTotalPrice());

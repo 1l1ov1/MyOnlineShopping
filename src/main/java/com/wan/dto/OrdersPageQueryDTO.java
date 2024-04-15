@@ -26,6 +26,8 @@ public class OrdersPageQueryDTO {
     private Store store;
     // 购买者
     private String username;
+    // 订单号
+    private Long ordersNumber;
     // 购买者地址
     private Address address;
     // 订单创建时间

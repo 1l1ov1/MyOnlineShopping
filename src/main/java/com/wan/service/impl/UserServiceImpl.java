@@ -1,13 +1,11 @@
 package com.wan.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.wan.constant.*;
 import com.wan.context.ThreadBaseContext;
-import com.wan.dto.GoodsPurchaseDTO;
-import com.wan.dto.UpdatePasswordDTO;
-import com.wan.dto.UserCreateStoreDTO;
-import com.wan.dto.UserLoginDTO;
+import com.wan.dto.*;
 import com.wan.entity.*;
 import com.wan.exception.*;
 import com.wan.mapper.*;
@@ -16,7 +14,9 @@ import com.wan.service.UserService;
 
 import com.wan.utils.CheckObjectFieldUtils;
 import com.wan.utils.CheckPasswordUtils;
+import com.wan.utils.SnowFlakeUtil;
 import com.wan.vo.UserOrdersVO;
+import com.wan.websocket.WebSocketServer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,15 +24,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
-import javax.security.auth.login.AccountNotFoundException;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -51,6 +46,8 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private StoreSalesMapper storeSalesMapper;
+    @Autowired
+    private WebSocketServer webSocketServer;
 
     /**
      * 用户登录
@@ -245,7 +242,7 @@ public class UserServiceImpl implements UserService {
 
         // 获取当前用户ID
         Long userId = ThreadBaseContext.getCurrentId();
-        ThreadBaseContext.removeCurrentId();
+
         // 更新商品库存
         goods.decreaseStock(goodsPurchaseDTO.getNumber());
         goodsMapper.update(goods);
@@ -263,6 +260,13 @@ public class UserServiceImpl implements UserService {
         }
         user.decreaseBalance(goodsPurchaseDTO.getTotalPrice());
         userMapper.update(user);
+
+        // 当用户购买后，就通知商家
+        Map<String, Object> map = new HashMap<>();
+        map.put("type", WebSocketConstant.REMIND_ORDER); // 1表示来单提醒 2表示客户催单
+        map.put("message", MessageConstant.USER_HAS_ORDERED);
+        map.put("content", "订单号：" + orders.getOrdersNumber());
+        webSocketServer.sendToSpecificStore(orders.getStoreId(), JSON.toJSONString(map));
     }
 
 
@@ -338,6 +342,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * 添加地址
+     *
      * @param address
      */
 
@@ -387,6 +392,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * 删除地址
+     *
      * @param id
      */
     @Override
@@ -400,9 +406,9 @@ public class UserServiceImpl implements UserService {
     }
 
     private Orders createOrders(GoodsPurchaseDTO goodsPurchaseDTO) {
-
         return Orders.builder()
                 .goodsId(goodsPurchaseDTO.getGoodsId())
+                .ordersNumber(SnowFlakeUtil.nextId())
                 .goodsName(goodsPurchaseDTO.getGoodsName())
                 .number(goodsPurchaseDTO.getNumber())
                 .pay(PayConstant.WALLET_PAYMENTS)
@@ -413,6 +419,23 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
+    @Override
+    public void reminder(ReminderDTO reminderDTO) {
+        // 数据校验
+        if (reminderDTO == null || reminderDTO.getStoreId() == null || reminderDTO.getOrdersNumber() == null) {
+            throw new IllegalArgumentException("输入参数不能为空");
+        }
+        Long storeId = reminderDTO.getStoreId();
+        Long ordersNumber = reminderDTO.getOrdersNumber();
+        // 发送消息
+        Map<String, Object> map = new HashMap<>();
+        map.put("type", WebSocketConstant.USER_URGE_ORDER);
+        map.put("message", MessageConstant.USER_URGE_ORDER);
+        map.put("content", "订单号：" + ordersNumber);
+
+        webSocketServer.sendToSpecificStore(storeId, JSON.toJSONString(map));
+
+    }
 
     /**
      * 判断账号是否合法，如果合法就将用户返回

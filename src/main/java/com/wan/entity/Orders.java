@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 @Builder
 public class Orders implements Serializable {
     private Long id;
+    private Long ordersNumber;
     private String goodsName;
     private Long userId;
     private Long goodsId;

@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 @Builder
 public class UserOrdersVO {
     private Long id;// 订单id
+    private Long ordersNumber; // 订单号
     private Goods goods; // 订单对应的商品
     private Store store; // 订单对应的商店
     private Integer pay; // 支付方式

@@ -18,6 +18,8 @@ import java.time.LocalDateTime;
 public class OrdersPageQueryVO implements Serializable {
     // 订单id
     private Long id;
+    // 订单号
+    private Long ordersNumber;
     // 商品名
     private String goodsName;
     // 商品价钱

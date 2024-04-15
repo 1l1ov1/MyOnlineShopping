@@ -87,4 +87,13 @@ public class MessageConstant {
 
     public static final String OUT_OF_MAX_ADDRESS_NUMBER = "超出最大地址数";
 
+    /**
+     * 用户已下单，请注意查收
+     */
+    public static final String USER_HAS_ORDERED = "用户已下单，请注意查收";
+
+    /**
+     * 用户催单了，请尽快发货
+     */
+    public static final String USER_URGE_ORDER = "用户催单了，请尽快发货";
 }

@@ -1,9 +1,6 @@
 package com.wan.service;
 
-import com.wan.dto.GoodsPurchaseDTO;
-import com.wan.dto.UpdatePasswordDTO;
-import com.wan.dto.UserCreateStoreDTO;
-import com.wan.dto.UserLoginDTO;
+import com.wan.dto.*;
 import com.wan.entity.Address;
 import com.wan.entity.User;
 import com.wan.result.PageResult;
@@ -95,4 +92,10 @@ public interface UserService {
      * @param id
      */
     void deleteAddress(Long id);
+
+    /**
+     * 用户催单
+     * @param reminderDTO
+     */
+    void reminder(ReminderDTO reminderDTO);
 }

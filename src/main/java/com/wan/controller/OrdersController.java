@@ -1,5 +1,6 @@
 package com.wan.controller;
 
+import com.wan.constant.OrdersConstant;
 import com.wan.constant.RedisConstant;
 import com.wan.dto.OrdersPageQueryDTO;
 import com.wan.entity.Orders;
@@ -52,7 +53,9 @@ public class OrdersController {
         Orders orders = Orders.builder()
                 .id(id)
                 .status(status).build();
-        ordersService.updateOrders(orders);
+        Long userId = ordersService.updateOrders(orders).getUserId();
+        RedisUtils.clearRedisCache(redisTemplate,
+                RedisConstant.USER_ORDERS + OrdersConstant.ALL_ORDERS + "-" + userId);
         return Result.success("修改成功");
     }
 

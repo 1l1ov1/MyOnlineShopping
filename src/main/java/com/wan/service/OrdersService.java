@@ -26,7 +26,7 @@ public interface OrdersService {
      * 修改订单
      * @param orders
      */
-    void updateOrders(Orders orders);
+    Orders updateOrders(Orders orders);
 
 
 }

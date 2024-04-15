@@ -300,11 +300,12 @@ public class UserController {
     public Result<String> buyGoods(@RequestBody GoodsPurchaseDTO goodsPurchaseDTO) {
         log.info("立即购买 {}", goodsPurchaseDTO);
         userService.buy(goodsPurchaseDTO);
-        // 清除该用户未发货订单的缓存
+        // 清除该用户未发货订单和全部订单的缓存
         Long userId = ThreadBaseContext.getCurrentId();
         ThreadBaseContext.removeCurrentId();
         RedisUtils.clearRedisCache(redisTemplate,
-                RedisConstant.USER_ORDERS + OrdersConstant.UNSHIPPED_ORDER + '-' + userId);
+                RedisConstant.USER_ORDERS + OrdersConstant.UNSHIPPED_ORDER + '-' + userId,
+                RedisConstant.USER_ORDERS + OrdersConstant.ALL_ORDERS + '-' + userId);
         return Result.success("购买成功");
     }
 
@@ -347,5 +348,13 @@ public class UserController {
         log.info("删除收货地址 {}", id);
         userService.deleteAddress(id);
         return Result.success("删除成功");
+    }
+
+    @PostMapping("/reminder")
+    @ApiOperation("用户催单")
+    public Result<String> reminder(@RequestBody ReminderDTO reminderDTO) {
+        log.info("用户催单 {}", reminderDTO);
+        userService.reminder(reminderDTO);
+        return Result.success("发送成功");
     }
 }
