@@ -9,6 +9,7 @@ import java.util.Set;
  */
 public class RedisConstant {
 
+
     private RedisConstant() {
 
     }
@@ -131,4 +132,26 @@ public class RedisConstant {
      * 用户的订单
      */
     public static final String USER_ORDERS = "user_orders-";
+
+    /**
+     * 商店全部评论
+     */
+    public static final String STORE_COMMENT = "store_comment-";
+
+    /**
+     * 商店好评
+     */
+
+    public static final String STORE_COMMENT_GOOD = "store_comment_good-";
+
+    /**
+     * 商店差评
+     */
+
+    public static final String STORE_COMMENT_BAD = "store_comment_bad-";
+
+    /**
+     * 商店评论行为
+     */
+    public static final String STORE_COMMENT_ACTION = "store_comment_action-";
 }

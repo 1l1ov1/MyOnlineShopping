@@ -4,10 +4,11 @@
 <mapper namespace="com.wan.mapper.UserMapper">
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         insert into user(username, password, phone, create_time, update_time,
-                         status, account_status, is_online)
+                         status, account_status, ban_start_time, ban_end_time,
+                         forbidden_word, forbidden_start_time, forbidden_end_time, is_online)
         VALUES (#{username}, #{password}, #{phone},
-                #{createTime}, #{updateTime}, #{status}, #{accountStatus},
-                #{isOnline})
+                #{createTime}, #{updateTime}, #{status}, #{accountStatus}, #{banStartTime}, #{banEndTime},
+                #{forbiddenWord}, #{forbiddenStartTime}, #{forbiddenEndTime}, #{isOnline})
     </insert>
     <update id="update">
         update user
@@ -20,6 +21,21 @@
             </if>
             <if test="accountStatus != null">
                 account_status = #{accountStatus},
+            </if>
+            <if test="banStartTime != null">
+                ban_start_time = #{banStartTime},
+            </if>
+            <if test="banEndTime != null">
+                ban_end_time = #{banEndTime},
+            </if>
+            <if test="forbiddenWord != null">
+                forbidden_word = #{forbiddenWord},
+            </if>
+            <if test="forbiddenStartTime != null">
+                forbidden_start_time = #{forbiddenStartTime},
+            </if>
+            <if test="forbiddenEndTime != null">
+                forbidden_end_time = #{forbiddenEndTime},
             </if>
             <if test="status != null">
                 status = #{status},
@@ -89,6 +105,41 @@
                 <foreach collection="userList" item="user" index="index">
                     <if test="user.accountStatus != null">
                         when id=#{user.id} then #{user.accountStatus}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="ban_start_time=case" suffix="end,">
+                <foreach collection="userList" item="user" index="index">
+                    <if test="user.banStartTime != null">
+                        when id=#{user.id} then #{user.banStartTime}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="ban_end_time=case" suffix="end,">
+                <foreach collection="userList" item="user" index="index">
+                    <if test="user.banEndTime != null">
+                        when id=#{user.id} then #{user.banEndTime}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="forbidden_word=case" suffix="end,">
+                <foreach collection="userList" item="user" index="index">
+                    <if test="user.forbiddenWord != null">
+                        when id=#{user.id} then #{user.forbiddenWord}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="forbidden_start_time=case" suffix="end,">
+                <foreach collection="userList" item="user" index="index">
+                    <if test="user.forbiddenStartTime != null">
+                        when id=#{user.id} then #{user.forbiddenStartTime}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="forbidden_end_time=case" suffix="end,">
+                <foreach collection="userList" item="user" index="index">
+                    <if test="user.forbiddenEndTime != null">
+                        when id=#{user.id} then #{user.forbiddenEndTime}
                     </if>
                 </foreach>
             </trim>

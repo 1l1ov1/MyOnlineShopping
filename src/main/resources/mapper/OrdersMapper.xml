@@ -121,13 +121,13 @@
         detail,
         create_time, update_time) VALUES
         <foreach collection="ordersList" item="orders" separator=",">
-            (#{ordersNumber},#{goodsName}, #{userId}, #{goodsId}, #{storeId},
-            #{totalPrice}, #{pay}, #{status}, #{number},
-            #{address.provinceCode}, #{address.provinceName},
-            #{address.cityCode}, #{address.cityName},
-            #{address.districtCode}, #{address.districtName},
-            #{address.detail},
-            #{createTime}, #{updateTime})
+            (#{orders.ordersNumber},#{orders.goodsName}, #{orders.userId}, #{orders.goodsId}, #{orders.storeId},
+            #{orders.totalPrice}, #{orders.pay}, #{orders.status}, #{orders.number},
+            #{orders.address.provinceCode}, #{orders.address.provinceName},
+            #{orders.address.cityCode}, #{orders.address.cityName},
+            #{orders.address.districtCode}, #{orders.address.districtName},
+            #{orders.address.detail},
+            #{orders.createTime}, #{orders.updateTime})
         </foreach>
     </insert>
     <insert id="insertOrders">

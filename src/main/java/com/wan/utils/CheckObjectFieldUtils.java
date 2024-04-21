@@ -112,5 +112,39 @@ public class CheckObjectFieldUtils {
         return true;  // 所有字段均非空，返回true
     }
 
+    /**
+     * 只检测指定的字段是否为空
+     * @param object
+     * @param fieldName
+     * @return
+     */
+    public static Boolean areAllNonIncludedFieldsNotNull(Object object, String... fieldName) throws IllegalAccessException {
+        if (fieldName == null) {
+            throw new IllegalArgumentException("fieldName不能为空");
+        }
+        // 创建一个HashSet用于存储所有需要排除的字段名
+        Set<String> includedFieldSet = new HashSet<>(Arrays.asList(fieldName));
+        // 将默认排除的字段添加到排除字段集合中
+
+        // 遍历对象的所有声明字段
+        for (Field field : object.getClass().getDeclaredFields()) {
+            field.setAccessible(true);  // 设置字段为可访问，以避免访问权限问题
+            try {
+                // 如果字段名在包含集合中，则检查该字段
+                if (includedFieldSet.contains(field.getName())) {
+                    // 检查字段的值是否为空，如果为空，则函数返回false
+                    if (field.get(object) == null) {
+                        return false;
+                    }
+                }
+
+            } catch (IllegalAccessException e) {
+                // 处理或记录访问字段时的异常，然后重新抛出
+                throw new IllegalAccessException(e.getMessage());
+            }
+        }
+        // 如果指定字段都不为空，则返回true
+        return true;
+    }
 
 }

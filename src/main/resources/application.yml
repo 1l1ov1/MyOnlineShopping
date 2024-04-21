@@ -30,3 +30,9 @@ online-shopping:
 logging:
   level:
     com.wan.mapper.storeMapper: debug
+
+
+# 配置内外网穿透
+HSK:
+  # domain: "ci90172or40.vicp.fun"
+  domain: "localhost"

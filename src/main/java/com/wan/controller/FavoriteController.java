@@ -38,7 +38,8 @@ public class FavoriteController {
         Long userId = ThreadBaseContext.getCurrentId();
         ThreadBaseContext.removeCurrentId();
         RedisUtils.clearRedisCache(redisTemplate,
-                RedisConstant.USER_FAVORITE + userId);
+                RedisConstant.USER_FAVORITE + userId,
+                RedisConstant.USER_CART + userId);
         return Result.success("添加成功");
     }
 

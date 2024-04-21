@@ -44,6 +44,15 @@ public class CategoryController {
         return Result.success("修改成功");
     }
 
+    @PutMapping("/updateStatus")
+    public Result<String> updateCategoryStatus(@RequestBody CategoryDTO categoryDTO) {
+        log.info("修改分类 {}", categoryDTO);
+        categoryService.updateCategoryStatus(categoryDTO);
+
+        return Result.success("修改成功");
+    }
+
+
     @DeleteMapping("/delete")
     @ApiOperation("批量删除")
     public Result<String> batchDeleteCategory(@RequestParam List<Long> ids) {

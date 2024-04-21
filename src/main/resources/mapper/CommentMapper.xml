@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wan.mapper.CommentMapper">
+
+
+    <insert id="addComment" useGeneratedKeys="true" keyProperty="id">
+        insert into comments(user_id, username, avatar, goods_id, store_id, content, star,
+                             like_count, reply_count, report_count, dislike_count,
+                             parent_comment_id, comment_status,
+                             create_time, update_time)
+        VALUES (#{userId}, #{username}, #{avatar}, #{goodsId}, #{storeId}, #{content}, #{star},
+                #{likeCount}, #{replyCount}, #{reportCount}, #{dislikeCount},
+                #{parentCommentId}, #{commentStatus},
+                #{createTime}, #{updateTime})
+    </insert>
+    <insert id="addCommentAction">
+        insert into comment_action(user_id, comment_id, goods_id, store_id,
+                                   action, create_time, update_time)
+        values (#{userId}, #{commentId}, #{goodsId}, #{storeId},
+                #{action}, #{createTime}, #{updateTime})
+    </insert>
+    <update id="updateComment">
+        update comments
+        <set>
+            <if test="userId != null">
+                user_id = #{userId},
+            </if>
+            <if test="username != null">
+                username = #{username},
+            </if>
+            <if test="avatar != null">
+                avatar = #{avatar},
+            </if>
+            <if test="goodsId != null">
+                goods_id = #{goodsId},
+            </if>
+            <if test="storeId != null">
+                store_id = #{storeId},
+            </if>
+            <if test="content != null">
+                content = #{content},
+            </if>
+            <if test="star != null">
+                star = #{star},
+            </if>
+            <if test="likeCount != null">
+                like_count = #{likeCount},
+            </if>
+            <if test="replyCount != null">
+                reply_count = #{replyCount},
+            </if>
+            <if test="reportCount != null">
+                report_count = #{reportCount},
+            </if>
+            <if test="dislikeCount != null">
+                dislike_count = #{dislikeCount},
+            </if>
+            <if test="parentCommentId != null">
+                parent_comment_id = #{parentCommentId},
+            </if>
+            <if test="commentStatus != null">
+                comment_status = #{commentStatus},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+        </set>
+
+        where id = #{id}
+    </update>
+
+    <delete id="batchDeleteComment">
+        delete from comments where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <resultMap id="commentPageQueryVO" type="com.wan.vo.CommentPageQueryVO">
+        <result column="total" property="total"/>
+        <collection property="comments" ofType="com.wan.entity.Comment"
+                    javaType="java.util.List"
+        >
+            <id property="id" column="id"/>
+            <result property="userId" column="user_id"/>
+            <result property="storeId" column="store_id"/>
+            <result property="username" column="username"/>
+            <result property="avatar" column="avatar"/>
+            <result property="goodsId" column="goods_id"/>
+            <result property="content" column="content"/>
+            <result property="star" column="star"/>
+            <result property="likeCount" column="like_count"/>
+            <result property="replyCount" column="reply_count"/>
+            <result property="reportCount" column="report_count"/>
+            <result property="dislikeCount" column="dislike_count"/>
+            <result property="parentCommentId" column="parent_comment_id"/>
+            <result property="commentStatus" column="comment_status"/>
+            <result property="createTime" column="create_time"/>
+            <result property="updateTime" column="update_time"/>
+        </collection>
+    </resultMap>
+
+    <select id="queryComments" resultMap="commentPageQueryVO">
+        select *, count(*) OVER() as total from comments
+        WHERE store_id = #{storeId}
+        AND goods_id = #{goodsId}
+        AND comment_status = 0
+        <!-- 根据好评/差评类型筛选 -->
+        <choose>
+            <when test="type == 1">
+                AND star between 3.5 and 5.0
+            </when>
+            <when test="type == 2">
+                AND star between 0.5 and 3.0
+            </when>
+            <otherwise>
+                and star between 0.0 and 5.0
+            </otherwise>
+        </choose>
+        ORDER BY
+        <!-- 根据排序字段排序 -->
+        <choose>
+            <when test="sort == 1">create_time DESC</when>
+            <when test="sort == 2">star DESC</when>
+        </choose>
+    </select>
+    <select id="findCommentAction" resultType="com.wan.entity.CommentAction">
+        select *
+        from comment_action
+        where user_id = #{userId}
+          and goods_id = #{goodsId}
+          and store_id = #{storeId}
+    </select>
+
+    <update id="updateCommentAction">
+        update comment_action
+        <set>
+            <if test="userId != null">
+                user_id = #{userId},
+            </if>
+            <if test="commentId != null">
+                comment_id = #{commentId},
+            </if>
+            <if test="goodsId != null">
+                goods_id = #{goodsId},
+            </if>
+            <if test="storeId != null">
+                store_id = #{storeId},
+            </if>
+            <if test="action != null">
+                action = #{action},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+</mapper>

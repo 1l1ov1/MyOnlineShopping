@@ -5,6 +5,7 @@ package com.wan.constant;
  */
 public class MessageConstant {
 
+
     private MessageConstant() {
 
     }
@@ -96,4 +97,65 @@ public class MessageConstant {
      * 用户催单了，请尽快发货
      */
     public static final String USER_URGE_ORDER = "用户催单了，请尽快发货";
+
+    /**
+     * 您的账号因违法该平台相关条例被永久封禁
+     */
+    public static final String ACCOUNT_IS_FOREVER_BAN = "您的账号因违法该平台相关条例，被永久封禁";
+
+    /**
+     * 您的账号因违反该平台相关条例被永久禁言
+     */
+    public static final String ACCOUNT_IS_FOREVER_FORBIDDEN = "您的账号因违反该平台相关条例，被永久禁言";
+    /**
+     * 评论不能为空
+     */
+    public static final String COMMENT_CONTENT_IS_EMPTY = "评论内容不能为空";
+
+    /**
+     * 评论评分超出有效范围
+     */
+    public static final String COMMENT_STAR_OUT_OF_RANGE = "评论评分超出有效范围";
+
+    /**
+     * 字段不能为空
+     */
+    public static final String FIELD_IS_EMPTY = "字段不能为空";
+
+
+    /**
+     * 评论内容长度超出有效范围
+     */
+    public static final String COMMENT_CONTENT_LENGTH_OUT_OF_RANGE = "评论内容长度超出有效范围";
+
+    /**
+     * 当天举报次数超出范围
+     */
+    public static final String REPORT_COUNT_OUT_OF_RANGE = "当天举报次数超出范围";
+
+    /**
+     * 已经举报过该评论
+     */
+
+    public static final String ALREADY_REPORTED = "已经举报过该评论";
+
+    /**
+     * 举报内容长度超出有效范围
+     */
+    public static final String REPORT_CONTENT_LENGTH_ERROR = "举报内容长度超出有效范围，应为1-300个字符，不能全是空格";
+
+    /**
+     * 封禁或禁言类型错误
+     */
+    public static final String TYPE_IS_WORRY = "封禁或禁言类型错误";
+
+    /**
+     * 用户已经封禁，无法操作
+     */
+    public static final String USER_HAS_BANNED = "您已经被管理员封禁，无法操作，结束时间为：";
+
+    /**
+     * 用户已被禁言，无法发表评论
+     */
+    public static final String USER_HAS_FORBIDDEN_COMMENT = "您已被管理员禁言，无法发表评论，结束时间为：";
 }

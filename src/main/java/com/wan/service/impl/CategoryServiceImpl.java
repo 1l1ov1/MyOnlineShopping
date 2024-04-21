@@ -64,7 +64,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void updateCategory(CategoryDTO categoryDTO) {
         try {
-            if (CheckObjectFieldUtils.areAllNonExcludedFieldsNotNullByDefault(categoryDTO)) {
+            if (CheckObjectFieldUtils.areAllNonExcludedFieldsNotNull(categoryDTO, "page", "pageSize", "sort")) {
                 // 如果都不空
                 Category category = categoryMapper.findCategory(categoryDTO.getId());
                 if (category == null) {
@@ -74,18 +74,10 @@ public class CategoryServiceImpl implements CategoryService {
                 if (checkCategoryName(categoryDTO.getCategoryName())
                         && checkCategoryStatus(categoryDTO.getCategoryStatus())) {
                     // 如果分类为禁止状态的话
-                    if (categoryDTO.getCategoryStatus().equals(CategoryConstant.DISABLED)) {
-                        // 就去查询商品该分类是否全部下架，只有全部下架才能该为禁止
-                        List<Goods> goodsList = goodsMapper.findGoodsByCategoryId(categoryDTO.getId());
-                        // 如果有该分类的上架商品存在
-                        if (goodsList != null && goodsList.size() > 0) {
-                            throw new CategoryException(MessageConstant.HAVING_SHELVE_GOODS_IN_THE_CATEGORY);
-                        }
-                        // 如果没有就允许修改
+                    if (checkHasGoods(categoryDTO)) {
+                        // 如果没有，就修改
+                        categoryMapper.updateCategory(categoryDTO);
                     }
-
-                    // 修改分类
-                    categoryMapper.updateCategory(categoryDTO);
                 }
             }
         } catch (IllegalAccessException e) {
@@ -137,6 +129,50 @@ public class CategoryServiceImpl implements CategoryService {
         CategoryVO categoryVO = new CategoryVO();
         BeanUtils.copyProperties(category, categoryVO);
         return categoryVO;
+    }
+
+    /**
+     * 修改分类状态
+     *
+     * @param categoryDTO
+     */
+    @Override
+    public void updateCategoryStatus(CategoryDTO categoryDTO) {
+        try {
+            // 校验指定的字段是否为空
+            if (CheckObjectFieldUtils.areAllNonIncludedFieldsNotNull(categoryDTO, "status", "id")) {
+                // 如果不空，就根据id查询
+                Category category = categoryMapper.findCategory(categoryDTO.getId());
+                if (category == null) {
+                    throw new CategoryException(MessageConstant.CATEGORY_IS_NOT_EXIST);
+                }
+                // 检查状态
+                if (checkCategoryStatus(categoryDTO.getCategoryStatus())) {
+                    // 如果合法
+                    // 如果分类为禁止状态的话
+                    if (checkHasGoods(categoryDTO)) {
+                        // 如果没有，就修改
+                        categoryMapper.updateCategory(categoryDTO);
+                    }
+                }
+            } else {
+                throw new CategoryException(MessageConstant.CATEGORY_IS_NOT_EXIST);
+            }
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private boolean checkHasGoods(CategoryDTO categoryDTO) {
+        if (categoryDTO.getCategoryStatus().equals(CategoryConstant.DISABLED)) {
+            // 就去查询商品该分类是否全部下架，只有全部下架才能该为禁止
+            List<Goods> goodsList = goodsMapper.findGoodsByCategoryId(categoryDTO.getId());
+            // 如果有该分类的上架商品存在
+            if (goodsList != null && goodsList.size() > 0) {
+                throw new CategoryException(MessageConstant.HAVING_SHELVE_GOODS_IN_THE_CATEGORY);
+            }
+        }
+        return true;
     }
 
     private boolean checkCategoryStatus(Integer categoryStatus) {

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wan.mapper.ReportMapper">
+    <insert id="addReport">
+        INSERT INTO report(user_id, comment_id, reason, create_time, update_time)
+        VALUES (#{userId}, #{commentId}, #{reason}, #{createTime}, #{updateTime})
+    </insert>
+
+    <resultMap id="reportVO" type="com.wan.vo.ReportVO">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="username" column="username"/>
+        <result property="reason" column="reason"/>
+        <result property="reportedUserId" column="reported_user_id"/>
+        <result property="reportedUsername" column="reported_username"/>
+        <result property="content" column="content"/>
+        <result property="storeName" column="store_name"/>
+        <result property="goodsName" column="goods_name"/>
+        <result property="commentId" column="comment_id"/>
+        <result property="reportCount" column="report_count"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <select id="pageQuery" resultMap="reportVO">
+        SELECT r.id,
+        r.reason,
+        r.user_id, # 举报人id
+        u.username, # 举报人用户名
+        c.user_id as reported_user_id, # 被举报人id
+        c.username as reported_username, # 被举报人用户名
+        r.comment_id, # 评论id
+        c.content, # 评论内容
+        c.report_count, # 评论被举报次数
+        s.store_name, # 评论所属店铺名
+        g.goods_name, # 评论所属商品名
+        r.create_time
+        FROM report r
+        inner join user u on u.id = r.user_id
+        inner join comments c on c.id = r.comment_id
+        inner join user re on re.id = c.user_id
+        inner join store s on c.store_id = s.id
+        inner join goods g on c.goods_id = g.id
+        <where>
+            <if test="username != null">
+                and u.username like concat('%', #{username}, '%')
+            </if>
+            <if test="storeName != null">
+                and s.store_name like concat('%', #{storeName}, '%')
+            </if>
+            <if test="goodsName">
+                and goods_name like concat('%', #{goodsName}, '%')
+            </if>
+            <if test="reportedUsername != null">
+                and c.username like concat('%', #{reportedUsername}, '%')
+            </if>
+            <if test="storeId != null">
+                and c.store_id = #{storeId}
+            </if>
+        </where>
+    </select>
+
+</mapper>

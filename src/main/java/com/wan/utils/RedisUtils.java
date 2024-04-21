@@ -10,6 +10,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -105,30 +106,49 @@ public class RedisUtils {
         if (cls == null) {
             throw new IllegalArgumentException("类类型不能为空");
         }
+
         // 从Redis获取指定键的所有值
         List<Object> values = redisTemplate.opsForHash().values(key);
-
+        // 得到字段名和值
+        Map<Object, Object> fieldValueMap = redisTemplate.opsForHash().entries(key);
         // 如果values是空数组， 即缓存中没有值，则返回null
         if (values.isEmpty()) {
             return null;
         }
         try {
+
             // 通过类字节码文件获取对象的无参构造函数创建对象
             T entity = cls.getDeclaredConstructor().newInstance();
 
-            int index = 0;
-            // 遍历类的字段
-            for (Field field : cls.getDeclaredFields()) {
-                // 设置所有字段可访问
+            // 遍历
+            for (Map.Entry<Object, Object> entry : fieldValueMap.entrySet()) {
+                // 得到字段名
+                String fileName = (String) entry.getKey();
+                // 根据字段名查找字段
+                Field field = cls.getDeclaredField(fileName);
+                // 设置可以访问
                 field.setAccessible(true);
-                // 将字段的值设置到新实例中
-                field.set(entity, values.get(index++));
+                if ("total".equals(fileName)) {
+                    // 如果是total
+                    Integer total = (Integer) entry.getValue();
+                    // 添加到实体中
+                    if (total == null) {
+                        total = 0;
+                    }
+                    field.set(entity, total.longValue());
+                } else {
+                    // 添加到实体中
+                    field.set(entity, entry.getValue());
+                }
+
             }
             return entity;
         } catch (InstantiationException | IllegalAccessException e) {
             throw new RedisException("实例化或访问字段失败");
         } catch (NoSuchMethodException | InvocationTargetException e) {
             throw new RedisException("实例化对象失败");
+        } catch (NoSuchFieldException e) {
+            throw new RedisException("没有找到字段");
         }
 
     }
@@ -160,10 +180,10 @@ public class RedisUtils {
      * 将给定的实体对象存储到Redis中，指定键和过期时间。
      *
      * @param redisTemplate Redis模板，用于操作Redis。
-     * @param key Redis中键的名称。
-     * @param entity 要存储在Redis中的实体对象。
-     * @param expire 过期时间。
-     * @param timeUnit 过期时间的单位。
+     * @param key           Redis中键的名称。
+     * @param entity        要存储在Redis中的实体对象。
+     * @param expire        过期时间。
+     * @param timeUnit      过期时间的单位。
      * @throws IllegalArgumentException 如果键为空或者实体对象为空，则抛出此异常。
      */
     public static <T> void redisStringSet(RedisTemplate<String, Object> redisTemplate,
@@ -218,6 +238,8 @@ public class RedisUtils {
         // 删除指定键的缓存
         redisTemplate.delete(Arrays.asList(keys));
     }
+
+
 
 
 }

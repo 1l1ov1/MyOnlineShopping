@@ -15,6 +15,7 @@ import com.wan.service.UserService;
 import com.wan.utils.CheckObjectFieldUtils;
 import com.wan.utils.CheckPasswordUtils;
 import com.wan.utils.SnowFlakeUtil;
+import com.wan.vo.CommentPageQueryVO;
 import com.wan.vo.UserOrdersVO;
 import com.wan.websocket.WebSocketServer;
 import lombok.extern.slf4j.Slf4j;
@@ -23,10 +24,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
+import org.springframework.util.ObjectUtils;
 
 import java.math.BigDecimal;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -45,9 +49,12 @@ public class UserServiceImpl implements UserService {
     private GoodsMapper goodsMapper;
 
     @Autowired
-    private StoreSalesMapper storeSalesMapper;
-    @Autowired
     private WebSocketServer webSocketServer;
+    @Autowired
+    private CommentMapper commentMapper;
+
+    @Autowired
+    private ReportMapper reportMapper;
 
     /**
      * 用户登录
@@ -60,6 +67,7 @@ public class UserServiceImpl implements UserService {
         User user = isValid(userLoginDTO);
         // 修改用户的登录状态
         user.setIsOnline(UserConstant.IS_ONLINE);
+        // 修改用户
         userMapper.update(user);
         return user;
     }
@@ -83,10 +91,18 @@ public class UserServiceImpl implements UserService {
         BeanUtils.copyProperties(userLoginDTO, user);
         // 设置状态为启用
         user.setAccountStatus(UserConstant.ENABLE);
+        // 设置封禁开始时间和结束时间
+        user.setBanStartTime(null);
+        user.setBanEndTime(null);
         // 设置用户为普通用户
         user.setStatus(UserConstant.COMMON_USER);
         // 设置用户的在线状态
         user.setIsOnline(UserConstant.IS_NOT_ONLINE);
+        // 设置不禁言
+        user.setForbiddenWord(UserConstant.NOT_FORBIDDEN_WORD);
+        // 设置禁言开始时间和结束时间
+        user.setForbiddenStartTime(null);
+        user.setForbiddenEndTime(null);
         // 将密码修改为MD5后保存
         String md5 = DigestUtils.md5DigestAsHex(user.getPassword().getBytes());
         user.setPassword(md5);
@@ -118,8 +134,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getDetail(Long id) {
-        User user = userMapper.getById(id);
-        return user;
+        return userMapper.getById(id);
     }
 
     @Override
@@ -138,6 +153,12 @@ public class UserServiceImpl implements UserService {
         userMapper.update(user);
     }
 
+    /**
+     * 忘记用户密码
+     *
+     * @param updatePasswordDTO
+     * @return
+     */
     private User handleForgetPassword(UpdatePasswordDTO updatePasswordDTO) {
         String username = updatePasswordDTO.getUsername();
         if (username == null || "".equals(username)) {
@@ -160,6 +181,12 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
+    /**
+     * 修改用户密码
+     *
+     * @param updatePasswordDTO
+     * @return
+     */
     private User handleUpdatePassword(UpdatePasswordDTO updatePasswordDTO) {
         Long userId = ThreadBaseContext.getCurrentId();
         ThreadBaseContext.removeCurrentId();
@@ -180,6 +207,11 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
+    /**
+     * 用户创建商店
+     *
+     * @param userCreateStoreDTO
+     */
     @Override
     @Transactional
     public void createStore(UserCreateStoreDTO userCreateStoreDTO) {
@@ -437,6 +469,372 @@ public class UserServiceImpl implements UserService {
 
     }
 
+
+    /**
+     * 查询评论
+     *
+     * @param commentPageQueryDTO
+     * @return
+     */
+    @Override
+    public CommentPageQueryVO queryComments(CommentPageQueryDTO commentPageQueryDTO) {
+        try {
+            // 检查所有属性
+            if (CheckObjectFieldUtils.allFieldNotNUll(commentPageQueryDTO)) {
+                // 如果全不空
+                Goods goods = goodsMapper.findGoodsById(commentPageQueryDTO.getGoodsId());
+                if (goods == null || !goods.getStoreId().equals(commentPageQueryDTO.getStoreId())) {
+                    // 如果商品不存在或商品存在但是商品不属于这个店铺
+                    throw new GoodsException(MessageConstant.GOODS_IS_NOT_EXIST);
+                }
+                // 如果相等
+                return commentMapper.queryComments(commentPageQueryDTO) == null ? new CommentPageQueryVO() : commentMapper.queryComments(commentPageQueryDTO);
+            }
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+        return null;
+    }
+
+    /**
+     * 添加评论
+     *
+     * @param comment
+     */
+    @Override
+    @Transactional
+    public void addComment(Comment comment) {
+        try {
+            if (CheckObjectFieldUtils.areAllNonExcludedFieldsNotNull(comment,
+                    "id", "commentStatus", "reportCount", "parentCommentId",
+                    "replyCount", "likeCount", "dislikeCount")) {
+                // 如果其他的字段不空，就看内容是不是全部为空格
+                validateCommentContent(comment.getContent());
+                // 如果合法就查询用户
+                User user = userMapper.getById(comment.getUserId());
+                // 如果用户为空
+                if (user == null) {
+                    throw new AccountNotFountException(MessageConstant.ACCOUNT_NOT_FOUND);
+                }
+
+                // 如果用户不空，就先去判断有没有被封禁和禁言
+                checkUserBanOrForbidden(user);
+
+                // 如果没禁言，也没封禁
+                // 就查询商品
+                validateGoods(comment);
+                // 如果一致，就校验评分
+                if (comment.getStar() > 5 || comment.getStar() < 0) {
+                    throw new CommentException(MessageConstant.COMMENT_STAR_OUT_OF_RANGE);
+                }
+                // 如果评分合法
+                comment.setCommentStatus(CommentConstant.NORMAL);
+                comment.setLikeCount(0);
+                comment.setReplyCount(0);
+                comment.setReportCount(0);
+                comment.setDislikeCount(0);
+                // 添加评论
+                commentMapper.addComment(comment);
+                // 添加评论行为
+                commentMapper.addCommentAction(CommentAction.builder()
+                        .commentId(comment.getId())
+                        .userId(comment.getUserId())
+                        .goodsId(comment.getGoodsId())
+                        .storeId(comment.getStoreId())
+                        .action(CommentConstant.COMMENT_ACTION_NONE)
+                        .build());
+            } else {
+                throw new FieldException(MessageConstant.FIELD_IS_EMPTY);
+            }
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * 验证评论内容的合法性。
+     *
+     * @param content 评论的内容，需要进行验证。
+     * @throws CommentException 如果评论内容为空白、长度超出允许范围，则抛出此异常。
+     */
+    private void validateCommentContent(String content) {
+        // 检查内容是否全部为空格
+        if (content.trim().length() == 0) {
+            // 如果内容为空白，则抛出评论内容为空的异常
+            throw new CommentException(MessageConstant.COMMENT_CONTENT_IS_EMPTY);
+        }
+        // 检查内容长度是否合法
+        if (content.length() > CommentConstant.MAX_COMMENT_CONTENT_LENGTH || content.length() < CommentConstant.MIN_COMMENT_CONTENT_LENGTH) {
+            // 如果内容长度超出允许范围，则抛出评论内容长度异常
+            throw new CommentException(MessageConstant.COMMENT_CONTENT_LENGTH_OUT_OF_RANGE);
+        }
+    }
+
+
+
+    /**
+     * 验证商品信息的有效性。
+     *
+     * @param comment 包含商品ID和店铺ID的评论对象。
+     *                通过商品ID查找商品信息，并验证该商品是否存在于对应的店铺中。
+     * @throws GoodsException 如果商品不存在或商品不属于指定店铺，则抛出商品异常。
+     */
+    private void validateGoods(Comment comment) {
+        // 根据评论中的商品ID查找对应的商品信息
+        Goods goods = goodsMapper.findGoodsById(comment.getGoodsId());
+        // 如果查找不到对应的商品信息，则抛出商品不存在异常
+        if (goods == null) {
+            throw new GoodsException(MessageConstant.GOODS_IS_NOT_EXIST);
+        }
+        // 检查商品所属店铺ID是否与评论中的店铺ID一致，如果不一致则抛出商品不存在异常
+        if (!goods.getStoreId().equals(comment.getStoreId())) {
+            throw new GoodsException(MessageConstant.GOODS_IS_NOT_EXIST);
+        }
+    }
+
+
+    /**
+     * 检查用户是否被禁用或禁止发言。
+     * @param user 用户对象，包含用户的状态和禁止词信息。
+     * @throws ForbiddenOrBanException 如果用户被禁用或禁止发言，则抛出此异常。
+     */
+    private void checkUserBanOrForbidden(User user) throws ForbiddenOrBanException {
+        Integer accountStatus = user.getAccountStatus();
+        // 检查用户是否被禁用
+        if (accountStatus == UserConstant.DISABLE) {
+            processBanStatus(user);
+        }
+        // 检查用户是否使用了禁止词
+        if (accountStatus == UserConstant.ENABLE && user.getForbiddenWord() == UserConstant.FORBIDDEN_WORD) {
+            processForbiddenStatus(user);
+        }
+    }
+
+    private void processForbiddenStatus(User user) {
+        // 如果被禁言，就不允许发评论
+        // 如果被封禁
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime forbiddenEndTime = user.getForbiddenEndTime();
+        if (forbiddenEndTime == null) {
+            // 如果是永久禁言
+            throw new ForbiddenOrBanException(MessageConstant.ACCOUNT_IS_FOREVER_FORBIDDEN);
+        }
+        // 如果不空，就看看是否到时间
+        if (forbiddenEndTime.isBefore(now)) {
+            // 如果结束时间在当前时间之前，说明应该要解除禁言
+            user.setForbiddenStartTime(null);
+            user.setForbiddenEndTime(null);
+            user.setForbiddenWord(UserConstant.NOT_FORBIDDEN_WORD);
+            userMapper.update(user);
+        } else {
+            // 否则就是还没到时间
+            throw new ForbiddenOrBanException(MessageConstant.USER_HAS_FORBIDDEN_COMMENT + forbiddenEndTime);
+        }
+    }
+
+    private void processBanStatus(User user) {
+        // 如果被封禁
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime banEndTime = user.getBanEndTime();
+        if (banEndTime == null) {
+            // 说明是永久封禁
+            throw new ForbiddenOrBanException(MessageConstant.ACCOUNT_IS_FOREVER_BAN);
+        }
+        // 如果不空，就看看用户是否到了解封时间
+        if (banEndTime.isBefore(now)) {
+            // 如果到了
+            user.setBanStartTime(null);
+            user.setBanEndTime(null);
+            user.setAccountStatus(UserConstant.ENABLE);
+            userMapper.update(user);
+        } else {
+            throw new ForbiddenOrBanException(MessageConstant.USER_HAS_BANNED + banEndTime);
+        }
+    }
+
+    /**
+     * 查询评论行为
+     *
+     * @param commentActionDTO
+     * @return
+     */
+    @Override
+    public List<CommentAction> queryCommentsAction(CommentActionDTO commentActionDTO) {
+        try {
+            if (CheckObjectFieldUtils.allFieldNotNUll(commentActionDTO)) {
+                // 如果全部字段不空
+                return commentMapper.findCommentAction(commentActionDTO);
+            } else {
+                throw new FieldException(MessageConstant.FIELD_IS_EMPTY);
+            }
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * 修改评论行为
+     *
+     * @param commentAction
+     */
+    @Override
+    public void updateCommentAction(CommentAction commentAction) {
+        try {
+            // 验证commentAction对象的必要字段非空
+            if (CheckObjectFieldUtils.areAllNonExcludedFieldsNotNull(commentAction, "id", "userId", "commentId")) {
+                // 根据用户ID和评论ID查询评论行为
+                CommentAction findCommentAction = commentMapper.findCommentActionByUserIdAndCommentId(commentAction.getUserId(), commentAction.getCommentId());
+                if (ObjectUtils.isEmpty(findCommentAction)) {
+                    // 不存在则添加评论行为
+                    commentMapper.addCommentAction(commentAction);
+                } else {
+                    // 存在则更新评论行为
+                    commentAction.setId(findCommentAction.getId());
+                    commentMapper.updateCommentAction(commentAction);
+                    // 更新点赞或点踩数
+                    updateLikeOrDislikeCount(commentAction, findCommentAction);
+                }
+            }
+        } catch (Exception e) {
+            // 捕获更通用的异常，并进行处理或日志记录
+            // 此处的处理应根据实际情况，可能包括记录日志、抛出自定义异常等
+            throw new RuntimeException("更新评论行为失败", e);
+        }
+    }
+
+
+    /**
+     * 举报
+     * 同一条评论仅能举报一次。
+     * 用户在举报时应谨慎选择举报类型。
+     * 每天可以举报评价的总次数为30次。
+     * 周和月无举报限制。
+     * 举报成功后，举报数量会相应减少一次
+     *
+     * @param report
+     */
+    @Override
+    @Transactional
+    public Comment addReport(Report report) {
+        try {
+            if (CheckObjectFieldUtils.areAllNonExcludedFieldsNotNull(report, "id")) {
+                // 如果字段都不空
+                // 先根据时间查询举报次数
+                Integer reportCount = reportMapper.findReportCount(report.getUserId(), LocalDate.now());
+                // 判断举报次数是否超过限制
+                if (reportCount >= ReportConstant.MAX_REPORT_COUNT_PER_DAY) {
+                    // 如果超过了或到达
+                    throw new ReportException(MessageConstant.REPORT_COUNT_OUT_OF_RANGE);
+                }
+                // 就看举报长度是否合法
+                int reasonLength = report.getReason().trim().length();
+                if (reasonLength < ReportConstant.MIN_REPORT_CONTENT_LENGTH
+                        || reasonLength > ReportConstant.MAX_REPORT_CONTENT_LENGTH) {
+                    // 如果非法
+                    throw new ReportException(MessageConstant.REPORT_CONTENT_LENGTH_ERROR);
+                }
+                // 如果没有超出限制
+                User user = userMapper.getById(report.getUserId());
+                // 判断用户是否为空
+                if (ObjectUtils.isEmpty(user)) {
+                    throw new AccountNotFountException(MessageConstant.ACCOUNT_NOT_FOUND);
+                }
+
+                // 判断评论是否存在
+                Comment comment = commentMapper.findCommentById(report.getCommentId());
+                if (ObjectUtils.isEmpty(comment)) {
+                    throw new CommentException(MessageConstant.COMMENT_CONTENT_IS_EMPTY);
+                }
+                // 如果都存在，就去查询有没有举报过该评论
+                Report findReport = reportMapper.findReportByUserIdAndCommentId(report.getUserId(), report.getCommentId());
+                if (!ObjectUtils.isEmpty(findReport)) {
+                    // 如果不为空
+                    throw new ReportException(MessageConstant.ALREADY_REPORTED);
+                }
+                // 举报为空，就添加
+                reportMapper.addReport(report);
+                // 如果将对应的评论添加举报次数
+                comment.setReportCount(comment.getReportCount() + 1);
+                commentMapper.updateComment(comment);
+
+                return comment;
+            } else {
+                throw new FieldException(MessageConstant.FIELD_IS_EMPTY);
+            }
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * 更新点赞或点踩数
+     *
+     * @param commentAction     当前操作的评论行为
+     * @param findCommentAction 查询到的原有评论行为
+     */
+    private void updateLikeOrDislikeCount(CommentAction commentAction, CommentAction findCommentAction) {
+        Comment comment = commentMapper.findCommentById(commentAction.getCommentId());
+        if (ObjectUtils.isEmpty(comment)) {
+            throw new CommentException(MessageConstant.COMMENT_CONTENT_IS_EMPTY);
+        }
+
+        // 判断行为类型，并更新计数
+        Integer action = commentAction.getAction();
+        Integer findAction = findCommentAction.getAction();
+
+        switch (action) {
+            case CommentConstant.COMMENT_ACTION_NONE:
+                handleActionNone(comment, findAction);
+                break;
+            case CommentConstant.COMMENT_ACTION_LIKE:
+                handleLike(comment, findAction);
+                break;
+            case CommentConstant.COMMENT_ACTION_DISLIKE:
+                handleDislike(comment, findAction);
+                break;
+        }
+
+        // 保存更新后的评论
+        commentMapper.updateComment(comment);
+
+    }
+
+    /**
+     * 处理行为为"无"的情况
+     */
+    private void handleActionNone(Comment comment, Integer findAction) {
+        if (findAction == CommentConstant.COMMENT_ACTION_LIKE) {
+            comment.setLikeCount(Math.max(0, comment.getLikeCount() - 1));
+        } else if (findAction == CommentConstant.COMMENT_ACTION_DISLIKE) {
+            comment.setDislikeCount(Math.max(0, comment.getDislikeCount() - 1));
+        }
+    }
+
+    /**
+     * 处理点赞情况
+     */
+    private void handleLike(Comment comment, Integer findAction) {
+        if (findAction == CommentConstant.COMMENT_ACTION_NONE) {
+            comment.setLikeCount(comment.getLikeCount() + 1);
+        } else if (findAction == CommentConstant.COMMENT_ACTION_DISLIKE) {
+            comment.setDislikeCount(comment.getDislikeCount() - 1);
+            comment.setLikeCount(comment.getLikeCount() + 1);
+        }
+    }
+
+    /**
+     * 处理点踩情况
+     */
+    private void handleDislike(Comment comment, Integer findAction) {
+        if (findAction == CommentConstant.COMMENT_ACTION_NONE) {
+            comment.setDislikeCount(comment.getDislikeCount() + 1);
+        } else if (findAction == CommentConstant.COMMENT_ACTION_LIKE) {
+            comment.setLikeCount(comment.getLikeCount() - 1);
+            comment.setDislikeCount(comment.getDislikeCount() + 1);
+        }
+    }
+
+
     /**
      * 判断账号是否合法，如果合法就将用户返回
      *
@@ -460,11 +858,23 @@ public class UserServiceImpl implements UserService {
         }
 
         // 如果账号密码输对，看看是否被禁用
-        // 如果被禁用
-        if (user.getAccountStatus() == UserConstant.DISABLE) {
+        // 得到结束时间
+        LocalDateTime banEndTime = user.getBanEndTime();
+        // 得到现在的时间
+        LocalDateTime now = LocalDateTime.now();
+        // 如果封禁结束时间在当前时间之前
+        if (banEndTime != null && banEndTime.isBefore(now)) {
+            // 说明应该解封
+            user.setBanEndTime(null);
+            user.setBanStartTime(null);
+            user.setAccountStatus(UserConstant.ENABLE);
+        } else if (banEndTime == null) {
+            // 如果结束时间为空，说明没被封禁
+            return user;
+        } else {
+            // 如果是在封禁期间
             throw new AccountLockedException(MessageConstant.ACCOUNT_LOCKED);
         }
-
 
         return user;
     }

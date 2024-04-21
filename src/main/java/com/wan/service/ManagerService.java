@@ -1,5 +1,6 @@
 package com.wan.service;
 
+import com.wan.dto.ForbiddenOrBanDTO;
 import com.wan.dto.UserPageQueryDTO;
 import com.wan.result.PageResult;
 import com.wan.vo.StoreSalesVO;
@@ -41,4 +42,9 @@ public interface ManagerService {
      */
     void updateUser(UserPageQueryDTO userPageQueryDTO);
 
+    /**
+     * 禁言或封禁
+     * @param forbiddenOrBanDTO
+     */
+    void forbidOrBan(ForbiddenOrBanDTO forbiddenOrBanDTO);
 }

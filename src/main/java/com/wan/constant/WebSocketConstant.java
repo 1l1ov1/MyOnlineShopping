@@ -16,4 +16,9 @@ public class WebSocketConstant {
      */
     public static final Integer USER_URGE_ORDER = 2;
 
+
+    /**
+     * 用户退出的消息类型
+     */
+    public static final Integer USER_EXIT = 3;
 }

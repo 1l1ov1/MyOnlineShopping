@@ -1,10 +1,10 @@
 package com.wan.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.wan.constant.AddressConstant;
-import com.wan.constant.MessageConstant;
-import com.wan.constant.UserConstant;
+import com.wan.constant.*;
+import com.wan.dto.ForbiddenOrBanDTO;
 import com.wan.dto.UserPageQueryDTO;
 import com.wan.entity.Address;
 import com.wan.entity.StoreSales;
@@ -12,6 +12,7 @@ import com.wan.entity.User;
 import com.wan.enumeration.StoreSalesRangeType;
 import com.wan.exception.AccountExistException;
 import com.wan.exception.AccountNotFountException;
+import com.wan.exception.ForbiddenOrBanException;
 import com.wan.exception.StatusException;
 import com.wan.mapper.AddressMapper;
 import com.wan.mapper.ManagerMapper;
@@ -22,17 +23,18 @@ import com.wan.vo.StoreSalesVO;
 import com.wan.vo.StoreSalesWithStoreName;
 import com.wan.vo.UserCountVO;
 import com.wan.vo.UserPageQueryVO;
+import com.wan.websocket.NoticeUserWebSocketServer;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
+import org.springframework.util.ObjectUtils;
 
 import java.math.BigDecimal;
-import java.time.Clock;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
+import java.time.*;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 
@@ -83,9 +85,17 @@ public class ManagerServiceImpl implements ManagerService {
         }
         User user = User.builder()
                 .accountStatus(accountStatus)
+                .banStartTime(LocalDateTime.now())
+                .banEndTime(null)
                 .id(id)
                 .build();
+        // 如果是用户封禁状态
+        if (accountStatus == UserConstant.DISABLE) {
+            // 通知用户退出
+            NoticeUserLogout(user);
+        }
         userMapper.update(user);
+
     }
 
     @Override
@@ -158,7 +168,86 @@ public class ManagerServiceImpl implements ManagerService {
 
     }
 
+    /**
+     * 禁言或封禁用户
+     *
+     * @param forbiddenOrBanDTO
+     */
+    @Override
+    public void forbidOrBan(ForbiddenOrBanDTO forbiddenOrBanDTO) {
+        // 先得到类型
+        String type = forbiddenOrBanDTO.getType();
+        Long reportedUserId = forbiddenOrBanDTO.getReportedUserId();
+        User user = userMapper.getById(reportedUserId);
+        // 得到被禁言的用户id
+        if (ObjectUtils.isEmpty(user)) {
+            // 如果用户为空
+            throw new AccountNotFountException(MessageConstant.ACCOUNT_NOT_FOUND);
+        }
+        // 如果用户存在，得到他的账号状态
+        Integer accountStatus = user.getAccountStatus();
+        if (accountStatus == UserConstant.DISABLE) {
+            // 如果账号本身处于封禁状态，就直接抛提示
+            throw new ForbiddenOrBanException(MessageConstant.USER_HAS_BANNED + user.getBanEndTime());
+        }
 
+
+        if (ForbiddenOrBanConstant.FORBIDDEN.equals(type)) {
+            // 如果是禁言
+            // 如果是正常的就去禁言
+            user.setForbiddenWord(UserConstant.FORBIDDEN_WORD);
+            // 得到现在时间
+            LocalDateTime now = LocalDateTime.now();
+            // 得到结束时间（小时）
+            Double forbiddenWordTime = forbiddenOrBanDTO.getForbiddenWordTime();
+            user.setForbiddenStartTime(now);
+            if (Objects.equals(forbiddenWordTime, ForbiddenOrBanConstant.FOREVER)) {
+                // 如果是永久
+                user.setForbiddenEndTime(null);
+            } else {
+                // 先加上整数部分给小时，在后面加上分钟
+                Duration durationToAdd = Duration.ofHours(forbiddenWordTime.longValue())
+                        .plusMinutes((long) (forbiddenWordTime % 1 * 60));
+                user.setForbiddenEndTime(now.plus(durationToAdd));
+            }
+
+        } else if (ForbiddenOrBanConstant.BAN.equals(type)) {
+            // 如果是封禁
+            // 如果是正常的就去封禁
+            user.setAccountStatus(UserConstant.DISABLE);
+            LocalDateTime now = LocalDateTime.now();
+            Double banTime = forbiddenOrBanDTO.getBanTime();
+            user.setBanStartTime(now);
+            // 如果是永久
+            if (Objects.equals(banTime, ForbiddenOrBanConstant.FOREVER)) {
+                user.setBanEndTime(null);
+            } else {
+                // 先加上整数部分给小时，在后面加上分钟
+                Duration durationToAdd = Duration.ofHours(banTime.longValue())
+                        .plusMinutes((long) (banTime % 1 * 60));
+                user.setBanEndTime(now.plus(durationToAdd));
+
+                NoticeUserLogout(user);
+            }
+        } else {
+            // 如果是其他的
+            throw new ForbiddenOrBanException(MessageConstant.TYPE_IS_WORRY);
+        }
+
+        // 最后修改用户信息
+        userMapper.update(user);
+    }
+
+    private void NoticeUserLogout(User user) {
+        // 就让用户登出
+        user.setIsOnline(UserConstant.IS_NOT_ONLINE);
+        // 并且通知用户
+        Map<String, Object> map = new HashMap<>();
+        map.put("type", WebSocketConstant.USER_EXIT);
+        map.put("content", MessageConstant.ACCOUNT_IS_FOREVER_BAN);
+
+        NoticeUserWebSocketServer.sendToSpecificUser(user.getId(), JSON.toJSONString(map));
+    }
 }
 
 

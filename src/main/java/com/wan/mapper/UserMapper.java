@@ -10,12 +10,14 @@ import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Mapper
 public interface UserMapper {
     /**
      * 按照用户名查询用户
+     *
      * @param username
      * @return
      */
@@ -24,6 +26,7 @@ public interface UserMapper {
 
     /**
      * 插入用户
+     *
      * @param user
      */
 
@@ -32,6 +35,7 @@ public interface UserMapper {
 
     /**
      * 修改用户
+     *
      * @param user
      */
     @AutoFill(OperationType.UPDATE)
@@ -39,6 +43,7 @@ public interface UserMapper {
 
     /**
      * 根据id查询
+     *
      * @param userId
      */
     @Select("select * from user where id = #{userId}")
@@ -46,18 +51,22 @@ public interface UserMapper {
 
     /**
      * 根据ids得到用户列表
+     *
      * @param ids
      * @return
      */
     List<User> findUserByIds(List<Long> ids);
+
     /**
      * 删除用户
+     *
      * @param ids
      */
     void deleteByIds(List<Long> ids);
 
     /**
      * 批量修改用户
+     *
      * @param userList
      */
     @AutoFill(OperationType.UPDATE)
@@ -66,6 +75,7 @@ public interface UserMapper {
 
     /**
      * 查询某种类型
+     *
      * @param userId
      * @param target
      * @return
@@ -74,8 +84,27 @@ public interface UserMapper {
 
     /**
      * 得到管理员
+     *
      * @return
      */
     @Select("select * from user where status = #{status}")
     User getAdministrator(Integer status);
+
+    /**
+     * 查询用户封禁结束时间
+     *
+     * @param now
+     * @return
+     */
+    @Select("select * from user where ban_end_time <= #{now} and account_status = 0")
+    List<User> findBanEndTimeToday(LocalDateTime now);
+
+    /**
+     * 查询用户封禁结束时间
+     *
+     * @param now
+     * @return
+     */
+    @Select("select * from user where forbidden_end_time <= #{now} and forbidden_word = 0")
+    List<User> findForbiddenEndTime(LocalDateTime now);
 }

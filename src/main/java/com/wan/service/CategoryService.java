@@ -38,4 +38,10 @@ public interface CategoryService {
      * @return
      */
     CategoryVO getDetail(Long id);
+
+    /**
+     * 修改分类状态
+     * @param categoryDTO
+     */
+    void updateCategoryStatus(CategoryDTO categoryDTO);
 }

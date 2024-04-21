@@ -1,7 +1,5 @@
 package com.wan.websocket;
 
-import com.wan.constant.MessageConstant;
-import com.wan.exception.StoreException;
 import org.springframework.stereotype.Component;
 
 import javax.websocket.OnClose;
@@ -10,13 +8,14 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.*;
 
 @Component
-@ServerEndpoint(value = "/ws/store/{storeId}")
-public class WebSocketServer {
-
+@ServerEndpoint(value = "/ws/user/{userId}")
+public class NoticeUserWebSocketServer {
     // 存放会话对象
     private static final ConcurrentHashMap<Long, Session> sessionMap = new ConcurrentHashMap();
 
@@ -45,18 +44,31 @@ public class WebSocketServer {
     private static final int MAX_BATCH_SIZE = 100;
 
     /**
+     * 收到客户端消息后调用的方法
+     *
+     * @param message 客户端发送过来的消息
+     */
+    @OnMessage
+    public void onMessage(String message, @PathParam("userId") Long userId) {
+        System.out.println("收到来自用户客户端：" + userId + "的信息:" + message);
+    }
+
+    /**
      * 连接建立成功调用的方法
+     * @param session
+     * @param userId
      */
     @OnOpen
-    public void onOpen(Session session, @PathParam("storeId") Long storeId) {
-        System.out.println("商店客户端：" + storeId + " 建立连接");
+    public void onOpen(Session session, @PathParam("userId") Long userId) {
+        System.out.println("用户客户端：" + userId + " 建立连接");
+
         // 将连接的会话对象存入map
-        sessionMap.put(storeId, session);
+        sessionMap.put(userId, session);
 
 
-        // 如果商家连接了，就取消息队列里查看是否有消息
+        // 如果用户连接了，就取消息队列里查看是否有消息
         // 得到消息队列
-        Queue<String> messageQueue = WebSocketServer.messageQueue.get(storeId);
+        Queue<String> messageQueue = NoticeUserWebSocketServer.messageQueue.get(userId);
         // 如果消息队列不为空
         if (messageQueue != null) {
             // 遍历消息队列，如果消息不为空，就发送消息
@@ -71,7 +83,7 @@ public class WebSocketServer {
                 // 提交批处理任务到线程池
                 executor.submit(() -> {
                     for (String message : batchMessage) {
-                        sendToSpecificStore(storeId, message);
+                        sendToSpecificUser(userId, message);
                     }
                 });
 
@@ -80,54 +92,12 @@ public class WebSocketServer {
     }
 
     /**
-     * 收到客户端消息后调用的方法
-     *
-     * @param message 客户端发送过来的消息
-     */
-    @OnMessage
-    public void onMessage(String message, @PathParam("storeId") Long storeId) {
-        System.out.println("收到来自商店客户端：" + storeId + "的信息:" + message);
-    }
-
-    /**
-     * 连接关闭调用的方法
-     *
-     * @param storeId
-     */
-    @OnClose
-    public void onClose(@PathParam("storeId") Long storeId) {
-        System.out.println("连接断开:" + storeId);
-        sessionMap.remove(storeId);
-    }
-
-    /**
-     * 群发
-     *
+     * 给指定用户发送消息
+     * @param userId
      * @param message
      */
-    public void sendToAllClient(String message) {
-        Collection<Session> sessions = sessionMap.values();
-        for (Session session : sessions) {
-            try {
-                // 服务器向客户端发送消息
-                session.getBasicRemote().sendText(message);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    /**
-     * 将消息发送到指定的商店。
-     *
-     * @param storeId 商店的唯一标识符。
-     * @param message 要发送的消息内容。
-     *                该方法首先从sessionMap中根据storeId获取对应的Session对象。
-     *                如果找到对应的Session，则尝试发送消息。如果发送过程中出现异常，则打印异常栈信息。
-     *                如果没有找到对应的Session，则根据具体需求处理无法找到商店会话的情况，例如将消息暂存至消息队列中，等待商家登录后再发送。
-     */
-    public void sendToSpecificStore(Long storeId, String message) {
-        Session targetSession = sessionMap.get(storeId); // 根据storeId获取对应的Session
+    public static void sendToSpecificUser(Long userId, String message) {
+        Session targetSession = sessionMap.get(userId); // 根据storeId获取对应的Session
         if (targetSession != null) {
             try {
                 targetSession.getBasicRemote().sendText(message); // 发送消息
@@ -135,12 +105,22 @@ public class WebSocketServer {
                 e.printStackTrace(); // 处理发送消息异常
             }
         } else {
-            // 商家未登录时，将消息存入消息队列
-            Queue<String> messageQueue = WebSocketServer.messageQueue
-                    .computeIfAbsent(storeId, id -> new ConcurrentLinkedQueue<>());
+            // 用户未登录时，将消息存入消息队列
+            Queue<String> messageQueue = NoticeUserWebSocketServer.messageQueue
+                    .computeIfAbsent(userId, id -> new ConcurrentLinkedQueue<>());
             messageQueue.offer(message);
         }
     }
 
+    /**
+     * 连接关闭调用的方法
+     *
+     * @param userId
+     */
+    @OnClose
+    public void onClose(@PathParam("userId") Long userId) {
+        System.out.println("用户连接断开:" + userId);
+        sessionMap.remove(userId);
+    }
 
 }

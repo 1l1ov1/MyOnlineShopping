@@ -1,10 +1,11 @@
 package com.wan.service;
 
 import com.wan.dto.*;
-import com.wan.entity.Address;
-import com.wan.entity.User;
+import com.wan.entity.*;
 import com.wan.result.PageResult;
+import com.wan.vo.CommentPageQueryVO;
 
+import java.util.List;
 import java.util.Map;
 
 public interface UserService {
@@ -98,4 +99,36 @@ public interface UserService {
      * @param reminderDTO
      */
     void reminder(ReminderDTO reminderDTO);
+
+    /**
+     * 查询评论
+     * @param commentPageQueryDTO
+     * @return
+     */
+    CommentPageQueryVO queryComments(CommentPageQueryDTO commentPageQueryDTO);
+
+    /**
+     * 添加评论
+     * @param comment
+     */
+    void addComment(Comment comment);
+
+    /**
+     * 查询评论行为
+     * @param commentActionDTO
+     * @return
+     */
+    List<CommentAction> queryCommentsAction(CommentActionDTO commentActionDTO);
+
+    /**
+     * 修改评论行为
+     * @param commentAction
+     */
+    void updateCommentAction(CommentAction commentAction);
+
+    /**
+     * 添加举报
+     * @param report
+     */
+    Comment addReport(Report report);
 }

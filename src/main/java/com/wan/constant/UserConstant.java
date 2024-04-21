@@ -4,6 +4,7 @@ public class UserConstant {
     private UserConstant() {
 
     }
+
     // 用户身份
     public static final int SUPER_ADMINISTRATOR = 0; // 超级管理员
     public static final int MANAGER = 1; // 管理员
@@ -17,4 +18,8 @@ public class UserConstant {
     public static final int DISABLE = 0; // 禁用
 
     public static final String DEFAULT_PASSWORD = "123456";
+
+    public static final int FORBIDDEN_WORD = 0; // 禁言
+
+    public static final int NOT_FORBIDDEN_WORD = 1;// 不禁言
 }

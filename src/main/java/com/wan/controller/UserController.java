@@ -4,6 +4,7 @@ import com.wan.constant.*;
 import com.wan.context.ThreadBaseContext;
 import com.wan.dto.*;
 import com.wan.entity.*;
+
 import com.wan.exception.AccountNotFountException;
 import com.wan.properties.JwtProperties;
 import com.wan.result.PageResult;
@@ -12,6 +13,7 @@ import com.wan.service.*;
 import com.wan.utils.JwtUtils;
 
 import com.wan.utils.RedisUtils;
+import com.wan.vo.CommentPageQueryVO;
 import com.wan.vo.UserLoginVO;
 import com.wan.vo.UserPageQueryVO;
 
@@ -23,7 +25,9 @@ import org.apache.ibatis.annotations.Delete;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -57,9 +61,10 @@ public class UserController {
     private ApplyService applyService;
     @Autowired
     private GoodsService goodsService;
-
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
+    @Value("${HSK.domain}")
+    private String HSK_DOMAIN;
 
     /**
      * 用户登录
@@ -137,7 +142,9 @@ public class UserController {
         Cookie cookie = new Cookie(RedisConstant.VERIFY_CODE, KEY);
         cookie.setMaxAge(120); // 2分钟
         // 设置为前端应用的域名（这里为localhost）
-        cookie.setDomain("localhost");
+        // cookie.setDomain("localhost");
+        // 由于内外网穿透，这是前端的域名
+        cookie.setDomain(HSK_DOMAIN);
         // 设置为登录页面路径
         cookie.setPath("/");
         resp.addCookie(cookie);
@@ -357,4 +364,103 @@ public class UserController {
         userService.reminder(reminderDTO);
         return Result.success("发送成功");
     }
+
+    @PostMapping("/queryComment")
+    @ApiOperation("查询某商品的评论")
+    public Result<CommentPageQueryVO> queryComment(@RequestBody CommentPageQueryDTO commentPageQueryDTO) {
+        log.info("查询某商品的评论 {}", commentPageQueryDTO);
+        // 从缓存中找
+        String key = RedisConstant.STORE_COMMENT + checkCommentType(commentPageQueryDTO.getType()) + commentPageQueryDTO.getStoreId();
+        CommentPageQueryVO commentPageQueryVO = RedisUtils.redisGetHashValues(redisTemplate,
+                key,
+                CommentPageQueryVO.class);
+        if (!ObjectUtils.isEmpty(commentPageQueryVO)) {
+            return Result.success(commentPageQueryVO);
+        }
+        // 没有就去数据库查
+        commentPageQueryVO = userService.queryComments(commentPageQueryDTO);
+        RedisUtils.redisHashPut(redisTemplate,
+                key,
+                commentPageQueryVO,
+                1L, TimeUnit.HOURS);
+        return Result.success(commentPageQueryVO);
+    }
+
+    @PostMapping("/queryCommentAction")
+    @ApiOperation("查询评论的action")
+    public Result<List<CommentAction>> queryCommentAction(@RequestBody CommentActionDTO commentActionDTO) {
+        log.info("查询评论的action {}", commentActionDTO);
+        List<CommentAction> commentActionList = RedisUtils.redisStringGet(redisTemplate, RedisConstant.STORE_COMMENT_ACTION + commentActionDTO.getStoreId(), List.class);
+        if (!ObjectUtils.isEmpty(commentActionList)) {
+            return Result.success(commentActionList);
+        }
+        commentActionList = userService.queryCommentsAction(commentActionDTO);
+        RedisUtils.redisStringSet(redisTemplate,
+                RedisConstant.STORE_COMMENT_ACTION + commentActionDTO.getStoreId(),
+                commentActionList,
+                1L, TimeUnit.HOURS);
+        return Result.success(commentActionList);
+    }
+
+    @PostMapping("/addComment")
+    @ApiOperation("添加评论")
+    public Result<String> addComment(@RequestBody Comment comment) {
+        log.info("添加评论 {}", comment);
+        userService.addComment(comment);
+        // 删除缓存
+        Long storeId = comment.getStoreId();
+        RedisUtils.clearRedisCache(redisTemplate,
+                RedisConstant.STORE_COMMENT_ACTION + storeId,
+                RedisConstant.STORE_COMMENT + "all-" + storeId,
+                RedisConstant.STORE_COMMENT + "good-" + storeId,
+                RedisConstant.STORE_COMMENT + "bad-" + storeId);
+        return Result.success("添加成功");
+    }
+
+    @PutMapping("/updateCommentAction")
+    @ApiOperation("修改评论的点赞数")
+    public Result<String> updateCommentAction(@RequestBody CommentAction commentAction) {
+        log.info("修改评论状态 {}", commentAction);
+        userService.updateCommentAction(commentAction);
+        // 删除缓存
+        Long storeId = commentAction.getStoreId();
+        RedisUtils.clearRedisCache(redisTemplate,
+                RedisConstant.STORE_COMMENT_ACTION + storeId,
+                RedisConstant.STORE_COMMENT + "all-" + storeId,
+                RedisConstant.STORE_COMMENT + "good-" + storeId,
+                RedisConstant.STORE_COMMENT + "bad-" + storeId);
+        return Result.success("修改成功");
+    }
+
+    @PostMapping("/addReport")
+    @ApiOperation("添加举报")
+    public Result<String> addReport(@RequestBody Report report) {
+        log.info("添加举报 {}", report);
+        Comment comment = userService.addReport(report);
+        // 删除缓存
+        RedisUtils.clearRedisCache(redisTemplate,
+                RedisConstant.STORE_COMMENT + comment.getStoreId());
+        return Result.success("举报成功");
+    }
+
+
+    /**
+     * 检查评论类型。
+     *
+     * @param type 评论类型的整数值。1 表示好评，2 表示差评，0 或其他值表示全部评论。
+     * @return 返回对应的评论类型字符串。"good" 表示好评，"bad" 表示差评，"all" 表示全部评论。
+     */
+    private String checkCommentType(Integer type) {
+        switch (type) {
+            case 1:
+                return "good-"; // 好评
+            case 2:
+                return "bad-"; // 差评
+            case 0:
+            default:
+                return "all-"; // 全部评论
+        }
+    }
+
+
 }

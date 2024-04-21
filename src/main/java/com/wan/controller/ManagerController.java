@@ -1,6 +1,7 @@
 package com.wan.controller;
 
 import com.wan.constant.RedisConstant;
+import com.wan.dto.ForbiddenOrBanDTO;
 import com.wan.dto.UserPageQueryDTO;
 import com.wan.result.PageResult;
 import com.wan.result.Result;
@@ -69,4 +70,11 @@ public class ManagerController {
         return Result.success("修改成功");
     }
 
+    @PostMapping("/forbidOrBan")
+    @ApiOperation("禁言或封禁")
+    public Result<String> forbidOrBan(@RequestBody ForbiddenOrBanDTO forbiddenOrBanDTO) {
+        log.info("禁言或封禁 {}", forbiddenOrBanDTO);
+        managerService.forbidOrBan(forbiddenOrBanDTO);
+        return Result.success("操作成功");
+    }
 }
