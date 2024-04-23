@@ -135,6 +135,12 @@
           and goods_id = #{goodsId}
           and store_id = #{storeId}
     </select>
+    <select id="findComments" resultType="com.wan.entity.Comment">
+        select * from comments where id in
+        <foreach collection="commentsIdList" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
 
     <update id="updateCommentAction">
         update comment_action

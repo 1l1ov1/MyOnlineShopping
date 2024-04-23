@@ -29,7 +29,8 @@ public class UserPageQueryVO implements Serializable {
     private String avatar; // 头像路径
     private Integer isOnline; // 是否在线 1在线 0不在线
     private Integer accountStatus; // 账户状态 0禁用 1启用
-    private BigDecimal money; //钱包
+    private Integer forbiddenWord; // 禁言 0禁言 1未禁言
+    private BigDecimal money; // 钱包
     private LocalDateTime createTime; // 创建时间
     private LocalDateTime updateTime; // 修改时间
 }

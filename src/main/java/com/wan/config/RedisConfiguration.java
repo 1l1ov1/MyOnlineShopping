@@ -28,20 +28,22 @@ public class RedisConfiguration {
      */
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
-    RedisTemplate<String, Object> template = new RedisTemplate<>();
-    template.setConnectionFactory(connectionFactory);
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
+        template.setConnectionFactory(connectionFactory);
 
-    // 使用自定义的JacksonObjectMapper，其中已配置了JavaTimeModule
-    ObjectMapper objectMapper = new JacksonObjectMapper();
-    Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer =
-            new Jackson2JsonRedisSerializer<>(Object.class);
-    jackson2JsonRedisSerializer.setObjectMapper(objectMapper);
+        // 使用自定义的JacksonObjectMapper，其中已配置了JavaTimeModule
+        ObjectMapper objectMapper = new JacksonObjectMapper();
+        Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer =
+                new Jackson2JsonRedisSerializer<>(Object.class);
+        jackson2JsonRedisSerializer.setObjectMapper(objectMapper);
 
-    // 设置默认序列化方式为Jackson2JsonRedisSerializer，覆盖所有类型（包括LocalDateTime）
-    template.setDefaultSerializer(jackson2JsonRedisSerializer);
+        // 设置默认序列化方式为Jackson2JsonRedisSerializer，覆盖所有类型（包括LocalDateTime）
+        template.setDefaultSerializer(jackson2JsonRedisSerializer);
 
-    return template;
-}
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setHashKeySerializer(jackson2JsonRedisSerializer);
+        return template;
+    }
 
 
 }

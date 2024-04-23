@@ -1,7 +1,9 @@
 package com.wan.interceptor;
 
 import com.wan.constant.JwtClaimConstant;
+import com.wan.constant.UserConstant;
 import com.wan.context.ThreadBaseContext;
+import com.wan.entity.User;
 import com.wan.mapper.UserMapper;
 import com.wan.properties.JwtProperties;
 import com.wan.utils.JwtUtils;
@@ -23,6 +25,7 @@ public class JwtTokenInterceptor implements HandlerInterceptor {
     private JwtProperties jwtProperties;
     @Autowired
     private UserMapper userMapper;
+
     /**
      * 在执行方法前，先进行拦截校验jwt
      *
@@ -57,6 +60,12 @@ public class JwtTokenInterceptor implements HandlerInterceptor {
         } catch (Exception ex) {
             // 不通过，返回响应码
             response.setStatus(401);
+            // 将用户的在线状态该为下线
+            Long userId = ThreadBaseContext.getCurrentId();
+            userMapper.update(User.builder()
+                    .id(userId)
+                    .isOnline(UserConstant.IS_NOT_ONLINE)
+                    .build());
             return false;
         }
     }

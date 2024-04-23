@@ -10,6 +10,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Mapper
 public interface ReportMapper {
@@ -43,8 +44,45 @@ public interface ReportMapper {
 
     /**
      * 分页查询
+     *
      * @param reportPageQueryDTO
      * @return
      */
     Page<ReportPageQueryVO> pageQuery(ReportPageQueryDTO reportPageQueryDTO);
+
+    /**
+     * 根据id查询举报
+     *
+     * @param id
+     * @return
+     */
+    @Select("select * from report where id = #{id}")
+    Report findReportById(Long id);
+
+    /**
+     * 修改举报
+     *
+     * @param report
+     */
+    @AutoFill(OperationType.UPDATE)
+    void updateReport(Report report);
+
+    /**
+     * 批量删除
+     * @param ids
+     */
+    void batchDeleteReport(List<Long> ids);
+
+    /**
+     * 根据评论id批量删除举报
+     * @param commentsIds
+     */
+    void batchDeleteReportByCommentId(List<Long> commentsIds);
+
+    /**
+     * 得到ids中的所有举报
+     * @param ids
+     * @return
+     */
+    List<Report> findReports(List<Long> ids);
 }

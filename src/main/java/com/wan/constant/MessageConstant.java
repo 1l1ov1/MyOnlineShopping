@@ -6,6 +6,7 @@ package com.wan.constant;
 public class MessageConstant {
 
 
+
     private MessageConstant() {
 
     }
@@ -19,7 +20,7 @@ public class MessageConstant {
     public static final String USER_NOT_LOGIN = "用户未登录";
     public static final String LOGIN_FAILED = "登录失败";
     public static final String VERIFY_CODE_ERROR = "验证码错误";
-    public static final String VERIFY_CODE_IS_NOT_EXIST = "验证码不存在，请刷新页面";
+    public static final String VERIFY_CODE_EXPIRE = "验证码过期，请刷新页面";
     public static final String ACCOUNT_EXIST = "账号已存在";
     // 商店
 
@@ -107,6 +108,16 @@ public class MessageConstant {
      * 您的账号因违反该平台相关条例被永久禁言
      */
     public static final String ACCOUNT_IS_FOREVER_FORBIDDEN = "您的账号因违反该平台相关条例，被永久禁言";
+
+    /**
+     * 您的账号已被管理员解封，恢复正常
+     */
+    public static final String ACCOUNT_IS_UNBAN = "您的账号已被管理员解封，恢复正常";
+
+    /**
+     * 您的账号封禁时间到期，已解封
+     */
+    public static final String ACCOUNT_IS_UNBAN_BY_TIME = "您的账号封禁时间到期，已解封";
     /**
      * 评论不能为空
      */
@@ -152,10 +163,34 @@ public class MessageConstant {
     /**
      * 用户已经封禁，无法操作
      */
-    public static final String USER_HAS_BANNED = "您已经被管理员封禁，无法操作，结束时间为：";
+    public static final String USER_HAS_BANNED = "该账号已经被管理员封禁，无法操作，结束时间为：";
 
     /**
      * 用户已被禁言，无法发表评论
      */
-    public static final String USER_HAS_FORBIDDEN_COMMENT = "您已被管理员禁言，无法发表评论，结束时间为：";
+    public static final String USER_HAS_FORBIDDEN_COMMENT = "该账号已被管理员禁言，无法发表评论，结束时间为：";
+
+    /**
+     * 举报不存在
+     */
+    public static final String REPORT_IS_NOT_EXIST = "举报不存在";
+
+    /**
+     * 评论不存在
+     */
+    public static final String COMMENT_IS_NOT_EXIST = "评论不存在";
+
+    /**
+     * 评论状态非法
+     */
+    public static final String COMMENT_STATUS_IS_INVALID = "评论状态非法";
+
+    /**
+     * 非法的奖励金额
+     */
+    public static final String AWARD_ACCOUNT_IS_VALID = "非法的奖励金额";
+    /**
+     * 奖励举报
+     */
+    public static final String USER_REPORT_REWARD_SUCCESS = "感谢您积极举报违规行为，为维护平台良好氛围做出贡献。您的举报奖励已成功发放至您的账号，请及时查收。如有疑问，欢迎随时联系我们。共计：";
 }

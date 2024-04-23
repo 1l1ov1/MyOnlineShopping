@@ -21,4 +21,13 @@ public class WebSocketConstant {
      * 用户退出的消息类型
      */
     public static final Integer USER_EXIT = 3;
+
+    /**
+     * 用户启用的消息类型
+     */
+    public static final Integer USER_START = 4;
+    /**
+     * 奖励用户
+     */
+    public static final Integer USER_AWARD = 5;
 }

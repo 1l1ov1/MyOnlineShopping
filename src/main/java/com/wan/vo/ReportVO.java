@@ -24,6 +24,11 @@ public class ReportVO {
     private Long userId;
 
     /**
+     * 举报人是否被奖励 0没有 1有
+     */
+    private Integer isAward;
+
+    /**
      * 举报人用户名
      */
     private String username;
@@ -36,11 +41,25 @@ public class ReportVO {
      * 评论内容
      */
     private String content;
+
+    /**
+     * 评论时间
+     */
+    private LocalDateTime commentCreateTime;
+
+    /**
+     * 评论状态
+     */
+    private Integer commentStatus;
     /**
      * 举报原因
      */
     private String reason;
 
+    /**
+     * 举报状态
+     */
+    private Integer status;
     /**
      * 被举报人id
      */

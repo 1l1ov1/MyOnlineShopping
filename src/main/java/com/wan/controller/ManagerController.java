@@ -1,6 +1,7 @@
 package com.wan.controller;
 
 import com.wan.constant.RedisConstant;
+import com.wan.dto.AwardUserDTO;
 import com.wan.dto.ForbiddenOrBanDTO;
 import com.wan.dto.UserPageQueryDTO;
 import com.wan.result.PageResult;
@@ -75,6 +76,22 @@ public class ManagerController {
     public Result<String> forbidOrBan(@RequestBody ForbiddenOrBanDTO forbiddenOrBanDTO) {
         log.info("禁言或封禁 {}", forbiddenOrBanDTO);
         managerService.forbidOrBan(forbiddenOrBanDTO);
+        return Result.success("操作成功");
+    }
+
+    @PostMapping("/updateForbiddenWord")
+    @ApiOperation("禁言或解除禁言")
+    public Result<String> updateForbiddenWord(@RequestBody ForbiddenOrBanDTO forbiddenOrBanDTO) {
+        log.info("禁言或解除禁言 {}", forbiddenOrBanDTO);
+        managerService.updateForbiddenWord(forbiddenOrBanDTO);
+        return Result.success("操作成功");
+    }
+
+    @PostMapping("/awardUser")
+    @ApiOperation("奖励用户")
+    public Result<String> awardUser(@RequestBody AwardUserDTO awardUserDTO) {
+        log.info("奖励用户 {}", awardUserDTO);
+        managerService.awardUser(awardUserDTO);
         return Result.success("操作成功");
     }
 }

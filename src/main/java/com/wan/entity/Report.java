@@ -28,6 +28,11 @@ public class Report implements Serializable {
     private Long userId;
 
     /**
+     * 举报人是否被奖励 0没有 1有
+     */
+    private Integer isAward;
+
+    /**
      * 举报的评论id
      */
     private Long commentId;
@@ -36,6 +41,10 @@ public class Report implements Serializable {
      */
     private String reason;
 
+    /**
+     * 举报的状态  （待处理 已处理）
+     */
+    private Integer status;
     /**
      * 创建时间
      */

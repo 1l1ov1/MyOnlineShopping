@@ -2,16 +2,17 @@ package com.wan.utils;
 
 import com.wan.constant.RedisConstant;
 import com.wan.exception.RedisException;
+import io.lettuce.core.cluster.api.sync.RedisAdvancedClusterCommands;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -239,6 +240,37 @@ public class RedisUtils {
         redisTemplate.delete(Arrays.asList(keys));
     }
 
+    /**
+     * 根据模式清除 Redis 缓存
+     *
+     * 本方法通过指定的模式字符串来匹配 Redis 中的键，进而删除所有匹配到的键。请谨慎使用，特别是当模式字符串为 "*" 时，会删除所有键。
+     *
+     * @param redisTemplate Redis 模板，用于执行 Redis 操作。
+     * @param pattern       模式字符串，用于匹配需要删除的键。支持 Redis 的键匹配模式。
+     */
+    public static void clearRedisCacheByPattern(RedisTemplate<String, Object> redisTemplate, String pattern) {
+        // 检查模式字符串是否为空或仅为空格
+        if (pattern == null || pattern.trim().isEmpty()) {
+            // 显式提醒关于空模式的风险
+            return;
+        }
+
+        try {
+            ScanOptions scanOptions = ScanOptions.scanOptions().match(pattern).build();
+
+            // 使用SCAN命令获取匹配模式的键的游标
+            Cursor<String> cursor = redisTemplate.scan(scanOptions);
+
+            // 遍历匹配的键，逐个删除
+            while (cursor.hasNext()) {
+                String key = cursor.next();
+                redisTemplate.delete(key);
+            }
+        } catch (Exception e) {
+            System.err.println("清除 Redis 缓存时发生异常: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 
 
 

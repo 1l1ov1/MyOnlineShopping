@@ -1,5 +1,8 @@
 package com.wan.websocket;
 
+import com.alibaba.fastjson.JSON;
+import com.wan.constant.UserConstant;
+import com.wan.constant.WebSocketConstant;
 import org.springframework.stereotype.Component;
 
 import javax.websocket.OnClose;
@@ -8,9 +11,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.*;
 
 @Component
@@ -55,6 +56,7 @@ public class NoticeUserWebSocketServer {
 
     /**
      * 连接建立成功调用的方法
+     *
      * @param session
      * @param userId
      */
@@ -93,6 +95,7 @@ public class NoticeUserWebSocketServer {
 
     /**
      * 给指定用户发送消息
+     *
      * @param userId
      * @param message
      */

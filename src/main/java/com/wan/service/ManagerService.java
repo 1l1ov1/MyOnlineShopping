@@ -1,5 +1,6 @@
 package com.wan.service;
 
+import com.wan.dto.AwardUserDTO;
 import com.wan.dto.ForbiddenOrBanDTO;
 import com.wan.dto.UserPageQueryDTO;
 import com.wan.result.PageResult;
@@ -47,4 +48,16 @@ public interface ManagerService {
      * @param forbiddenOrBanDTO
      */
     void forbidOrBan(ForbiddenOrBanDTO forbiddenOrBanDTO);
+
+    /**
+     * 管理员禁言或解除禁言
+     * @param forbiddenOrBanDTO
+     */
+    void updateForbiddenWord(ForbiddenOrBanDTO forbiddenOrBanDTO);
+
+    /**
+     * 奖励用户
+     * @param awardUserDTO
+     */
+    void awardUser(AwardUserDTO awardUserDTO);
 }

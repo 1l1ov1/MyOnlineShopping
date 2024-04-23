@@ -13,13 +13,33 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ForbiddenOrBanDTO {
+
+    /**
+     * 举报id
+     */
+    private Long reportId;
+
+    /**
+     * 被举报人
+     */
     private Long reportedUserId;
 
+    /**
+     * 禁言时间
+     */
     private Double forbiddenWordTime;
-
+    /**
+     * 封禁时间
+     */
     private Double banTime;
 
+    /**
+     * 被举报人用户名
+     */
     private String reportedUsername;
 
+    /**
+     * 类型
+     */
     private String type;
 }
