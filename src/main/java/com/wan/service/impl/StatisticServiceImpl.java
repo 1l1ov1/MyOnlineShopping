@@ -73,7 +73,8 @@ public class StatisticServiceImpl implements StatisticService {
                 // 得到对应的商店id
                 storeId = store.getId();
             }
-
+            // 删除当前线程中的用户ID
+            ThreadBaseContext.removeCurrentId();
             Pair<LocalDate, LocalDate> pair = calculateDateRange(storeSalesRangeType);
             LocalDate start = pair.getLeft();
             LocalDate end = pair.getRight();
@@ -113,7 +114,8 @@ public class StatisticServiceImpl implements StatisticService {
             // 得到对应的商店id
             storeId = store.getId();
         }
-
+        // 删除当前线程中的用户ID
+        ThreadBaseContext.removeCurrentId();
         Pair<LocalDate, LocalDate> pair = calculateDateRange(storeSalesRangeType);
         LocalDate start = pair.getLeft();
         LocalDate end = pair.getRight();
@@ -144,7 +146,8 @@ public class StatisticServiceImpl implements StatisticService {
             // 得到对应的商店id
             storeId = store.getId();
         }
-
+        // 删除当前线程中的用户ID
+        ThreadBaseContext.removeCurrentId();
         Pair<LocalDate, LocalDate> pair = calculateDateRange(storeSalesRangeType);
         LocalDate start = pair.getLeft();
         LocalDate end = pair.getRight();
@@ -244,7 +247,8 @@ public class StatisticServiceImpl implements StatisticService {
             // 得到对应的商店id
             storeId = store.getId();
         }
-
+        // 删除当前线程中的用户ID
+        ThreadBaseContext.removeCurrentId();
         Pair<LocalDate, LocalDate> pair = calculateDateRange(storeSalesRangeType);
         // 得到迭代器
         LocalDate start = pair.getLeft();
@@ -332,7 +336,7 @@ public class StatisticServiceImpl implements StatisticService {
      * 根据给定的日期范围获取导出数据的视图对象。
      *
      * @param start 开始日期
-     * @param end 结束日期
+     * @param end   结束日期
      * @return ExportDataVO 导出数据的视图对象，包含总营收、总订单数、成功订单数、订单完成率、平均客单价和新增用户数。
      */
     private ExportDataVO getExportDataVO(LocalDate start, LocalDate end) {
@@ -347,7 +351,8 @@ public class StatisticServiceImpl implements StatisticService {
             // 获取商店ID
             storeId = store.getId();
         }
-
+        // 删除当前线程中的用户ID
+        ThreadBaseContext.removeCurrentId();
         // 统计指定日期范围内的总营收  月底
         BigDecimal totalRevenue = statisticMapper.getTotalRevenue(start, end, storeId);
         totalRevenue = totalRevenue == null ? BigDecimal.valueOf(0.0) : totalRevenue;
@@ -487,7 +492,7 @@ public class StatisticServiceImpl implements StatisticService {
     private Long validateUserId() {
         // 得到该商家的用户id
         Long userId = ThreadBaseContext.getCurrentId();
-        ThreadBaseContext.removeCurrentId();
+
         if (userId == null) {
             throw new AccountNotFountException(MessageConstant.USER_IS_NOT_EXIST);
         }

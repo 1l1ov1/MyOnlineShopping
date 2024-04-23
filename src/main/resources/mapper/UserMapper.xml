@@ -22,21 +22,13 @@
             <if test="accountStatus != null">
                 account_status = #{accountStatus},
             </if>
-            <if test="banStartTime != null">
-                ban_start_time = #{banStartTime},
-            </if>
-            <if test="banEndTime != null">
-                ban_end_time = #{banEndTime},
-            </if>
+            ban_start_time = #{banStartTime},
+            ban_end_time = #{banEndTime},
             <if test="forbiddenWord != null">
                 forbidden_word = #{forbiddenWord},
             </if>
-            <if test="forbiddenStartTime != null">
-                forbidden_start_time = #{forbiddenStartTime},
-            </if>
-            <if test="forbiddenEndTime != null">
-                forbidden_end_time = #{forbiddenEndTime},
-            </if>
+            forbidden_start_time = #{forbiddenStartTime},
+            forbidden_end_time = #{forbiddenEndTime},
             <if test="status != null">
                 status = #{status},
             </if>

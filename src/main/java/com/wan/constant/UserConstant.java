@@ -22,4 +22,19 @@ public class UserConstant {
     public static final int FORBIDDEN_WORD = 0; // 禁言
 
     public static final int NOT_FORBIDDEN_WORD = 1;// 不禁言
+
+    /**
+     * 默认头像
+     */
+    public static final String DEFAULT_AVATAR = "default.png";
+
+    /**
+     * 最大奖励金额
+     */
+    public static final double MAX_REWARD_AMOUNT = 50000;
+
+    /**
+     * 最小奖励金额
+     */
+    public static final double MIN_REWARD_AMOUNT = 10;
 }

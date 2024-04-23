@@ -24,4 +24,6 @@ public class ReportPageQueryDTO {
     private Integer page;
 
     private Integer pageSize;
+
+    private Integer sort;
 }

@@ -4,27 +4,21 @@ import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.wan.constant.*;
+import com.wan.dto.AwardUserDTO;
 import com.wan.dto.ForbiddenOrBanDTO;
 import com.wan.dto.UserPageQueryDTO;
 import com.wan.entity.Address;
-import com.wan.entity.StoreSales;
+import com.wan.entity.Report;
 import com.wan.entity.User;
-import com.wan.enumeration.StoreSalesRangeType;
-import com.wan.exception.AccountExistException;
-import com.wan.exception.AccountNotFountException;
-import com.wan.exception.ForbiddenOrBanException;
-import com.wan.exception.StatusException;
+import com.wan.exception.*;
 import com.wan.mapper.AddressMapper;
 import com.wan.mapper.ManagerMapper;
+import com.wan.mapper.ReportMapper;
 import com.wan.mapper.UserMapper;
 import com.wan.result.PageResult;
 import com.wan.service.ManagerService;
-import com.wan.vo.StoreSalesVO;
-import com.wan.vo.StoreSalesWithStoreName;
-import com.wan.vo.UserCountVO;
 import com.wan.vo.UserPageQueryVO;
 import com.wan.websocket.NoticeUserWebSocketServer;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -34,8 +28,6 @@ import org.springframework.util.ObjectUtils;
 
 import java.math.BigDecimal;
 import java.time.*;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 
 @Service
@@ -48,6 +40,8 @@ public class ManagerServiceImpl implements ManagerService {
     private UserMapper userMapper;
     @Autowired
     private AddressMapper addressMapper;
+    @Autowired
+    private ReportMapper reportMapper;
 
     /**
      * 分页查询
@@ -86,14 +80,23 @@ public class ManagerServiceImpl implements ManagerService {
         User user = User.builder()
                 .accountStatus(accountStatus)
                 .banStartTime(LocalDateTime.now())
+                // 永久封禁
                 .banEndTime(null)
                 .id(id)
                 .build();
         // 如果是用户封禁状态
         if (accountStatus == UserConstant.DISABLE) {
             // 通知用户退出
-            NoticeUserLogout(user);
+            NoticeUserMessage(user, WebSocketConstant.USER_EXIT, MessageConstant.ACCOUNT_IS_FOREVER_BAN);
+        } else {
+            // 如果是启用状态
+            // 就将用户封禁时间清空
+            user.setBanEndTime(null);
+            user.setBanStartTime(null);
+            // 然后通知用户，账号恢复
+            NoticeUserMessage(user, WebSocketConstant.USER_START, MessageConstant.ACCOUNT_IS_UNBAN);
         }
+
         userMapper.update(user);
 
     }
@@ -174,9 +177,20 @@ public class ManagerServiceImpl implements ManagerService {
      * @param forbiddenOrBanDTO
      */
     @Override
+    @Transactional
     public void forbidOrBan(ForbiddenOrBanDTO forbiddenOrBanDTO) {
         // 先得到类型
         String type = forbiddenOrBanDTO.getType();
+
+        // 根据id查询举报
+        Report report = reportMapper.findReportById(forbiddenOrBanDTO.getReportId());
+        if (ObjectUtils.isEmpty(report)) {
+            // 如果为空
+            throw new ReportException(MessageConstant.REPORT_IS_NOT_EXIST);
+        }
+
+
+        // 得到被举报人的用户id
         Long reportedUserId = forbiddenOrBanDTO.getReportedUserId();
         User user = userMapper.getById(reportedUserId);
         // 得到被禁言的用户id
@@ -226,8 +240,8 @@ public class ManagerServiceImpl implements ManagerService {
                 Duration durationToAdd = Duration.ofHours(banTime.longValue())
                         .plusMinutes((long) (banTime % 1 * 60));
                 user.setBanEndTime(now.plus(durationToAdd));
-
-                NoticeUserLogout(user);
+                // 通知用户退出
+                NoticeUserMessage(user, WebSocketConstant.USER_EXIT, MessageConstant.USER_HAS_BANNED + user.getBanEndTime());
             }
         } else {
             // 如果是其他的
@@ -236,15 +250,113 @@ public class ManagerServiceImpl implements ManagerService {
 
         // 最后修改用户信息
         userMapper.update(user);
+
+        // 然后修改举报信息
+        report.setStatus(ReportConstant.REPORT_STATUS_PROCESSED);
+        reportMapper.updateReport(report);
     }
 
-    private void NoticeUserLogout(User user) {
-        // 就让用户登出
+    /**
+     * 管理员禁言或者解除禁言
+     *
+     * @param forbiddenOrBanDTO
+     */
+    @Override
+    public void updateForbiddenWord(ForbiddenOrBanDTO forbiddenOrBanDTO) {
+        String type = forbiddenOrBanDTO.getType();
+        Long userId = forbiddenOrBanDTO.getReportedUserId();
+        User user = userMapper.getById(userId);
+        if (ObjectUtils.isEmpty(user)) {
+            // 如果用户为空
+            throw new AccountNotFountException(MessageConstant.ACCOUNT_NOT_FOUND);
+        }
+        // 如果是禁言
+        if (ForbiddenOrBanConstant.FORBIDDEN.equals(type)) {
+            // 如果用户不空
+            // 得到结束范围
+            Double forbiddenWordTime = forbiddenOrBanDTO.getForbiddenWordTime();
+            LocalDateTime now = LocalDateTime.now();
+
+            Duration duration = Duration.ofHours(forbiddenWordTime.longValue())
+                    .plusMinutes((long) (forbiddenWordTime % 1 * 60));
+            user.setForbiddenStartTime(now);
+            user.setForbiddenEndTime(now.plus(duration));
+            user.setForbiddenWord(UserConstant.FORBIDDEN_WORD);
+        } else if (ForbiddenOrBanConstant.UN_FORBIDDEN.equals(type)) {
+            // 如果是解除禁言
+            user.setForbiddenStartTime(null);
+            user.setForbiddenEndTime(null);
+            user.setForbiddenWord(UserConstant.NOT_FORBIDDEN_WORD);
+        }
+
+
+        // 最后修改用户信息
+        userMapper.update(user);
+    }
+
+    /**
+     * 奖励用户
+     *
+     * @param awardUserDTO
+     */
+    @Override
+    @Transactional
+    public void awardUser(AwardUserDTO awardUserDTO) {
+        Long userId = awardUserDTO.getUserId();
+        Integer award = awardUserDTO.getAward();
+
+        User user = userMapper.getById(userId);
+        if (ObjectUtils.isEmpty(user)) {
+            // 如果用户为空
+            throw new AccountNotFountException(MessageConstant.ACCOUNT_NOT_FOUND);
+        }
+
+        // 如果用户不空，看金额是否合法
+        if (award < UserConstant.MIN_REWARD_AMOUNT || award > UserConstant.MAX_REWARD_AMOUNT) {
+            throw new AwardException(MessageConstant.AWARD_ACCOUNT_IS_VALID);
+        }
+
+        // 然后查看举报
+        Report report = reportMapper.findReportById(awardUserDTO.getReportId());
+        if (ObjectUtils.isEmpty(report)) {
+            // 如果举报为空
+            throw new ReportException(MessageConstant.REPORT_IS_NOT_EXIST);
+        }
+
+        // 如果举报不空
+        // 奖励用户
+        user.setMoney(user.getMoney().add(new BigDecimal(award)));
+        userMapper.update(user);
+
+        // 然后修改举报
+        report.setIsAward(ReportConstant.REPORT_STATUS_REWARDED);
+        reportMapper.updateReport(report);
+
+        // 然后得到超级管理员，因为钱要从他那扣，他代表着平台
+        User administrator = userMapper.getAdministrator(UserConstant.SUPER_ADMINISTRATOR);
+        administrator.setMoney(administrator.getMoney().subtract(new BigDecimal(award)));
+        // 然后修改
+        userMapper.update(administrator);
+        // 然后通知用户
+        NoticeUserMessage(user, WebSocketConstant.USER_AWARD,
+                MessageConstant.USER_REPORT_REWARD_SUCCESS + award + "元");
+
+    }
+
+    /**
+     * 通知特定用户消息的方法。
+     *
+     * @param user    用户对象，表示需要被通知的用户。
+     * @param type    消息类型，用于区分不同的消息。
+     * @param content 消息内容，向用户展示的具体信息。
+     */
+    private void NoticeUserMessage(User user, Integer type, String content) {
+        // 设置用户为不在线状态
         user.setIsOnline(UserConstant.IS_NOT_ONLINE);
-        // 并且通知用户
+        // 准备消息数据并发送给用户
         Map<String, Object> map = new HashMap<>();
-        map.put("type", WebSocketConstant.USER_EXIT);
-        map.put("content", MessageConstant.ACCOUNT_IS_FOREVER_BAN);
+        map.put("type", type);
+        map.put("content", content);
 
         NoticeUserWebSocketServer.sendToSpecificUser(user.getId(), JSON.toJSONString(map));
     }

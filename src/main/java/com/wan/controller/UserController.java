@@ -6,6 +6,7 @@ import com.wan.dto.*;
 import com.wan.entity.*;
 
 import com.wan.exception.AccountNotFountException;
+import com.wan.exception.FieldException;
 import com.wan.properties.JwtProperties;
 import com.wan.result.PageResult;
 import com.wan.result.Result;
@@ -82,6 +83,10 @@ public class UserController {
                 .findFirst() // 只取第一个匹配的Cookie，如果有多个同名Cookie，只取第一个
                 .map(Cookie::getValue) // 从找到的Cookie中提取值
                 .orElse(null); // 如果没有找到匹配的Cookie，返回null
+        if (KEY == null) {
+            // 如果Cookie不存在，即验证码过期，则返回错误信息
+            throw new FieldException(MessageConstant.VERIFY_CODE_EXPIRE);
+        }
         // 得到缓存中的键后，在得到值
         String code = (String) redisTemplate.opsForValue().get(KEY);
         if (code == null) {
@@ -425,10 +430,8 @@ public class UserController {
         // 删除缓存
         Long storeId = commentAction.getStoreId();
         RedisUtils.clearRedisCache(redisTemplate,
-                RedisConstant.STORE_COMMENT_ACTION + storeId,
-                RedisConstant.STORE_COMMENT + "all-" + storeId,
-                RedisConstant.STORE_COMMENT + "good-" + storeId,
-                RedisConstant.STORE_COMMENT + "bad-" + storeId);
+                RedisConstant.STORE_COMMENT_ACTION + storeId);
+        RedisUtils.clearRedisCacheByPattern(redisTemplate, RedisConstant.STORE_COMMENT + "*" + storeId);
         return Result.success("修改成功");
     }
 
@@ -438,8 +441,7 @@ public class UserController {
         log.info("添加举报 {}", report);
         Comment comment = userService.addReport(report);
         // 删除缓存
-        RedisUtils.clearRedisCache(redisTemplate,
-                RedisConstant.STORE_COMMENT + comment.getStoreId());
+        RedisUtils.clearRedisCacheByPattern(redisTemplate, RedisConstant.STORE_COMMENT + "*-" + comment.getStoreId());
         return Result.success("举报成功");
     }
 
@@ -451,6 +453,9 @@ public class UserController {
      * @return 返回对应的评论类型字符串。"good" 表示好评，"bad" 表示差评，"all" 表示全部评论。
      */
     private String checkCommentType(Integer type) {
+        if (type == null) {
+            return "all-";
+        }
         switch (type) {
             case 1:
                 return "good-"; // 好评

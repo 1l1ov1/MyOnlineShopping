@@ -15,6 +15,10 @@ public class ForbiddenOrBanConstant {
     public static final String BAN = "封禁";
 
     /**
+     * 解除禁言
+     */
+    public static final String UN_FORBIDDEN = "解除禁言";
+    /**
      * 永久
      */
 

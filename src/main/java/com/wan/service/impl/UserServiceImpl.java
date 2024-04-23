@@ -106,6 +106,8 @@ public class UserServiceImpl implements UserService {
         // 将密码修改为MD5后保存
         String md5 = DigestUtils.md5DigestAsHex(user.getPassword().getBytes());
         user.setPassword(md5);
+        // 设置用户的默认头像
+        user.setAvatar(UserConstant.DEFAULT_AVATAR);
         // 插入用户
         userMapper.insert(user);
     }
@@ -571,7 +573,6 @@ public class UserServiceImpl implements UserService {
     }
 
 
-
     /**
      * 验证商品信息的有效性。
      *
@@ -595,6 +596,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * 检查用户是否被禁用或禁止发言。
+     *
      * @param user 用户对象，包含用户的状态和禁止词信息。
      * @throws ForbiddenOrBanException 如果用户被禁用或禁止发言，则抛出此异常。
      */
@@ -858,24 +860,41 @@ public class UserServiceImpl implements UserService {
         }
 
         // 如果账号密码输对，看看是否被禁用
-        // 得到结束时间
-        LocalDateTime banEndTime = user.getBanEndTime();
-        // 得到现在的时间
-        LocalDateTime now = LocalDateTime.now();
-        // 如果封禁结束时间在当前时间之前
-        if (banEndTime != null && banEndTime.isBefore(now)) {
-            // 说明应该解封
-            user.setBanEndTime(null);
-            user.setBanStartTime(null);
-            user.setAccountStatus(UserConstant.ENABLE);
-        } else if (banEndTime == null) {
-            // 如果结束时间为空，说明没被封禁
-            return user;
-        } else {
-            // 如果是在封禁期间
-            throw new AccountLockedException(MessageConstant.ACCOUNT_LOCKED);
+        if (isAccountBanned(user)) {
+            LocalDateTime banEndTime = user.getBanEndTime();
+            if (banEndTime == null) {
+                // 如果是永久封禁，就说被永久封禁
+                throw new ForbiddenOrBanException(MessageConstant.ACCOUNT_IS_FOREVER_BAN);
+            }
+            // 如果不是，就显示结束时间
+            throw new ForbiddenOrBanException(MessageConstant.USER_HAS_BANNED + user.getBanEndTime());
         }
 
         return user;
+    }
+
+    /**
+     * 判断账号是否被封禁
+     *
+     * @param user
+     * @return
+     */
+    private boolean isAccountBanned(User user) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime banEndTime = user.getBanEndTime();
+        if (banEndTime != null) {
+            // 如果封禁结束时间在当前时间之前，解封账号
+            if (banEndTime.isBefore(now)) {
+                user.setBanEndTime(null);
+                user.setBanStartTime(null);
+                user.setAccountStatus(UserConstant.ENABLE);
+                return false; // 账号已解封
+            }
+            return true; // 账号在封禁期内
+        }
+
+        LocalDateTime banStartTime = user.getBanStartTime();
+        // 封禁期内
+        return banStartTime != null;// 账号未被封禁
     }
 }

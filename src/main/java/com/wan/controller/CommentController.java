@@ -1,16 +1,16 @@
 package com.wan.controller;
 
+import com.wan.constant.RedisConstant;
 import com.wan.entity.Comment;
 import com.wan.result.Result;
 import com.wan.service.CommentService;
+import com.wan.utils.RedisUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -22,6 +22,8 @@ public class CommentController {
 
     @Autowired
     private CommentService commentService;
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     @PostMapping("/add")
     @ApiOperation("添加评论")
@@ -31,10 +33,27 @@ public class CommentController {
         return Result.success("添加成功");
     }
 
+    @GetMapping("/hidden/{id}")
+    @ApiOperation("隐藏评论")
+    public Result<String> hiddenComment(@PathVariable Long id, @RequestParam Integer status) {
+        log.info("隐藏评论 {} {}", id, status);
+        Long storeId = commentService.hiddenComment(id, status);
+        // 然后清空缓存
+        /*RedisUtils.clearRedisCache(redisTemplate,
+                RedisConstant.STORE_COMMENT + "all-" + storeId,
+                RedisConstant.STORE_COMMENT + "goods-" + storeId,
+                RedisConstant.STORE_COMMENT + "bad-" + storeId);*/
+        RedisUtils.clearRedisCacheByPattern(redisTemplate, RedisConstant.STORE_COMMENT + "*");
+        return Result.success("修改成功");
+    }
+
     @DeleteMapping("/delete")
-    @ApiOperation("删除评论")
-    public Result<String> deleteComment(List<Long> ids) {
-        log.info("删除评论： {}", ids);
+    @ApiOperation("批量删除评论")
+    public Result<String> deleteComment(@RequestParam  List<Long> ids) {
+        log.info("批量删除评论 {}", ids);
+        commentService.batchDeleteComment(ids);
+        // 删除缓存
+        RedisUtils.clearRedisCacheByPattern(redisTemplate, RedisConstant.STORE_COMMENT + "*");
         return Result.success("删除成功");
     }
 }

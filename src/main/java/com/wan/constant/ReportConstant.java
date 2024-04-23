@@ -16,4 +16,27 @@ public class ReportConstant {
      * 最小举报内容长度
      */
     public static final Integer MIN_REPORT_CONTENT_LENGTH = 1;
+
+
+     // 举报状态
+    /**
+     * 待处理
+     */
+    public static final Integer REPORT_STATUS_PENDING = 1;
+
+    /**
+     * 已处理
+     */
+    public static final Integer REPORT_STATUS_PROCESSED = 2;
+
+
+    /**
+     * 已奖励
+     */
+    public static final Integer REPORT_STATUS_REWARDED = 1;
+
+    /**
+     * 未奖励
+     */
+    public static final Integer REPORT_STATUS_UNREWARDED = 0;
 }

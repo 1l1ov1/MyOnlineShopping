@@ -36,6 +36,7 @@ public interface CommentMapper {
      *
      * @param ids
      */
+
     void batchDeleteComment(List<Long> ids);
 
 
@@ -82,4 +83,12 @@ public interface CommentMapper {
      */
     @Select("select * from comments where id = #{commentId}")
     Comment findCommentById(Long commentId);
+
+    /**
+     * 根据id查询评论
+     *
+     * @param commentsIdList
+     * @return
+     */
+    List<Comment> findComments(List<Long> commentsIdList);
 }
