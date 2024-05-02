@@ -17,6 +17,7 @@ import com.wan.mapper.ReportMapper;
 import com.wan.mapper.UserMapper;
 import com.wan.result.PageResult;
 import com.wan.service.ManagerService;
+import com.wan.utils.CheckObjectFieldUtils;
 import com.wan.vo.UserPageQueryVO;
 import com.wan.websocket.NoticeUserWebSocketServer;
 import org.springframework.beans.BeanUtils;
@@ -28,6 +29,7 @@ import org.springframework.util.ObjectUtils;
 
 import java.math.BigDecimal;
 import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -54,8 +56,6 @@ public class ManagerServiceImpl implements ManagerService {
         // 开启分页
         PageInfo<UserPageQueryVO> pageInfo = PageHelper.startPage(userPageQueryDTO.getPage(), userPageQueryDTO.getPageSize())
                 .doSelectPageInfo(() -> managerMapper.pageQuery(userPageQueryDTO));
-        // 先查询用户
-        // Page<UserPageQueryVO> pages = managerMapper.pageQuery(userPageQueryDTO);
 
         long total = pageInfo.getTotal();
         return PageResult.builder()
@@ -87,14 +87,16 @@ public class ManagerServiceImpl implements ManagerService {
         // 如果是用户封禁状态
         if (accountStatus == UserConstant.DISABLE) {
             // 通知用户退出
-            NoticeUserMessage(user, WebSocketConstant.USER_EXIT, MessageConstant.ACCOUNT_IS_FOREVER_BAN);
+            NoticeUserMessage(user, WebSocketConstant.USER_EXIT,
+                    MessageConstant.ACCOUNT_IS_FOREVER_BAN);
         } else {
             // 如果是启用状态
             // 就将用户封禁时间清空
             user.setBanEndTime(null);
             user.setBanStartTime(null);
             // 然后通知用户，账号恢复
-            NoticeUserMessage(user, WebSocketConstant.USER_START, MessageConstant.ACCOUNT_IS_UNBAN);
+            NoticeUserMessage(user, WebSocketConstant.USER_START,
+                    MessageConstant.ACCOUNT_IS_UNBAN);
         }
 
         userMapper.update(user);
@@ -179,81 +181,117 @@ public class ManagerServiceImpl implements ManagerService {
     @Override
     @Transactional
     public void forbidOrBan(ForbiddenOrBanDTO forbiddenOrBanDTO) {
-        // 先得到类型
-        String type = forbiddenOrBanDTO.getType();
+        try {
+            // 如果所有字段不空
+            if (CheckObjectFieldUtils.areAllNonExcludedFieldsNotNull(forbiddenOrBanDTO,
+                    "forbiddenWordTime", "banTime")) {
+                // 得到现在时间
+                LocalDateTime now = LocalDateTime.now();
+                // 先得到类型
+                String type = forbiddenOrBanDTO.getType();
+                // 根据id查询举报
+                List<Long> reportIdList = forbiddenOrBanDTO.getReportId();
+                List<Report> reportList = reportMapper.findReportByIds(reportIdList);
+                // 如果report列表为空或长度为0 或者 长度不等于举报id的长度
+                if (ObjectUtils.isEmpty(reportList) || reportList.size() != reportIdList.size()) {
+                    // 如果为空
+                    throw new ReportException(MessageConstant.REPORT_IS_NOT_EXIST);
+                }
 
-        // 根据id查询举报
-        Report report = reportMapper.findReportById(forbiddenOrBanDTO.getReportId());
-        if (ObjectUtils.isEmpty(report)) {
-            // 如果为空
-            throw new ReportException(MessageConstant.REPORT_IS_NOT_EXIST);
+                // 得到被举报人的用户id
+                Long reportedUserId = forbiddenOrBanDTO.getReportedUserId();
+                User user = userMapper.getById(reportedUserId);
+                // 得到被禁言的用户id
+                if (ObjectUtils.isEmpty(user)) {
+                    // 如果用户为空
+                    throw new AccountNotFountException(MessageConstant.ACCOUNT_NOT_FOUND);
+                }
+                // 如果用户存在，得到他的账号状态
+                Integer accountStatus = user.getAccountStatus();
+                // 设置格式化时间的格式
+                DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+                if (accountStatus == UserConstant.DISABLE) {
+                    // 如果账号本身处于封禁状态，就直接抛提示
+                    throw new ForbiddenOrBanException(MessageConstant.USER_HAS_BANNED + user.getBanEndTime().format(dtf));
+                }
+
+                // 根据类型禁言或封禁
+                handleForbiddenOrBan(forbiddenOrBanDTO, now, type, user, dtf);
+
+                // 最后修改用户信息
+                userMapper.update(user);
+
+                // 然后修改举报信息
+                reportList.forEach(report -> {
+                    report.setStatus(ReportConstant.REPORT_STATUS_PROCESSED);
+                    reportMapper.updateReport(report);
+                });
+            }
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
         }
 
 
-        // 得到被举报人的用户id
-        Long reportedUserId = forbiddenOrBanDTO.getReportedUserId();
-        User user = userMapper.getById(reportedUserId);
-        // 得到被禁言的用户id
-        if (ObjectUtils.isEmpty(user)) {
-            // 如果用户为空
-            throw new AccountNotFountException(MessageConstant.ACCOUNT_NOT_FOUND);
-        }
-        // 如果用户存在，得到他的账号状态
-        Integer accountStatus = user.getAccountStatus();
-        if (accountStatus == UserConstant.DISABLE) {
-            // 如果账号本身处于封禁状态，就直接抛提示
-            throw new ForbiddenOrBanException(MessageConstant.USER_HAS_BANNED + user.getBanEndTime());
-        }
+    }
 
-
+    /**
+     * 处理禁言或封禁逻辑。
+     *
+     * @param forbiddenOrBanDTO 包含禁言或封禁信息的数据传输对象，例如禁言/封禁时长等。
+     * @param now               当前时间，用于设置禁言或封禁的开始时间。
+     * @param type              操作类型，标识是禁言（FORBIDDEN）还是封禁（BAN）。
+     * @param user              需要进行禁言或封禁操作的用户对象。
+     * @param dtf               日期时间格式化器，用于格式化时间信息。
+     */
+    private void handleForbiddenOrBan(ForbiddenOrBanDTO forbiddenOrBanDTO, LocalDateTime now, String type, User user, DateTimeFormatter dtf) {
         if (ForbiddenOrBanConstant.FORBIDDEN.equals(type)) {
-            // 如果是禁言
-            // 如果是正常的就去禁言
+            // 处理禁言逻辑
             user.setForbiddenWord(UserConstant.FORBIDDEN_WORD);
-            // 得到现在时间
-            LocalDateTime now = LocalDateTime.now();
-            // 得到结束时间（小时）
+
+            // 设置禁言的开始时间和结束时间
             Double forbiddenWordTime = forbiddenOrBanDTO.getForbiddenWordTime();
+            if (forbiddenWordTime == null) {
+                // 如果禁言时间为空
+                throw new FieldException(MessageConstant.FIELD_IS_EMPTY);
+            }
             user.setForbiddenStartTime(now);
             if (Objects.equals(forbiddenWordTime, ForbiddenOrBanConstant.FOREVER)) {
-                // 如果是永久
+                // 如果是永久禁言，则结束时间为空
                 user.setForbiddenEndTime(null);
             } else {
-                // 先加上整数部分给小时，在后面加上分钟
+                // 计算禁言结束时间
                 Duration durationToAdd = Duration.ofHours(forbiddenWordTime.longValue())
                         .plusMinutes((long) (forbiddenWordTime % 1 * 60));
                 user.setForbiddenEndTime(now.plus(durationToAdd));
             }
 
         } else if (ForbiddenOrBanConstant.BAN.equals(type)) {
-            // 如果是封禁
-            // 如果是正常的就去封禁
-            user.setAccountStatus(UserConstant.DISABLE);
-            LocalDateTime now = LocalDateTime.now();
+            // 处理封禁逻辑
+            user.setAccountStatus(UserConstant.DISABLE); // 将用户状态设置为封禁
             Double banTime = forbiddenOrBanDTO.getBanTime();
-            user.setBanStartTime(now);
-            // 如果是永久
+            if (banTime == null) {
+                // 如果封禁时长为空
+                throw new FieldException(MessageConstant.FIELD_IS_EMPTY);
+            }
+            user.setBanStartTime(now); // 设置封禁开始时间
             if (Objects.equals(banTime, ForbiddenOrBanConstant.FOREVER)) {
+                // 如果是永久封禁，则结束时间为空
                 user.setBanEndTime(null);
             } else {
-                // 先加上整数部分给小时，在后面加上分钟
+                // 计算封禁结束时间，并发送封禁通知消息给用户
                 Duration durationToAdd = Duration.ofHours(banTime.longValue())
                         .plusMinutes((long) (banTime % 1 * 60));
                 user.setBanEndTime(now.plus(durationToAdd));
-                // 通知用户退出
-                NoticeUserMessage(user, WebSocketConstant.USER_EXIT, MessageConstant.USER_HAS_BANNED + user.getBanEndTime());
+
+                // 通知用户被封禁，以及封禁结束时间
+                NoticeUserMessage(user, WebSocketConstant.USER_EXIT,
+                        MessageConstant.USER_HAS_BANNED + user.getBanEndTime().format(dtf));
             }
         } else {
-            // 如果是其他的
+            // 如果类型既不是禁言也不是封禁，则抛出异常
             throw new ForbiddenOrBanException(MessageConstant.TYPE_IS_WORRY);
         }
-
-        // 最后修改用户信息
-        userMapper.update(user);
-
-        // 然后修改举报信息
-        report.setStatus(ReportConstant.REPORT_STATUS_PROCESSED);
-        reportMapper.updateReport(report);
     }
 
     /**
@@ -276,7 +314,7 @@ public class ManagerServiceImpl implements ManagerService {
             // 得到结束范围
             Double forbiddenWordTime = forbiddenOrBanDTO.getForbiddenWordTime();
             LocalDateTime now = LocalDateTime.now();
-
+            // 计算出要禁言的时间是多少小时
             Duration duration = Duration.ofHours(forbiddenWordTime.longValue())
                     .plusMinutes((long) (forbiddenWordTime % 1 * 60));
             user.setForbiddenStartTime(now);

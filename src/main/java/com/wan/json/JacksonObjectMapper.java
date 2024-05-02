@@ -39,32 +39,31 @@ public class JacksonObjectMapper extends ObjectMapper {
     public JacksonObjectMapper() {
         super();
 
-        /**
-         * 配置忽略未知属性：在反序列化过程中，若遇到目标对象未声明的属性，不抛出异常，而是直接忽略。
-         */
+
+        // 配置忽略未知属性：在反序列化过程中，若遇到目标对象未声明的属性，不抛出异常，而是直接忽略。
         this.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-        /**
-         * 反序列化时，对于目标对象不存在的属性提供兼容性处理：当目标对象中没有与JSON输入中的属性相对应的字段时，不触发异常，保持兼容性。
-         */
+
+        // 反序列化时，对于目标对象不存在的属性提供兼容性处理：当目标对象中没有与JSON输入中的属性相对应的字段时，不触发异常，保持兼容性。
+
         this.getDeserializationConfig().withoutFeatures(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
-        /**
+        /*
          * 定义一个简单模块（JavaTimeModule），
          * 注册自定义的序列化器与反序列化器以支持Java 8日期时间类型（LocalDateTime, LocalDate, LocalTime）。
          * 使用预定义的日期时间格式字符串进行格式化。
          */
         JavaTimeModule javaTimeModule = (JavaTimeModule) new JavaTimeModule()
-            .addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern(DEFAULT_DATE_TIME_FORMAT)))
-            .addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(DateTimeFormatter.ofPattern(DEFAULT_DATE_TIME_FORMAT)))
+                .addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern(DEFAULT_DATE_TIME_FORMAT)))
+                .addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(DateTimeFormatter.ofPattern(DEFAULT_DATE_TIME_FORMAT)))
 
-            .addDeserializer(LocalTime.class, new LocalTimeDeserializer(DateTimeFormatter.ofPattern(DEFAULT_TIME_FORMAT)))
-            .addSerializer(LocalTime.class, new LocalTimeSerializer(DateTimeFormatter.ofPattern(DEFAULT_TIME_FORMAT)))
+                .addDeserializer(LocalTime.class, new LocalTimeDeserializer(DateTimeFormatter.ofPattern(DEFAULT_TIME_FORMAT)))
+                .addSerializer(LocalTime.class, new LocalTimeSerializer(DateTimeFormatter.ofPattern(DEFAULT_TIME_FORMAT)))
 
-            .addSerializer(LocalDate.class, new LocalDateSerializer(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT)))
-            .addDeserializer(LocalDate.class, new LocalDateDeserializer(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT)));
+                .addSerializer(LocalDate.class, new LocalDateSerializer(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT)))
+                .addDeserializer(LocalDate.class, new LocalDateDeserializer(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT)));
 
-        /**
+        /*
          * 注册自定义的SimpleModule到当前ObjectMapper实例中，使其生效。
          * 通过这种方式，可以添加更多的自定义序列化器和反序列化器以满足特定需求。
          */

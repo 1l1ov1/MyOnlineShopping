@@ -1,6 +1,7 @@
 package com.wan.websocket;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.wan.constant.UserConstant;
 import com.wan.constant.WebSocketConstant;
 import org.springframework.stereotype.Component;
@@ -96,24 +97,51 @@ public class NoticeUserWebSocketServer {
     /**
      * 给指定用户发送消息
      *
-     * @param userId
-     * @param message
+     * @param userId  用户ID，用于标识消息接收者
+     * @param message 要发送的消息内容（是把Map转成JSON字符串）
      */
     public static void sendToSpecificUser(Long userId, String message) {
-        Session targetSession = sessionMap.get(userId); // 根据storeId获取对应的Session
+        // 尝试根据用户ID从sessionMap中获取对应的会话Session
+        Session targetSession = sessionMap.get(userId);
         if (targetSession != null) {
+            // 如果找到对应的Session，则直接发送消息
             try {
-                targetSession.getBasicRemote().sendText(message); // 发送消息
+                targetSession.getBasicRemote().sendText(message);
             } catch (Exception e) {
-                e.printStackTrace(); // 处理发送消息异常
+                // 处理发送消息时可能出现的异常
+                e.printStackTrace();
             }
         } else {
-            // 用户未登录时，将消息存入消息队列
+            // 如果未找到对应的Session，即用户未登录，则将消息存入消息队列
+            // 检查消息队列中是否存在用户退出的消息，如果存在且随后收到用户启动的消息，则移除之前的退出消息
             Queue<String> messageQueue = NoticeUserWebSocketServer.messageQueue
                     .computeIfAbsent(userId, id -> new ConcurrentLinkedQueue<>());
-            messageQueue.offer(message);
+            Map<String, Object> messageMap = JSONObject.parseObject(message);
+            Integer type = (Integer) messageMap.get("type");
+            // 如果添加的是解封的消息
+            if (Objects.equals(type, WebSocketConstant.USER_START)) {
+
+                // 得到迭代器
+                Iterator<String> iterator = messageQueue.iterator();
+                // 遍历
+                while (iterator.hasNext()) {
+                    // 得到迭代器中的元素
+                    String s = iterator.next();
+                    // 转成map
+                    Map<String, Object> map = JSONObject.parseObject(s);
+                    // 取出类型
+                    Integer ban = (Integer) map.get("type");
+                    // 如果还是被封禁的状态
+                    if (Objects.equals(ban, WebSocketConstant.USER_EXIT)) {
+                        iterator.remove(); // 移除之前记录的用户退出消息
+                        break;
+                    }
+                }
+            }
+            messageQueue.offer(message); // 将消息加入到队列中等待用户登录后发送
         }
     }
+
 
     /**
      * 连接关闭调用的方法

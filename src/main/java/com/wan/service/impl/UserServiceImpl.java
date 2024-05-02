@@ -30,6 +30,7 @@ import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -866,8 +867,9 @@ public class UserServiceImpl implements UserService {
                 // 如果是永久封禁，就说被永久封禁
                 throw new ForbiddenOrBanException(MessageConstant.ACCOUNT_IS_FOREVER_BAN);
             }
+            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             // 如果不是，就显示结束时间
-            throw new ForbiddenOrBanException(MessageConstant.USER_HAS_BANNED + user.getBanEndTime());
+            throw new ForbiddenOrBanException(MessageConstant.USER_HAS_BANNED + user.getBanEndTime().format(dtf));
         }
 
         return user;

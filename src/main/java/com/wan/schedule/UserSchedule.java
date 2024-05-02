@@ -20,6 +20,8 @@ public class UserSchedule {
 
     @Autowired
     private UserMapper userMapper;
+    // 每次处理100个用户
+    private static final int batchSize = 100;
 
     /**
      * 定时处理用户账户状态，主要用于解封当天封禁结束的用户。
@@ -36,7 +38,7 @@ public class UserSchedule {
             List<User> userList = userMapper.findBanEndTimeToday(now);
 
             // 分批处理用户，以减小对数据库的操作压力
-            int batchSize = 100; // 定义每批次处理的用户数量
+            // 定义每批次处理的用户数量
             for (int i = 0; i < userList.size(); i += batchSize) {
                 // 计算每批次的起始和结束索引
                 int toIndex = Math.min(i + batchSize, userList.size());
@@ -78,7 +80,6 @@ public class UserSchedule {
             List<User> userList = userMapper.findForbiddenEndTime(now);
 
             // 分批更新用户禁言状态，以减小单次数据库操作的压力
-            int batchSize = 100; // 每次处理100个用户
             for (int i = 0; i < userList.size(); i += batchSize) {
                 // 计算每批处理的起始和结束索引
                 int toIndex = Math.min(i + batchSize, userList.size());

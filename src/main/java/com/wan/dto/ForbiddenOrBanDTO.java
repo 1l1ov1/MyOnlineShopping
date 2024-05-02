@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
  * 封禁或禁言DTO
  */
@@ -17,7 +19,7 @@ public class ForbiddenOrBanDTO {
     /**
      * 举报id
      */
-    private Long reportId;
+    private List<Long> reportId;
 
     /**
      * 被举报人

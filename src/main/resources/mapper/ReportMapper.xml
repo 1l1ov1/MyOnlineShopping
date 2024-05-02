@@ -118,5 +118,11 @@
             #{id}
         </foreach>
     </select>
+    <select id="findReportByIds" resultType="com.wan.entity.Report">
+        select * from report where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
 
 </mapper>

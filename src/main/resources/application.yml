@@ -27,9 +27,6 @@ online-shopping:
     user-token-name: ${online-shopping.jwt.user-token-name}
     user-ttl: ${online-shopping.jwt.user-ttl}
 
-logging:
-  level:
-    com.wan.mapper.storeMapper: debug
 
 
 # 配置内外网穿透

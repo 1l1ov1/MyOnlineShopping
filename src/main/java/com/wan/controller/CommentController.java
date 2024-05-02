@@ -25,13 +25,6 @@ public class CommentController {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
-    @PostMapping("/add")
-    @ApiOperation("添加评论")
-    public Result<String> addComment(Comment comment) {
-        log.info("添加评论 {}", comment);
-
-        return Result.success("添加成功");
-    }
 
     @GetMapping("/hidden/{id}")
     @ApiOperation("隐藏评论")

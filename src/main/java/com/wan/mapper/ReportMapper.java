@@ -60,6 +60,12 @@ public interface ReportMapper {
     Report findReportById(Long id);
 
     /**
+     * 根据ids查询举报
+     * @param ids
+     * @return
+     */
+    List<Report> findReportByIds(List<Long> ids);
+    /**
      * 修改举报
      *
      * @param report

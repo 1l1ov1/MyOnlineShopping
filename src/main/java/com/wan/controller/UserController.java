@@ -77,23 +77,27 @@ public class UserController {
     @ApiOperation("用户登录")
     public Result<UserLoginVO> login(@RequestBody UserLoginDTO userLoginDTO, HttpServletRequest request) {
         log.info("用户登录：{}", userLoginDTO);
-        // String code = (String) request.getSession().getAttribute("verify_code");
-        String KEY = Arrays.stream(request.getCookies())
+        // 先检查请求中是否有Cookie
+        Cookie[] cookies = request.getCookies();
+        // 如果没有
+        if (cookies == null || cookies.length == 0) {
+            // 如果Cookie不存在，即验证码过期，则返回错误信息
+            throw new FieldException(MessageConstant.VERIFY_CODE_EXPIRE);
+        }
+        // 如果有，就去看看是否有验证码
+        String key = Arrays.stream(request.getCookies())
                 .filter(cookie -> RedisConstant.VERIFY_CODE.equals(cookie.getName()))
                 .findFirst() // 只取第一个匹配的Cookie，如果有多个同名Cookie，只取第一个
                 .map(Cookie::getValue) // 从找到的Cookie中提取值
                 .orElse(null); // 如果没有找到匹配的Cookie，返回null
-        if (KEY == null) {
+        if (key == null) {
             // 如果Cookie不存在，即验证码过期，则返回错误信息
             throw new FieldException(MessageConstant.VERIFY_CODE_EXPIRE);
         }
         // 得到缓存中的键后，在得到值
-        String code = (String) redisTemplate.opsForValue().get(KEY);
-        if (code == null) {
-            return Result.error(MessageConstant.VERIFY_CODE_ERROR);
-        }
-        // 忽略大小写
-        if (!code.equalsIgnoreCase(userLoginDTO.getVerifyCode())) {
+        String code = (String) redisTemplate.opsForValue().get(key);
+        // 如果得到的验证码为空或者不匹配
+        if (code == null || !code.equalsIgnoreCase(userLoginDTO.getVerifyCode())) {
             return Result.error(MessageConstant.VERIFY_CODE_ERROR);
         }
 
@@ -110,13 +114,12 @@ public class UserController {
                 claims
         );
 
-        UserLoginVO userLoginVO = UserLoginVO.builder()
+        return Result.success(UserLoginVO.builder()
                 .id(user.getId())
                 .username(user.getUsername())
                 .password(user.getPassword())
                 .token(token)
-                .build();
-        return Result.success(userLoginVO, "登录成功");
+                .build(), "登录成功");
     }
 
     /**
@@ -139,15 +142,12 @@ public class UserController {
         VerificationCode code = new VerificationCode(130, 30);
         BufferedImage image = code.getImage(5, 3);
         String text = code.getText();
-        // HttpSession session = request.getSession(true);
-        // session.setAttribute("verify_code", text);
+
         // 随机键名
         String KEY = UUID.randomUUID().toString();
         // 存放到cookie中
         Cookie cookie = new Cookie(RedisConstant.VERIFY_CODE, KEY);
         cookie.setMaxAge(120); // 2分钟
-        // 设置为前端应用的域名（这里为localhost）
-        // cookie.setDomain("localhost");
         // 由于内外网穿透，这是前端的域名
         cookie.setDomain(HSK_DOMAIN);
         // 设置为登录页面路径
@@ -168,13 +168,19 @@ public class UserController {
         Long userId = ThreadBaseContext.getCurrentId();
         // 使用完后就删除
         ThreadBaseContext.removeCurrentId();
+        // 得到该用户
         User user = userService.getUserById(userId);
+        // 如果用户不存在
         if (user == null) {
             throw new AccountNotFountException(MessageConstant.ACCOUNT_NOT_FOUND);
         }
+        // 如果用户存在
         UserPageQueryVO userPageQueryVO = new UserPageQueryVO();
+        // 拷贝
         BeanUtils.copyProperties(user, userPageQueryVO);
+        // 得到用户的所有收货地址
         List<Address> addressList = addressService.getAllAddressByUserId(userId);
+        // 查询其店铺
         Store store = storeService.findStoreByUserId(userId);
         userPageQueryVO.setAddressList(addressList);
         userPageQueryVO.setStore(store);
