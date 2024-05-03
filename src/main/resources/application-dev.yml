@@ -18,7 +18,15 @@ online-shopping:
   jwt:
     # 设置jwt签名加密时使用的秘钥
     user-secret-key: online-shopping-secret-key
-    # 设置jwt过期时间
+    # 设置jwt过期时间 2小时  7200000   5000
     user-ttl: 7200000
     # 设置前端传递过来的令牌名称
     user-token-name: Authorization
+    # 刷新的令牌名称
+    user-refresh-token-name: Refresh-Token
+    # 刷新令牌的过期时间 4小时  14400000   100000
+    user-refresh-token-ttl: 14400000
+    # 刷新令牌的密钥
+    user-refresh-token-secret-key: online-shopping-refresh-token-secret-key
+    # 令牌时间还剩多少的时候，要刷新 5分钟 300000   3000
+    user-token-expire-time: 300000

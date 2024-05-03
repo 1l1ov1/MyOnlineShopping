@@ -114,11 +114,16 @@ public class UserController {
                 claims
         );
 
+        String refreshToken = JwtUtils.createJWT(jwtProperties.getUserRefreshTokenSecretKey(),
+                jwtProperties.getUserRefreshTokenTtl(),
+                claims);
+
         return Result.success(UserLoginVO.builder()
                 .id(user.getId())
                 .username(user.getUsername())
                 .password(user.getPassword())
                 .token(token)
+                .refreshToken(refreshToken)
                 .build(), "登录成功");
     }
 

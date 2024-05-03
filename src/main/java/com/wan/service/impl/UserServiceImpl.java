@@ -396,8 +396,13 @@ public class UserServiceImpl implements UserService {
                 // 就去检查该用户是否已经拥有了相同的地址
                 // 得到该用户的所有地址
                 List<Address> addressList = addressMapper.getAddressByUserId(userId, null);
-                // 如果说还没到达最大的地址数
-                if (addressList.size() < AddressConstant.MAX_ADDRESS_NUMBER) {
+                if (addressList.isEmpty()) {
+                    // 如果说没有地址，说明此次添加是默认地址
+                    address.setIsDefault(AddressConstant.IS_DEFAULT);
+                    // 那么就直接添加
+                    addressMapper.insertAddress(address);
+                } else if (addressList.size() < AddressConstant.MAX_ADDRESS_NUMBER) {
+                    // 如果说还没到达最大的地址数
                     // 就允许添加
                     List<Address> collect = addressList.stream()
                             // 过滤，查找相同的地址
@@ -416,8 +421,6 @@ public class UserServiceImpl implements UserService {
                     // 如果到了
                     throw new AddressException(MessageConstant.OUT_OF_MAX_ADDRESS_NUMBER);
                 }
-
-
             }
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);

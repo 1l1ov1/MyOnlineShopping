@@ -11,4 +11,8 @@ public class JwtProperties {
     private String userSecretKey;
     private long userTtl;
     private String userTokenName;
+    private String userRefreshTokenName;
+    private long userRefreshTokenTtl;
+    private String userRefreshTokenSecretKey;
+    private long userTokenExpireTime;
 }

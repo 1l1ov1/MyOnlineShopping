@@ -10,10 +10,12 @@ import com.wan.utils.JwtUtils;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -25,6 +27,8 @@ public class JwtTokenInterceptor implements HandlerInterceptor {
     private JwtProperties jwtProperties;
     @Autowired
     private UserMapper userMapper;
+    @Value("${HSK.domain}")
+    private String HSK_DOMAIN;
 
     /**
      * 在执行方法前，先进行拦截校验jwt
@@ -60,7 +64,8 @@ public class JwtTokenInterceptor implements HandlerInterceptor {
         } catch (Exception ex) {
             // 不通过，返回响应码
             response.setStatus(401);
-            // 将用户的在线状态该为下线
+            System.out.println("错误消息：" + ex.getMessage());
+           /* // 将用户的在线状态该为下线
             Long userId = ThreadBaseContext.getCurrentId();
             if (userId != null) {
                 userMapper.update(User.builder()
@@ -69,11 +74,9 @@ public class JwtTokenInterceptor implements HandlerInterceptor {
                         .build());
                 // 然后删除本地线程变量
                 ThreadBaseContext.removeCurrentId();
-            }
+            }*/
 
             return false;
         }
     }
-
-
 }

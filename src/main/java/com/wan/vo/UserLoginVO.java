@@ -23,4 +23,6 @@ public class UserLoginVO {
     private String password;
     @ApiModelProperty("token令牌")
     private String token;
+    @ApiModelProperty("RefreshToken")
+    private String refreshToken;
 }

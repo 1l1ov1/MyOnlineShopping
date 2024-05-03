@@ -26,7 +26,10 @@ online-shopping:
     user-secret-key: ${online-shopping.jwt.user-secret-key}
     user-token-name: ${online-shopping.jwt.user-token-name}
     user-ttl: ${online-shopping.jwt.user-ttl}
-
+    user-refresh-token-name: ${online-shopping.jwt.user-refresh-token-name}
+    user-refresh-token-ttl: ${online-shopping.jwt.user-refresh-token-ttl}
+    user-refresh-token-secret-key: ${online-shopping.jwt.user-refresh-token-secret-key}
+    user-token-expire-time: ${online-shopping.jwt.user-token-expire-time}
 
 
 # 配置内外网穿透
