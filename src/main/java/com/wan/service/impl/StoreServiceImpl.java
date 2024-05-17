@@ -2,6 +2,7 @@ package com.wan.service.impl;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.github.xiaoymin.knife4j.core.util.StrUtil;
 import com.wan.constant.MessageConstant;
 import com.wan.constant.OrdersConstant;
 import com.wan.constant.StoreConstant;
@@ -170,10 +171,13 @@ public class StoreServiceImpl implements StoreService {
             throw new StoreException(MessageConstant.STORE_NAME_LENGTH_VALID);
         }
         // 创建商店
+        String logo = storePageQueryDTO.getLogo();
         store = Store.builder()
                 .storeName(storeName)
                 .userId(user.getId())
                 .status(StoreConstant.OPEN)
+                .logo(StrUtil.isNotBlank(logo) ?
+                        logo : StoreConstant.DEFAULT_LOGO)
                 .build();
 
         storeMapper.insertStore(store);

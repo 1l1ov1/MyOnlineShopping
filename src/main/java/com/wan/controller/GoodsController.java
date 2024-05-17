@@ -102,6 +102,8 @@ public class GoodsController {
         goodsService.updateGoods(goodsPageQueryDTO);
         RedisUtils.clearRedisCache(redisTemplate, RedisConstant.USER_ALL_GOODS_PAGE,
                 RedisConstant.STORE_GOODS_PAGE + goodsPageQueryDTO.getStoreId());
+        // 情况所有的购物车缓存
+        RedisUtils.clearRedisCacheByPattern(redisTemplate, RedisConstant.USER_CART + "*");
         return Result.success("修改成功");
     }
 

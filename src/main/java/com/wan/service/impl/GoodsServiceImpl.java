@@ -2,6 +2,8 @@ package com.wan.service.impl;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.github.xiaoymin.knife4j.core.util.StrUtil;
+import com.wan.constant.GoodsConstant;
 import com.wan.constant.MessageConstant;
 import com.wan.dto.GoodsPageQueryDTO;
 import com.wan.entity.*;
@@ -16,6 +18,7 @@ import com.wan.vo.GoodsSearchVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -27,11 +30,8 @@ public class GoodsServiceImpl implements GoodsService {
     @Autowired
     private StoreMapper storeMapper;
     @Autowired
-    private CategoryMapper categoryMapper;
-    @Autowired
-    private OrdersMapper ordersMapper;
-    @Autowired
-    private UserMapper userMapper;
+    private CartMapper cartMapper;
+
 
     /**
      * 商品分页查询
@@ -77,6 +77,10 @@ public class GoodsServiceImpl implements GoodsService {
             Goods goods = new Goods();
             BeanUtils.copyProperties(goodsPageQueryDTO, goods);
             goods.setStoreId(storeId);
+            if (StrUtil.isBlank(goods.getCoverPic())) {
+                // 如果为空，就设置默认的商品图
+                goods.setCoverPic(GoodsConstant.DEFAULT_GOODS_COVER_PIC);
+            }
             goodsMapper.insertGoods(goods);
             // 返回该商品的id
             return goods.getId();
@@ -121,11 +125,14 @@ public class GoodsServiceImpl implements GoodsService {
      * @param goodsPageQueryDTO
      */
     @Override
+    @Transactional
     public void updateGoods(GoodsPageQueryDTO goodsPageQueryDTO) {
         if (isValid(goodsPageQueryDTO)) {
             Goods goods = new Goods();
             BeanUtils.copyProperties(goodsPageQueryDTO, goods);
             goodsMapper.update(goods);
+            // 然后要修改用户购物车中所有关于该商品的信息
+            cartMapper.batchUpdateCart(goodsPageQueryDTO);
         }
     }
 

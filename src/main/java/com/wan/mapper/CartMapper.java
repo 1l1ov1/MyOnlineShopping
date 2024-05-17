@@ -1,6 +1,7 @@
 package com.wan.mapper;
 
 import com.wan.annotation.AutoFill;
+import com.wan.dto.GoodsPageQueryDTO;
 import com.wan.entity.Cart;
 import com.wan.entity.CartWithStore;
 import com.wan.enumeration.OperationType;
@@ -78,4 +79,11 @@ public interface CartMapper {
      */
     @AutoFill(OperationType.UPDATE)
     void updateCart(Cart cart);
+
+    /**
+     * 更新购物车中的商品信息
+     * @param goodsPageQueryDTO
+     */
+    @AutoFill(OperationType.UPDATE)
+    void batchUpdateCart(GoodsPageQueryDTO goodsPageQueryDTO);
 }

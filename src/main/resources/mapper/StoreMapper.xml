@@ -41,8 +41,8 @@
 
 
     <insert id="insertStore" keyProperty="id" useGeneratedKeys="true">
-        insert into store(user_id, store_name, status, create_time, update_time)
-        VALUES (#{userId}, #{storeName}, #{status}, #{createTime}, #{updateTime})
+        insert into store(user_id, store_name, status, logo, create_time, update_time)
+        VALUES (#{userId}, #{storeName}, #{status}, #{logo}, #{createTime}, #{updateTime})
     </insert>
     <update id="update">
         update store

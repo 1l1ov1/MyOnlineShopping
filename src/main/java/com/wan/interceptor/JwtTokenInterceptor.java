@@ -64,18 +64,6 @@ public class JwtTokenInterceptor implements HandlerInterceptor {
         } catch (Exception ex) {
             // 不通过，返回响应码
             response.setStatus(401);
-            System.out.println("错误消息：" + ex.getMessage());
-           /* // 将用户的在线状态该为下线
-            Long userId = ThreadBaseContext.getCurrentId();
-            if (userId != null) {
-                userMapper.update(User.builder()
-                        .id(userId)
-                        .isOnline(UserConstant.IS_NOT_ONLINE)
-                        .build());
-                // 然后删除本地线程变量
-                ThreadBaseContext.removeCurrentId();
-            }*/
-
             return false;
         }
     }

@@ -48,6 +48,30 @@
         </set>
         where user_id = #{userId} and goods_id = #{goodsId}
     </update>
+    <update id="batchUpdateCart">
+        update cart
+        <set>
+            <if test="discount != null">
+                discount = #{discount},
+            </if>
+            <if test="goodsName != null">
+                goods_name = #{goodsName},
+            </if>
+            <if test="price != null">
+                goods_price = #{price},
+            </if>
+            <if test="coverPic != null">
+                cover_pic = #{coverPic},
+            </if>
+            <if test="price != null and discount != null">
+                total_price = #{price} * #{discount},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+        </set>
+        where goods_id = #{id}
+    </update>
 
     <delete id="batchDeleteCarts">
         delete from cart where id in
@@ -74,7 +98,8 @@
                g.discount       c_discount,
                c.create_time    c_create_time,
                c.update_time    c_update_time,
-               s.id          AS c_store_id,
+               s.id          AS s_id,       # 这个是为了给store设置id
+               s.id          AS c_store_id, # 这个是为了给cart设置store_id
                s.store_name     s_store_name,
                s.user_id     AS s_user_id,
                s.status         s_status,

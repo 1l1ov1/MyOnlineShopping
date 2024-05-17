@@ -3,7 +3,8 @@ server:
 
 spring:
   profiles:
-    include: dev
+    # 这个环境的配置，会影响登录时从cookie中是否可以获取到验证码
+    active: dev
   datasource:
     type: ${spring.datasource.type}
     driver-class-name: ${spring.datasource.driver-class-name}
@@ -34,5 +35,4 @@ online-shopping:
 
 # 配置内外网穿透
 HSK:
-  # domain: "ci90172or40.vicp.fun"
-  domain: "localhost"
+  domain: ${HSK.domain}

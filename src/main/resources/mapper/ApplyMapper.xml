@@ -199,7 +199,7 @@
     <select id="findApprovedOrUnderApply" resultMap="apply">
         select *
         from apply_for_create_store
-        where username = #{username} and status = 0
-           or status = 1
+        where username = #{username} and (status = 0
+           or status = 1)
     </select>
 </mapper>

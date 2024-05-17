@@ -1,7 +1,9 @@
 package com.wan;
 
+import com.wan.websocket.NoticeUserWebSocketServer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -13,7 +15,8 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 public class MyOnlineShoppingApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(MyOnlineShoppingApplication.class, args);
+        ConfigurableApplicationContext context = SpringApplication.run(MyOnlineShoppingApplication.class, args);
+        NoticeUserWebSocketServer.setApplicationContext(context);
     }
 
 }

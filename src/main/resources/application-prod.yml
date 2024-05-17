@@ -32,4 +32,4 @@ online-shopping:
     user-token-expire-time: 300000
 
 HSK:
-  domain: "localhost"
+  domain: "ci90172or40.vicp.fun"

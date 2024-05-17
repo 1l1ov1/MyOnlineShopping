@@ -134,13 +134,15 @@ public class CartServiceImpl implements CartService {
         Long userId = cartSubmitDTO.getUserId();
         // 得到购物车列表
         List<Cart> cartList = cartSubmitDTO.getCartList();
+        if (cartList == null || cartList.isEmpty()) {
+            throw new CartException(MessageConstant.CART_IS_NOT_EXIST);
+        }
         // 得到需要的商品列表
         // 将流中的id取出来放到集合中 然后扔给findGoodsById
         List<Goods> goodsList = goodsMapper
                 .findGoodsByIds(cartList.stream()
                         .map(Cart::getGoodsId)
                         .collect(Collectors.toList()));
-        System.out.println("goodsList：" + goodsList);
         // 创建订单集合
         List<Orders> ordersList = new ArrayList<>();
         // 得到总金额
@@ -161,16 +163,20 @@ public class CartServiceImpl implements CartService {
             if (goods == null || goods.getTotal() < cart.getNumber()) {
                 throw new GoodsException(MessageConstant.INSUFFICIENT_PRODUCT_QUANTITY);
             }
-
+            // 创建订单
             Orders orders = createOrders(cart, userId);
+            // 添加到订单集合中
             ordersList.add(orders);
-
+            // 修改商品库存
             updateGoodsStock(goods, cart);
         }
-
+        // 删除购物车
         cartMapper.batchDeleteCarts(cartList);
+        // 添加订单
         ordersMapper.batchInsertOrder(ordersList);
+        // 修改金额
         user.setMoney(user.getMoney().subtract(totalAmount));
+        // 修改用户
         userMapper.update(user);
     }
 
@@ -192,63 +198,6 @@ public class CartServiceImpl implements CartService {
         goods.setTotal(goods.getTotal() - cart.getNumber());
         goodsMapper.update(goods);
     }
- /*   @Override
-    @Transactional
-    public void buy(CartSubmitDTO cartSubmitDTO) {
-        Long userId = cartSubmitDTO.getUserId();
-        List<Cart> cartList = cartSubmitDTO.getCartList();
-        ArrayList<Orders> ordersList = new ArrayList<>();
-        for (Cart cart : cartList) {
-            // 创建商品对象
-            Long goodsId = cart.getGoodsId();
-            Goods goods = goodsMapper.findGoodsById(goodsId);
-            Long total = goods.getTotal();
-            // 如果商品总量小于购物车的数量
-            if (total < cart.getNumber()) {
-                throw new GoodsException(MessageConstant.INSUFFICIENT_PRODUCT_QUANTITY);
-            }
-            // 创建订单对象
-            Orders orders = new Orders();
-            // 添加商品id
-            orders.setGoodsId(cart.getGoodsId());
-            // 添加商品名
-            orders.setGoodsName(cart.getGoodsName());
-            // 设置商品数量
-            orders.setNumber(cart.getNumber());
-            // 设置商品总价
-            orders.setTotalPrice(cart.getTotalPrice());
-            // 设置用户付款方式（默认钱包）
-            orders.setPay(PayConstant.WALLET_PAYMENTS);
-            // 设置订单购买者
-            orders.setUserId(userId);
-            // 设置订单状态
-            orders.setStatus(OrdersConstant.UNSHIPPED_ORDER);
-            // 加入到集合中
-            ordersList.add(orders);
-
-            // 修改商品数量
-            goods.setTotal(total - cart.getNumber());
-            // 修改商品
-            goodsMapper.update(goods);
-        }
-
-        // 批量删除购物车
-        cartMapper.batchDeleteCarts(cartList);
-        // 添加订单
-        ordersMapper.batchInsertOrder(ordersList);
-        // 用户减去对应的金额
-        User user = userMapper.getById(userId);
-        // 总金额
-        BigDecimal totalAmount = cartSubmitDTO.getTotalAmount();
-        // 用户现金额
-        BigDecimal userMoney = user.getMoney();
-        // 如果用户金额小于总金额
-        if (userMoney.compareTo(totalAmount) < 0) {
-            throw new CartException(MessageConstant.THE_AMOUNT_IS_INSUFFICIENT);
-        }
-        user.setMoney(userMoney.subtract(totalAmount));
-        userMapper.update(user);
-    }*/
 
     private boolean isValid(Cart cart) {
         String goodsName = cart.getGoodsName();

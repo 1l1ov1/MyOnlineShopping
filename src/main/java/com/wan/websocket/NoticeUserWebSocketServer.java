@@ -4,8 +4,13 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.wan.constant.UserConstant;
 import com.wan.constant.WebSocketConstant;
+import com.wan.entity.User;
+import com.wan.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
@@ -44,6 +49,16 @@ public class NoticeUserWebSocketServer {
 
     // 最大批处理数
     private static final int MAX_BATCH_SIZE = 100;
+    /**
+     * 由于@ServerEndpoint注解的类不是Spring MVC的控制器，而是WebSocket处理类，它不在Spring的控制范围内，
+     * 因此Spring无法自动处理@Autowired。所以要使用service类需要引入应用上下文
+     */
+    private static ApplicationContext applicationContext;
+
+
+    public static void setApplicationContext(ApplicationContext context) {
+        applicationContext = context;
+    }
 
     /**
      * 收到客户端消息后调用的方法
@@ -92,6 +107,11 @@ public class NoticeUserWebSocketServer {
 
             }
         }
+        UserService userService = applicationContext.getBean(UserService.class);
+        // 将用户状态改为在线
+        userService.update(User.builder()
+                .id(userId)
+                .isOnline(UserConstant.IS_ONLINE).build());
     }
 
     /**
@@ -151,6 +171,11 @@ public class NoticeUserWebSocketServer {
     @OnClose
     public void onClose(@PathParam("userId") Long userId) {
         System.out.println("用户连接断开:" + userId);
+        // 将用户下线
+        UserService userService = applicationContext.getBean(UserService.class);
+        userService.update(User.builder()
+                .id(userId)
+                .isOnline(UserConstant.IS_NOT_ONLINE).build());
         sessionMap.remove(userId);
     }
 

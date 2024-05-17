@@ -153,7 +153,7 @@ public class UserController {
         // 存放到cookie中
         Cookie cookie = new Cookie(RedisConstant.VERIFY_CODE, KEY);
         cookie.setMaxAge(120); // 2分钟
-        // 由于内外网穿透，这是前端的域名
+        // 由于内外网穿透，这是前端的域名，这里要将cookie保存到对应域名下
         cookie.setDomain(HSK_DOMAIN);
         // 设置为登录页面路径
         cookie.setPath("/");
@@ -170,6 +170,7 @@ public class UserController {
     @GetMapping("/getUserInfo")
     @ApiOperation("获取个人信息")
     public Result<UserPageQueryVO> getUserInfo() {
+        System.out.println("获取用户信息...");
         Long userId = ThreadBaseContext.getCurrentId();
         // 使用完后就删除
         ThreadBaseContext.removeCurrentId();
@@ -337,13 +338,13 @@ public class UserController {
     public Result<PageResult> userQueryOrders(@PathVariable Long userId, @RequestParam Integer target, @RequestParam Integer currentPage, @RequestParam Integer pageSize) {
         log.info("用户查询某种类型的订单 {}, {}, {}, {}", userId, target, currentPage, pageSize);
         PageResult pageResult = RedisUtils.redisGetHashValues(redisTemplate,
-                RedisConstant.USER_ORDERS + target + '-' + userId, PageResult.class);
+                RedisConstant.USER_ORDERS + target + '-' + userId + "-" + currentPage + "-" + pageSize, PageResult.class);
         if (pageResult != null) {
             return Result.success(pageResult);
         }
         pageResult = userService.queryOneTypeOrders(userId, target, currentPage, pageSize);
         RedisUtils.redisHashPut(redisTemplate,
-                RedisConstant.USER_ORDERS + target + '-' + userId, pageResult,
+                RedisConstant.USER_ORDERS + target + '-' + userId + "-" + currentPage + "-" + pageSize, pageResult,
                 1L, TimeUnit.HOURS);
         return Result.success(pageResult);
     }
@@ -386,7 +387,7 @@ public class UserController {
     public Result<CommentPageQueryVO> queryComment(@RequestBody CommentPageQueryDTO commentPageQueryDTO) {
         log.info("查询某商品的评论 {}", commentPageQueryDTO);
         // 从缓存中找
-        String key = RedisConstant.STORE_COMMENT + checkCommentType(commentPageQueryDTO.getType()) + commentPageQueryDTO.getStoreId();
+        String key = RedisConstant.STORE_COMMENT + checkCommentType(commentPageQueryDTO.getType()) + commentPageQueryDTO.getStoreId() + "-" + commentPageQueryDTO.getGoodsId();
         CommentPageQueryVO commentPageQueryVO = RedisUtils.redisGetHashValues(redisTemplate,
                 key,
                 CommentPageQueryVO.class);
@@ -406,13 +407,16 @@ public class UserController {
     @ApiOperation("查询评论的action")
     public Result<List<CommentAction>> queryCommentAction(@RequestBody CommentActionDTO commentActionDTO) {
         log.info("查询评论的action {}", commentActionDTO);
-        List<CommentAction> commentActionList = RedisUtils.redisStringGet(redisTemplate, RedisConstant.STORE_COMMENT_ACTION + commentActionDTO.getStoreId(), List.class);
+        List<CommentAction> commentActionList = RedisUtils.redisStringGet(redisTemplate,
+                RedisConstant.STORE_COMMENT_ACTION + commentActionDTO.getStoreId()
+                        + "-" + commentActionDTO.getGoodsId(), List.class);
         if (!ObjectUtils.isEmpty(commentActionList)) {
             return Result.success(commentActionList);
         }
         commentActionList = userService.queryCommentsAction(commentActionDTO);
         RedisUtils.redisStringSet(redisTemplate,
-                RedisConstant.STORE_COMMENT_ACTION + commentActionDTO.getStoreId(),
+                RedisConstant.STORE_COMMENT_ACTION + commentActionDTO.getStoreId()
+                        + "-" + commentActionDTO.getGoodsId(),
                 commentActionList,
                 1L, TimeUnit.HOURS);
         return Result.success(commentActionList);
@@ -425,11 +429,11 @@ public class UserController {
         userService.addComment(comment);
         // 删除缓存
         Long storeId = comment.getStoreId();
+        Long goodsId = comment.getGoodsId();
         RedisUtils.clearRedisCache(redisTemplate,
-                RedisConstant.STORE_COMMENT_ACTION + storeId,
-                RedisConstant.STORE_COMMENT + "all-" + storeId,
-                RedisConstant.STORE_COMMENT + "good-" + storeId,
-                RedisConstant.STORE_COMMENT + "bad-" + storeId);
+                RedisConstant.STORE_COMMENT_ACTION + storeId + "-" + goodsId);
+        RedisUtils.clearRedisCacheByPattern(redisTemplate,
+                RedisConstant.STORE_COMMENT + "*" + storeId + "-" + goodsId);
         return Result.success("添加成功");
     }
 
@@ -440,9 +444,11 @@ public class UserController {
         userService.updateCommentAction(commentAction);
         // 删除缓存
         Long storeId = commentAction.getStoreId();
+        Long goodsId = commentAction.getGoodsId();
         RedisUtils.clearRedisCache(redisTemplate,
-                RedisConstant.STORE_COMMENT_ACTION + storeId);
-        RedisUtils.clearRedisCacheByPattern(redisTemplate, RedisConstant.STORE_COMMENT + "*" + storeId);
+                RedisConstant.STORE_COMMENT_ACTION + storeId + "-" + goodsId);
+        RedisUtils.clearRedisCacheByPattern(redisTemplate,
+                RedisConstant.STORE_COMMENT + "*" + storeId + "-" + goodsId);
         return Result.success("修改成功");
     }
 
@@ -452,7 +458,8 @@ public class UserController {
         log.info("添加举报 {}", report);
         Comment comment = userService.addReport(report);
         // 删除缓存
-        RedisUtils.clearRedisCacheByPattern(redisTemplate, RedisConstant.STORE_COMMENT + "*-" + comment.getStoreId());
+        RedisUtils.clearRedisCacheByPattern(redisTemplate,
+                RedisConstant.STORE_COMMENT + "*-" + comment.getStoreId() + "-" + comment.getGoodsId());
         return Result.success("举报成功");
     }
 
@@ -478,5 +485,7 @@ public class UserController {
         }
     }
 
-
+    public static void main(String[] args) {
+        new Thread().start();
+    }
 }

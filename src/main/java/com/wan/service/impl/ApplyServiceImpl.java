@@ -22,6 +22,7 @@ import org.springframework.util.DigestUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class ApplyServiceImpl implements ApplyService {
@@ -36,7 +37,7 @@ public class ApplyServiceImpl implements ApplyService {
     @Override
     @Transactional()
     public void addApply(ApplyDTO applyDTO) {
-        // 判断是否已经发送请求但还没通过了
+        // 判断是否已经发送请求但还没通过了或者已经通过的
         Apply apply = applyMapper.findApprovedOrUnderApply(applyDTO.getUsername());
         // 如果还在审核或者审核通过
         if (apply != null) {
@@ -45,7 +46,7 @@ public class ApplyServiceImpl implements ApplyService {
         // 如果没有发送过或者审核被拒绝过
         // 添加申请
         applyDTO.setStatus(ApplyConstant.UNDER_REVIEW);
-        // 由于当事务的原因当插入地址的时候，数据库中还没有apply数据
+        // 由于事务的原因当插入地址的时候，数据库中还没有apply数据
         // 所以需要修改事务的级别。
         applyDTO.setPassword(getMD5Password(applyDTO.getPassword()));
         applyMapper.insertApply(applyDTO);
@@ -83,7 +84,7 @@ public class ApplyServiceImpl implements ApplyService {
         List<Apply> allApplies = applyMapper.findUserAllApplies(username);
         if (allApplies == null || allApplies.size() == 0) {
             // 如果没有发送过申请
-            return new Apply();
+            return null;
         }
         // 如果发送过申请
         return applyMapper.findApprovedOrUnderApply(username);
@@ -131,23 +132,6 @@ public class ApplyServiceImpl implements ApplyService {
 
         // 修改申请
         applyMapper.updateApply(applyDTO);
-
-/*        // 判断申请的状态 （已经在前端进行商店的添加了）
-        if (status == 1) {
-            // 如果是通过状态
-            User user = userMapper.getByUsername(applyDTO.getUsername());
-            // 修改身份
-            user.setStatus(UserConstant.BUSINESSMAN);
-            // 创建商店，并插入
-            storeMapper.insertStore(Store.builder()
-                    .storeName(applyDTO.getStoreName())
-                    .userId(user.getId())
-                    .address(applyDTO.getAddress())
-                    .status(StoreConstant.OPEN)
-                    .build());
-            // 修改用户信息
-            userMapper.update(user);
-        }*/
     }
 
 

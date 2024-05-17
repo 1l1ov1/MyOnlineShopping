@@ -29,4 +29,6 @@ public class GoodsConstant {
     public static final Double NINE_FOLD = 0.9;
     public static final Double NINE_POINT_FIVE_FOLD = 0.95;
     public static final Double PRICE_FOLD = 1.0;
+
+    public static final String DEFAULT_GOODS_COVER_PIC = "默认商品图.png";
 }

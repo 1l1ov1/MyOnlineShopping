@@ -40,7 +40,7 @@ public class StoreController {
     @PutMapping("/updateStore")
     @ApiOperation("修改商店信息")
     public Result<String> updateStore(@RequestBody StorePageQueryDTO storePageQueryDTO) {
-        log.info("修改用户：{}", storePageQueryDTO);
+        log.info("修改商店：{}", storePageQueryDTO);
         storeService.updateStore(storePageQueryDTO);
         return Result.success("修改成功");
     }

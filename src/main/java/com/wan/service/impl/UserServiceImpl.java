@@ -239,6 +239,7 @@ public class UserServiceImpl implements UserService {
         // 如果没有
         store.setUserId(user.getId());
         store.setStatus(StoreConstant.OPEN);
+        store.setLogo(StoreConstant.DEFAULT_LOGO);
         // 添加商店
         storeMapper.insertStore(store);
         // 得到地址
