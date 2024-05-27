@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class WithdrawRecordPageQueryDTO {
+public class WithdrawRecordPageQueryDTO extends PageDTO{
     /**
      * id
      */
@@ -58,11 +58,11 @@ public class WithdrawRecordPageQueryDTO {
      */
     private Integer pay;
 
-    /**
-     * 排序方式
-     */
-    private Integer sort;
-
-    private Integer page;
-    private Integer pageSize;
+    // /**
+    //  * 排序方式
+    //  */
+    // private Integer sort;
+    //
+    // private Integer page;
+    // private Integer pageSize;
 }

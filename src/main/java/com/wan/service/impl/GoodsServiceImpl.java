@@ -42,13 +42,15 @@ public class GoodsServiceImpl implements GoodsService {
     @Override
     public PageResult pageQuery(GoodsPageQueryDTO goodsPageQueryDTO) {
         // 开启分页
-        PageHelper.startPage(goodsPageQueryDTO.getPage(), goodsPageQueryDTO.getPageSize());
-        Page<GoodsPageQueryVO> pages = goodsMapper.pageQuery(goodsPageQueryDTO);
+        // PageHelper.startPage(goodsPageQueryDTO.getPage(), goodsPageQueryDTO.getPageSize());
+        // Page<GoodsPageQueryVO> pages = goodsMapper.pageQuery(goodsPageQueryDTO);
+        //
+        // return PageResult.builder()
+        //         .total(pages.getTotal())
+        //         .data(pages.getResult())
+        //         .build();
 
-        return PageResult.builder()
-                .total(pages.getTotal())
-                .data(pages.getResult())
-                .build();
+        return goodsPageQueryDTO.executePageQuery(goodsMapper::pageQuery, goodsPageQueryDTO);
     }
 
     /**
@@ -160,7 +162,7 @@ public class GoodsServiceImpl implements GoodsService {
             throw new CategoryException(MessageConstant.CATEGORY_IS_NOT_EXIST);
         }
         // 查询分类的上架商品
-        List<Goods> goodsList = goodsMapper.findGoodsByCategoryId(id);
+        List<Goods> goodsList = goodsMapper.findGoodsByCategoryIdAndShelves(id);
 
         return GoodsSearchVO.builder()
                 .goodsList(goodsList)

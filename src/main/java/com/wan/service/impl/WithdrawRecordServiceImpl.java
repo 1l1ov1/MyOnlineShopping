@@ -24,13 +24,17 @@ public class WithdrawRecordServiceImpl implements WithdrawRecordService {
      */
     @Override
     public PageResult queryWithdrawRecord(WithdrawRecordPageQueryDTO withdrawRecordPageQueryDTO) {
-        PageHelper.startPage(withdrawRecordPageQueryDTO.getPage(), withdrawRecordPageQueryDTO.getPageSize());
+        // PageHelper.startPage(withdrawRecordPageQueryDTO.getPage(), withdrawRecordPageQueryDTO.getPageSize());
+        //
+        // Page<WithdrawRecordPageQueryVO> pages = withdrawRecordMapper.queryWithdrawRecord(withdrawRecordPageQueryDTO);
+        //
+        // return PageResult.builder()
+        //         .total(pages.getTotal())
+        //         .data(pages.getResult())
+        //         .build();
 
-        Page<WithdrawRecordPageQueryVO> pages = withdrawRecordMapper.queryWithdrawRecord(withdrawRecordPageQueryDTO);
-
-        return PageResult.builder()
-                .total(pages.getTotal())
-                .data(pages.getResult())
-                .build();
+        return withdrawRecordPageQueryDTO
+                .executePageQuery(withdrawRecordMapper::queryWithdrawRecord,
+                        withdrawRecordPageQueryDTO);
     }
 }

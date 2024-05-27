@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class StorePageQueryDTO {
+public class StorePageQueryDTO extends PageDTO{
     // id
     private Long id;
     // 用户id
@@ -32,8 +32,8 @@ public class StorePageQueryDTO {
     // 修改时间
     private LocalDateTime updateTime;
 
-    private Integer page; // 页码
-    private Integer pageSize;// 每页显示数
-
-    private Integer sort;
+    // private Integer page; // 页码
+    // private Integer pageSize;// 每页显示数
+    //
+    // private Integer sort;
 }

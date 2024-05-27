@@ -99,12 +99,14 @@ public class ApplyServiceImpl implements ApplyService {
      */
     @Override
     public PageResult pageQuery(ApplyDTO applyDTO) {
-        PageHelper.startPage(applyDTO.getPage(), applyDTO.getPageSize());
-        Page<ApplyVO> page = applyMapper.pageQuery(applyDTO);
-        return PageResult.builder()
-                .total(page.getTotal())
-                .data(page.getResult())
-                .build();
+        // PageHelper.startPage(applyDTO.getPage(), applyDTO.getPageSize());
+        // Page<ApplyVO> page = applyMapper.pageQuery(applyDTO);
+        // return PageResult.builder()
+        //         .total(page.getTotal())
+        //         .data(page.getResult())
+        //         .build();
+
+        return applyDTO.executePageQuery(applyMapper::pageQuery, applyDTO);
     }
 
     /**

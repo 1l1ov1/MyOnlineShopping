@@ -4,10 +4,10 @@
 <mapper namespace="com.wan.mapper.UserMapper">
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         insert into user(username, password, phone, create_time, update_time,
-                         status, account_status, ban_start_time, ban_end_time,
+                         status, avatar, account_status, ban_start_time, ban_end_time,
                          forbidden_word, forbidden_start_time, forbidden_end_time, is_online)
         VALUES (#{username}, #{password}, #{phone},
-                #{createTime}, #{updateTime}, #{status}, #{accountStatus}, #{banStartTime}, #{banEndTime},
+                #{createTime}, #{updateTime}, #{status}, #{avatar}, #{accountStatus}, #{banStartTime}, #{banEndTime},
                 #{forbiddenWord}, #{forbiddenStartTime}, #{forbiddenEndTime}, #{isOnline})
     </insert>
     <update id="update">

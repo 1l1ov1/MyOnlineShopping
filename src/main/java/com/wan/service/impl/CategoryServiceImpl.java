@@ -38,12 +38,14 @@ public class CategoryServiceImpl implements CategoryService {
      */
     @Override
     public PageResult pageQuery(CategoryDTO categoryDTO) {
-        PageHelper.startPage(categoryDTO.getPage(), categoryDTO.getPageSize());
-        Page<CategoryVO> page = categoryMapper.pageQuery(categoryDTO);
-        return PageResult.builder()
-                .total(page.getTotal())
-                .data(page.getResult())
-                .build();
+        // PageHelper.startPage(categoryDTO.getPage(), categoryDTO.getPageSize());
+        // Page<CategoryVO> page = categoryMapper.pageQuery(categoryDTO);
+        // return PageResult.builder()
+        //         .total(page.getTotal())
+        //         .data(page.getResult())
+        //         .build();
+
+        return categoryDTO.executePageQuery(categoryMapper::pageQuery, categoryDTO);
     }
 
     /**
@@ -55,7 +57,7 @@ public class CategoryServiceImpl implements CategoryService {
     public void addCategory(CategoryDTO categoryDTO) {
         // 如果都符合要求
         if (checkCategoryStatus(categoryDTO.getCategoryStatus())
-                && checkCategoryName(categoryDTO.getCategoryName())) {
+                && checkCategoryName(categoryDTO.getCategoryName(), categoryDTO.getId())) {
             // 插入
             categoryMapper.insert(categoryDTO);
         }
@@ -64,14 +66,15 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void updateCategory(CategoryDTO categoryDTO) {
         try {
-            if (CheckObjectFieldUtils.areAllNonExcludedFieldsNotNull(categoryDTO, "page", "pageSize", "sort")) {
+            if (CheckObjectFieldUtils.areAllNonExcludedFieldsNotNull(categoryDTO,
+                    categoryDTO::getPage, categoryDTO::getPageSize, categoryDTO::getSort)) {
                 // 如果都不空
                 Category category = categoryMapper.findCategory(categoryDTO.getId());
                 if (category == null) {
                     throw new CategoryException(MessageConstant.CATEGORY_IS_NOT_EXIST);
                 }
                 // 如果名称和状态都符合要求
-                if (checkCategoryName(categoryDTO.getCategoryName())
+                if (checkCategoryName(categoryDTO.getCategoryName(), categoryDTO.getId())
                         && checkCategoryStatus(categoryDTO.getCategoryStatus())) {
                     // 如果分类为禁止状态的话
                     if (checkHasGoods(categoryDTO)) {
@@ -107,7 +110,7 @@ public class CategoryServiceImpl implements CategoryService {
         // 如果数量都对应
         for (Category category : categoryList) {
             // 就去查询商品该分类是否全部下架，只有全部下架才能删除
-            List<Goods> goodsList = goodsMapper.findGoodsByCategoryId(category.getId());
+            List<Goods> goodsList = goodsMapper.findGoodsByCategoryIdAndShelves(category.getId());
             // 如果有该分类的上架商品存在
             if (goodsList != null && goodsList.size() > 0) {
                 throw new CategoryException(MessageConstant.HAVING_SHELVE_GOODS_IN_THE_CATEGORY);
@@ -140,7 +143,8 @@ public class CategoryServiceImpl implements CategoryService {
     public void updateCategoryStatus(CategoryDTO categoryDTO) {
         try {
             // 校验指定的字段是否为空
-            if (CheckObjectFieldUtils.areAllNonIncludedFieldsNotNull(categoryDTO, "status", "id")) {
+            if (!CheckObjectFieldUtils.areAllIncludedFieldsIsNull(categoryDTO,
+                    categoryDTO::getCategoryStatus, categoryDTO::getId)) {
                 // 如果不空，就根据id查询
                 Category category = categoryMapper.findCategory(categoryDTO.getId());
                 if (category == null) {
@@ -166,7 +170,7 @@ public class CategoryServiceImpl implements CategoryService {
     private boolean checkHasGoods(CategoryDTO categoryDTO) {
         if (categoryDTO.getCategoryStatus().equals(CategoryConstant.DISABLED)) {
             // 就去查询商品该分类是否全部下架，只有全部下架才能该为禁止
-            List<Goods> goodsList = goodsMapper.findGoodsByCategoryId(categoryDTO.getId());
+            List<Goods> goodsList = goodsMapper.findGoodsByCategoryIdAndShelves(categoryDTO.getId());
             // 如果有该分类的上架商品存在
             if (goodsList != null && goodsList.size() > 0) {
                 throw new CategoryException(MessageConstant.HAVING_SHELVE_GOODS_IN_THE_CATEGORY);
@@ -183,14 +187,14 @@ public class CategoryServiceImpl implements CategoryService {
         return true;
     }
 
-    private boolean checkCategoryName(String categoryName) {
+    private boolean checkCategoryName(String categoryName, Long id) {
         if (categoryName == null) {
             throw new CategoryException(MessageConstant.CATEGORY_NAME_IS_EMPTY);
         }
 
         Category category = categoryMapper.findCategoryByName(categoryName);
-        // 如果分类名称存在
-        if (category != null) {
+        // 如果分类名称存在并且不是修改，即为添加状态
+        if (category != null && id == null) {
             throw new CategoryException(MessageConstant.CATEGORY_IS_EXIST);
         }
 

@@ -392,7 +392,8 @@ public class UserServiceImpl implements UserService {
         // 如果用户不空
         try {
             // 检查字段为空吗
-            if (CheckObjectFieldUtils.areAllNonExcludedFieldsNotNull(address, "id", "storeId")) {
+            if (CheckObjectFieldUtils.areAllNonExcludedFieldsNotNull(address,
+                    address::getId, address::getStoreId)) {
                 // 如果不空
                 // 就去检查该用户是否已经拥有了相同的地址
                 // 得到该用户的所有地址
@@ -513,8 +514,9 @@ public class UserServiceImpl implements UserService {
     public void addComment(Comment comment) {
         try {
             if (CheckObjectFieldUtils.areAllNonExcludedFieldsNotNull(comment,
-                    "id", "commentStatus", "reportCount", "parentCommentId",
-                    "replyCount", "likeCount", "dislikeCount")) {
+                    comment::getId, comment::getCommentStatus,
+                    comment::getReportCount, comment::getParentCommentId,
+                    comment::getReplyCount, comment::getLikeCount, comment::getDislikeCount)) {
                 // 如果其他的字段不空，就看内容是不是全部为空格
                 validateCommentContent(comment.getContent());
                 // 如果合法就查询用户
@@ -688,7 +690,8 @@ public class UserServiceImpl implements UserService {
     public void updateCommentAction(CommentAction commentAction) {
         try {
             // 验证commentAction对象的必要字段非空
-            if (CheckObjectFieldUtils.areAllNonExcludedFieldsNotNull(commentAction, "id", "userId", "commentId")) {
+            if (CheckObjectFieldUtils.areAllNonExcludedFieldsNotNull(commentAction,
+                    commentAction::getId, commentAction::getUserId, commentAction::getCommentId)) {
                 // 根据用户ID和评论ID查询评论行为
                 CommentAction findCommentAction = commentMapper.findCommentActionByUserIdAndCommentId(commentAction.getUserId(), commentAction.getCommentId());
                 if (ObjectUtils.isEmpty(findCommentAction)) {
@@ -724,7 +727,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public Comment addReport(Report report) {
         try {
-            if (CheckObjectFieldUtils.areAllNonExcludedFieldsNotNull(report, "id")) {
+            if (CheckObjectFieldUtils.areAllNonExcludedFieldsNotNull(report, report::getId)) {
                 // 如果字段都不空
                 // 先根据时间查询举报次数
                 Integer reportCount = reportMapper.findReportCount(report.getUserId(), LocalDate.now());

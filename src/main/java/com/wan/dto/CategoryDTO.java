@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CategoryDTO {
+public class CategoryDTO extends PageDTO{
     // id
     private Long id;
     // 名称
@@ -23,8 +23,8 @@ public class CategoryDTO {
     // 修改时间
     private LocalDateTime updateTime;
 
-    private Integer page;
-    private Integer pageSize;
-
-    private Integer sort;
+    // private Integer page;
+    // private Integer pageSize;
+    //
+    // private Integer sort;
 }

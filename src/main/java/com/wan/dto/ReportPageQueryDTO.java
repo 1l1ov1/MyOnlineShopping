@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReportPageQueryDTO {
+public class ReportPageQueryDTO extends PageDTO{
 
     private Long storeId;
 
@@ -21,9 +21,9 @@ public class ReportPageQueryDTO {
 
     private String goodsName;
 
-    private Integer page;
-
-    private Integer pageSize;
-
-    private Integer sort;
+    // private Integer page;
+    //
+    // private Integer pageSize;
+    //
+    // private Integer sort;
 }

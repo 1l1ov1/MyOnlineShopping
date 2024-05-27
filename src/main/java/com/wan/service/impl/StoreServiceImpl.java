@@ -97,13 +97,15 @@ public class StoreServiceImpl implements StoreService {
     @Override
     public PageResult pageQuery(StorePageQueryDTO storePageQueryDTO) {
         // 开启分页
-        PageHelper.startPage(storePageQueryDTO.getPage(), storePageQueryDTO.getPageSize());
-        Page<StorePageQueryVO> pages = storeMapper.pageQuery(storePageQueryDTO);
+        // PageHelper.startPage(storePageQueryDTO.getPage(), storePageQueryDTO.getPageSize());
+        // Page<StorePageQueryVO> pages = storeMapper.pageQuery(storePageQueryDTO);
+        //
+        // return PageResult.builder()
+        //         .total(pages.getTotal())
+        //         .data(pages.getResult())
+        //         .build();
 
-        return PageResult.builder()
-                .total(pages.getTotal())
-                .data(pages.getResult())
-                .build();
+        return storePageQueryDTO.executePageQuery(storeMapper::pageQuery, storePageQueryDTO);
     }
 
     /**

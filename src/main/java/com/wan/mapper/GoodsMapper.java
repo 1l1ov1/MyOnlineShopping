@@ -82,9 +82,10 @@ public interface GoodsMapper {
 
     /**
      * 根据分类id查询上架商品
+     *
      * @param categoryId
      * @return
      */
     @Select("select * from goods where category_id = #{categoryId} and status = 1")
-    List<Goods> findGoodsByCategoryId(Long categoryId);
+    List<Goods> findGoodsByCategoryIdAndShelves(Long categoryId);
 }

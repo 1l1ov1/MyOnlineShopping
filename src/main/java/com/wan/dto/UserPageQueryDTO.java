@@ -11,7 +11,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserPageQueryDTO {
+public class UserPageQueryDTO extends PageDTO{
     private Long id; // 编号
     private String username; // 用户名
     private String phone; // 电话
@@ -25,8 +25,8 @@ public class UserPageQueryDTO {
     private Integer isOnline; // 账号在线状态
     private LocalDateTime createTime; // 账号创建时间
     private LocalDateTime updateTime; // 账号修改时间
-    private Integer page; // 页码
-    private Integer pageSize;// 每页显示数
-
-    private Integer sort;
+    // private Integer page; // 页码
+    // private Integer pageSize;// 每页显示数
+    //
+    // private Integer sort;
 }

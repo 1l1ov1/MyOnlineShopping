@@ -20,10 +20,10 @@ public interface CommentService {
 
 
     /**
-     * 修改评论
+     * 批量修改评论
      * @param comment
      */
-    void updateComment(Comment comment);
+    void updateBatchComment(List<Comment> comment);
 
     /**
      * 隐藏评论
@@ -32,4 +32,11 @@ public interface CommentService {
      * @return 返回评论商店id
      */
     Long hiddenComment(Long id, Integer commentStatus);
+
+    /**
+     * 查询用户所有评论
+     * @param userId
+     * @return
+     */
+    List<Comment> queryUserComment(Long userId);
 }

@@ -41,14 +41,15 @@ public class OrdersServiceImpl implements OrdersService {
      */
     @Override
     public PageResult pageQuery(OrdersPageQueryDTO ordersPageQueryDTO) {
-        PageHelper.startPage(ordersPageQueryDTO.getPage(), ordersPageQueryDTO.getPageSize());
-
-        Page<OrdersPageQueryVO> page = ordersMapper.pageQuery(ordersPageQueryDTO);
-
-        return PageResult.builder()
-                .total(page.getTotal())
-                .data(page.getResult())
-                .build();
+        // PageHelper.startPage(ordersPageQueryDTO.getPage(), ordersPageQueryDTO.getPageSize());
+        //
+        // Page<OrdersPageQueryVO> page = ordersMapper.pageQuery(ordersPageQueryDTO);
+        //
+        // return PageResult.builder()
+        //         .total(page.getTotal())
+        //         .data(page.getResult())
+        //         .build();
+        return ordersPageQueryDTO.executePageQuery(ordersMapper::pageQuery, ordersPageQueryDTO);
     }
 
     /**

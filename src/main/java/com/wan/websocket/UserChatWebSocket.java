@@ -6,14 +6,13 @@ import com.wan.constant.UserConstant;
 import com.wan.constant.WebSocketConstant;
 import com.wan.entity.Message;
 import com.wan.entity.User;
+import com.wan.mapper.StoreMapper;
 import com.wan.service.MessageService;
 import com.wan.service.UserService;
 import com.wan.utils.ObjectUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
 import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
@@ -24,8 +23,8 @@ import java.util.*;
 import java.util.concurrent.*;
 
 @Component
-@ServerEndpoint(value = "/ws/user/{userId}")
-public class NoticeUserWebSocketServer {
+@ServerEndpoint(value = "/ws/chat/{userId}")
+public class UserChatWebSocket {
     // 存放会话对象
     private static final ConcurrentHashMap<Long, Session> sessionMap = new ConcurrentHashMap();
 
@@ -63,6 +62,7 @@ public class NoticeUserWebSocketServer {
         applicationContext = context;
     }
 
+
     /**
      * 收到客户端消息后调用的方法
      *
@@ -70,7 +70,62 @@ public class NoticeUserWebSocketServer {
      */
     @OnMessage
     public void onMessage(String message, @PathParam("userId") Long userId) {
-        System.out.println("收到来自用户客户端：" + userId + "的信息:" + message);
+        System.out.println("收到来自用户客户端聊天：" + userId + "的信息:" + message);
+        try {
+            if (ObjectUtils.isEmpty(message)) {
+                return;
+            }
+            // 得到json对象
+            Map<String, Object> map = (Map<String, Object>) JSON.parse(message);
+
+            // 得到发送内容
+            Object content = map.get("content");
+            // 得到发送人id
+            Long sendId = ((Integer) map.get("send")).longValue();
+            // 得到接收人id
+            Long receiveId = ((Integer) map.get("receive")).longValue();
+            Integer type = (Integer) map.get("type");
+            if (ObjectUtils.isEmpty(content, sendId, receiveId, type)) {
+                // 如果内容有空
+                return;
+            }
+
+            StoreMapper storeMapper = applicationContext.getBean(StoreMapper.class);
+            Long storeUserId = null;
+            // 根据商店id查询
+            // 如果类型是用户与商店聊天
+            if (type == 1) {
+                storeUserId = storeMapper.findStoreById(receiveId).getUserId();
+                // 不允许店家和自己聊天
+                if (storeUserId.equals(sendId)) {
+                    // 如果相等
+                    return;
+                }
+            } else if (type == 0) {
+                // 如果是商店和用户聊天
+
+            }
+
+            // 如果不相等，就发送消息
+            Message build = Message.builder()
+                    .content((String) content)
+                    .sendId(sendId)
+                    // 商店id
+                    .receiveId(receiveId)
+                    .build();
+
+            MessageService messageService = applicationContext.getBean(MessageService.class);
+            // 保存
+            messageService.saveMessage(build);
+            // 通过WebSocket发送消息
+            // Map<String, Object> sendMap = new HashMap<>();
+            // sendMap.put("type", WebSocketConstant.USER_CHAT);
+            // sendMap.put("content", map);
+            // // 发送消息
+            // sendToSpecificUser(receiveId, JSON.toJSONString(sendMap));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -81,40 +136,11 @@ public class NoticeUserWebSocketServer {
      */
     @OnOpen
     public void onOpen(Session session, @PathParam("userId") Long userId) {
-        System.out.println("用户客户端：" + userId + " 建立连接");
+        System.out.println("用户客户端聊天：" + userId + " 建立连接");
 
         // 将连接的会话对象存入map
         sessionMap.put(userId, session);
 
-
-        // 如果用户连接了，就取消息队列里查看是否有消息
-        // 得到消息队列
-        Queue<String> messageQueue = NoticeUserWebSocketServer.messageQueue.get(userId);
-        // 如果消息队列不为空
-        if (messageQueue != null) {
-            // 遍历消息队列，如果消息不为空，就发送消息
-            while (!messageQueue.isEmpty()) {
-                List<String> batchMessage = new ArrayList<>();
-                for (int i = 0; i < MAX_BATCH_SIZE && !messageQueue.isEmpty(); i++) {
-                    // 将消息添加到批量消息中
-                    batchMessage.add(messageQueue.poll());
-                }
-
-
-                // 提交批处理任务到线程池
-                executor.submit(() -> {
-                    for (String message : batchMessage) {
-                        sendToSpecificUser(userId, message);
-                    }
-                });
-
-            }
-        }
-        UserService userService = applicationContext.getBean(UserService.class);
-        // 将用户状态改为在线
-        userService.update(User.builder()
-                .id(userId)
-                .isOnline(UserConstant.IS_ONLINE).build());
     }
 
     /**
@@ -137,7 +163,7 @@ public class NoticeUserWebSocketServer {
         } else {
             // 如果未找到对应的Session，即用户未登录，则将消息存入消息队列
             // 检查消息队列中是否存在用户退出的消息，如果存在且随后收到用户启动的消息，则移除之前的退出消息
-            Queue<String> messageQueue = NoticeUserWebSocketServer.messageQueue
+            Queue<String> messageQueue = UserChatWebSocket.messageQueue
                     .computeIfAbsent(userId, id -> new ConcurrentLinkedQueue<>());
             Map<String, Object> messageMap = JSONObject.parseObject(message);
             Integer type = (Integer) messageMap.get("type");
@@ -165,6 +191,20 @@ public class NoticeUserWebSocketServer {
         }
     }
 
+    public void userChat(Long userId, String message) {
+        // 尝试根据用户ID从sessionMap中获取对应的会话Session
+        Session targetSession = sessionMap.get(userId);
+        if (targetSession != null) {
+            // 如果找到对应的Session，则直接发送消息
+            try {
+                targetSession.getBasicRemote().sendText(message);
+            } catch (Exception e) {
+                // 处理发送消息时可能出现的异常
+                e.printStackTrace();
+            }
+        }
+    }
+
     /**
      * 连接关闭调用的方法
      *
@@ -172,13 +212,6 @@ public class NoticeUserWebSocketServer {
      */
     @OnClose
     public void onClose(@PathParam("userId") Long userId) {
-        System.out.println("用户连接断开:" + userId);
-        // 将用户下线
-        UserService userService = applicationContext.getBean(UserService.class);
-        userService.update(User.builder()
-                .id(userId)
-                .isOnline(UserConstant.IS_NOT_ONLINE).build());
-        sessionMap.remove(userId);
+        System.out.println("用户聊天连接断开:" + userId);
     }
-
 }

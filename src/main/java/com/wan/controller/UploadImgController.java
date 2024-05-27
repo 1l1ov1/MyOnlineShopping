@@ -1,26 +1,32 @@
 package com.wan.controller;
 
 import com.wan.constant.MessageConstant;
+import com.wan.constant.RedisConstant;
 import com.wan.context.ThreadBaseContext;
 import com.wan.dto.GoodsPageQueryDTO;
+import com.wan.entity.Comment;
 import com.wan.entity.Store;
 import com.wan.entity.User;
 import com.wan.exception.GoodsException;
 import com.wan.exception.StoreException;
 import com.wan.result.Result;
+import com.wan.service.CommentService;
 import com.wan.service.GoodsService;
 import com.wan.service.StoreService;
 import com.wan.service.UserService;
+import com.wan.utils.RedisUtils;
 import com.wan.vo.GoodsPageQueryVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/img")
@@ -36,6 +42,10 @@ public class UploadImgController {
     private GoodsService goodsService;
     @Autowired
     private StoreService storeService;
+    @Autowired
+    private CommentService commentService;
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     @PostMapping("/uploadAvatar")
     public Result<String> upload(@RequestParam(value = "file", required = false) MultipartFile file) {
@@ -72,6 +82,7 @@ public class UploadImgController {
                     .id(userId)
                     .avatar(fileName)
                     .build();
+            // 不仅用户头像需要改，用户评论对应的头像也需要
             // 如果有图片
             if (!"".equals(avatar)) {
                 // 获取存在的图片并删除
@@ -79,6 +90,13 @@ public class UploadImgController {
             }
             // 然后添加
             userService.update(user);
+            // 先查询所有用户的评论
+            List<Comment> commentList = commentService.queryUserComment(userId);
+            // 更新头像
+            commentList.forEach(comment -> comment.setAvatar(fileName));
+            commentService.updateBatchComment(commentList);
+            // 然后还要清理缓存
+            RedisUtils.clearRedisCacheByPattern(redisTemplate, RedisConstant.STORE_COMMENT + "*");
             return Result.success(fileName, "文件上传成功");
         } catch (IOException e) {
             e.printStackTrace();

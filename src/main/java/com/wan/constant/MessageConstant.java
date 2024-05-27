@@ -6,7 +6,6 @@ package com.wan.constant;
 public class MessageConstant {
 
 
-
     private MessageConstant() {
 
     }
@@ -193,4 +192,11 @@ public class MessageConstant {
      * 奖励举报
      */
     public static final String USER_REPORT_REWARD_SUCCESS = "感谢您积极举报违规行为，为维护平台良好氛围做出贡献。您的举报奖励已成功发放至您的账号，请及时查收。如有疑问，欢迎随时联系我们。共计：";
+
+
+    /**
+     * 发送的消息为空
+     */
+    public static final String MESSAGE_IS_NULL = "信息为空";
+
 }

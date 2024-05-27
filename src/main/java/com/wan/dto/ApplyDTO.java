@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ApplyDTO {
+public class ApplyDTO extends PageDTO{
     // id
     private Long id;
     // 用户名
@@ -33,8 +33,8 @@ public class ApplyDTO {
     // 更新时间
     private LocalDateTime updateTime;
 
-    private Integer page;
-    private Integer pageSize;
-
-    private Integer sort; // 1 升序 0 降序
+    // private Integer page;
+    // private Integer pageSize;
+    //
+    // private Integer sort; // 1 升序 0 降序
 }

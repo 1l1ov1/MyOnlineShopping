@@ -54,14 +54,16 @@ public class ManagerServiceImpl implements ManagerService {
     @Override
     public PageResult pageQuery(UserPageQueryDTO userPageQueryDTO) {
         // 开启分页
-        PageInfo<UserPageQueryVO> pageInfo = PageHelper.startPage(userPageQueryDTO.getPage(), userPageQueryDTO.getPageSize())
-                .doSelectPageInfo(() -> managerMapper.pageQuery(userPageQueryDTO));
-
-        long total = pageInfo.getTotal();
-        return PageResult.builder()
-                .total(total)
-                .data(pageInfo.getList())
-                .build();
+        // PageInfo<UserPageQueryVO> pageInfo = PageHelper.startPage(userPageQueryDTO.getPage(), userPageQueryDTO.getPageSize())
+        //         .doSelectPageInfo(() -> managerMapper.pageQuery(userPageQueryDTO));
+        //
+        // long total = pageInfo.getTotal();
+        // return PageResult.builder()
+        //         .total(total)
+        //         .data(pageInfo.getList())
+        //         .build();
+        // 采用函数式编程的方式简化代码
+        return userPageQueryDTO.executePageQuery(managerMapper::pageQuery, userPageQueryDTO);
     }
 
 
@@ -154,22 +156,34 @@ public class ManagerServiceImpl implements ManagerService {
     @Transactional // 开启事务
     public void updateUser(UserPageQueryDTO userPageQueryDTO) {
         // 先修改用户的信息
-        managerMapper.update(userPageQueryDTO);
-        // 从前端得到地址
-        List<Address> addressList = userPageQueryDTO.getAddressList();
-        // 先判断之前是否有默认地址，因为已经规定了如果有地址那么一定有一个默认地址
-        Address defaultAddress = addressMapper.getAddressByUserId(userPageQueryDTO.getId(), AddressConstant.IS_DEFAULT).get(0);
-        // 如果数据库中没有， 即没有地址
-        if (defaultAddress == null) {
-            // 如果没有就是添加
-            // 改为默认
-            addressList.get(0).setIsDefault(AddressConstant.IS_DEFAULT);
-            // 插入
-            addressMapper.insertAddress(addressList.get(0));
-        } else {
-            // 否则就是修改
-            addressMapper.updateBatch(addressList);
+        try {
+            // 如果排除掉默认的字段外都不空
+            if (CheckObjectFieldUtils.areAllFieldsNotNullExcludeDefault(userPageQueryDTO)) {
+                // 允许修改
+                managerMapper.update(userPageQueryDTO);
+            } else {
+                // 否则就抛异常
+                throw new FieldException(MessageConstant.FIELD_IS_EMPTY);
+            }
+            // 从前端得到地址
+            List<Address> addressList = userPageQueryDTO.getAddressList();
+            // 先判断之前是否有默认地址，因为已经规定了如果有地址那么一定有一个默认地址
+            Address defaultAddress = addressMapper.getAddressByUserId(userPageQueryDTO.getId(), AddressConstant.IS_DEFAULT).get(0);
+            // 如果数据库中没有， 即没有地址
+            if (defaultAddress == null) {
+                // 如果没有就是添加
+                // 改为默认
+                addressList.get(0).setIsDefault(AddressConstant.IS_DEFAULT);
+                // 插入
+                addressMapper.insertAddress(addressList.get(0));
+            } else {
+                // 否则就是修改
+                addressMapper.updateBatch(addressList);
+            }
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
         }
+
 
     }
 
@@ -184,7 +198,7 @@ public class ManagerServiceImpl implements ManagerService {
         try {
             // 如果所有字段不空
             if (CheckObjectFieldUtils.areAllNonExcludedFieldsNotNull(forbiddenOrBanDTO,
-                    "forbiddenWordTime", "banTime")) {
+                    forbiddenOrBanDTO::getForbiddenWordTime, forbiddenOrBanDTO::getBanTime)) {
                 // 得到现在时间
                 LocalDateTime now = LocalDateTime.now();
                 // 先得到类型

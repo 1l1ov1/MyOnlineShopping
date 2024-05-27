@@ -91,4 +91,12 @@ public interface CommentMapper {
      * @return
      */
     List<Comment> findComments(List<Long> commentsIdList);
+
+    /**
+     * 查询某用户的所有评论
+     * @param userId
+     * @return
+     */
+    @Select("select * from comments where user_id = #{userId}")
+    List<Comment> findCommentsByUserId(Long userId);
 }

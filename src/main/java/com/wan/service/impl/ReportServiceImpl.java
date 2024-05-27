@@ -30,14 +30,15 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public PageResult pageQueryReport(ReportPageQueryDTO reportPageQueryDTO) {
-        PageHelper.startPage(reportPageQueryDTO.getPage(), reportPageQueryDTO.getPageSize());
-
-        Page<ReportPageQueryVO> page = reportMapper.pageQuery(reportPageQueryDTO);
-
-        return PageResult.builder()
-                .total(page.getTotal())
-                .data(page.getResult())
-                .build();
+        // PageHelper.startPage(reportPageQueryDTO.getPage(), reportPageQueryDTO.getPageSize());
+        //
+        // Page<ReportPageQueryVO> page = reportMapper.pageQuery(reportPageQueryDTO);
+        //
+        // return PageResult.builder()
+        //         .total(page.getTotal())
+        //         .data(page.getResult())
+        //         .build();
+        return reportPageQueryDTO.executePageQuery(reportMapper::pageQuery, reportPageQueryDTO);
     }
 
 

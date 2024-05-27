@@ -30,4 +30,9 @@ public class WebSocketConstant {
      * 奖励用户
      */
     public static final Integer USER_AWARD = 5;
+
+    /**
+     * 用户聊天
+     */
+    public static final Integer USER_CHAT = 6;
 }

@@ -3,6 +3,7 @@ package com.wan.service.impl;
 import com.wan.constant.CommentConstant;
 import com.wan.constant.MessageConstant;
 import com.wan.entity.Comment;
+import com.wan.exception.AccountNotFountException;
 import com.wan.exception.CommentException;
 import com.wan.mapper.CommentMapper;
 import com.wan.mapper.ReportMapper;
@@ -21,6 +22,7 @@ public class CommentServiceImpl implements CommentService {
     private CommentMapper commentMapper;
     @Autowired
     private ReportMapper reportMapper;
+
     @Override
     public void addComment(Comment comment) {
 
@@ -44,9 +46,34 @@ public class CommentServiceImpl implements CommentService {
         reportMapper.batchDeleteReportByCommentId(ids);
     }
 
+    /**
+     * 批量修改评论
+     *
+     * @param commentList
+     */
     @Override
-    public void updateComment(Comment comment) {
+    public void updateBatchComment(List<Comment> commentList) {
+        if (ObjectUtils.isEmpty(commentList)) {
+            throw new CommentException(MessageConstant.COMMENT_IS_NOT_EXIST);
+        }
 
+        if (commentList.isEmpty()) {
+            return;
+        }
+
+        // 修改
+        commentList.forEach(comment -> commentMapper.updateComment(comment));
+    }
+
+    @Override
+    public List<Comment> queryUserComment(Long userId) {
+        if (ObjectUtils.isEmpty(userId)) {
+            // 如果用户id为空
+            throw new AccountNotFountException(MessageConstant.USER_IS_NOT_EXIST);
+        }
+
+        // 如果存在
+        return commentMapper.findCommentsByUserId(userId);
     }
 
     /**
