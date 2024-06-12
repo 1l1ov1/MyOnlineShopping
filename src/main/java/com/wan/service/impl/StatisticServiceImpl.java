@@ -305,7 +305,7 @@ public class StatisticServiceImpl implements StatisticService {
             row.getCell(4).setCellValue(exportDataVO.getUnitPrice().doubleValue());
             // 填充明细数据
             // lengthOfMonth 返回一个月有多少天
-            for (int i = 0; i < start.lengthOfMonth(); i++) {
+            for (int i = 0; i < start.lengthOfMonth() - 1; i++) {
                 LocalDate date = start.plusDays(i);
                 // 准备明细数据
                 exportDataVO = getExportDataVO(date, date);
@@ -319,7 +319,8 @@ public class StatisticServiceImpl implements StatisticService {
                 row.getCell(6).setCellValue(exportDataVO.getNewUsers());
             }
             // 通过输出流将文件下载到客户端浏览器中
-
+            // 删除当前线程中的用户ID
+            ThreadBaseContext.removeCurrentId();
             ServletOutputStream out = response.getOutputStream();
             excel.write(out);
             // 关闭资源
@@ -351,8 +352,7 @@ public class StatisticServiceImpl implements StatisticService {
             // 获取商店ID
             storeId = store.getId();
         }
-        // 删除当前线程中的用户ID
-        ThreadBaseContext.removeCurrentId();
+
         // 统计指定日期范围内的总营收  月底
         BigDecimal totalRevenue = statisticMapper.getTotalRevenue(start, end, storeId);
         totalRevenue = totalRevenue == null ? BigDecimal.valueOf(0.0) : totalRevenue;
