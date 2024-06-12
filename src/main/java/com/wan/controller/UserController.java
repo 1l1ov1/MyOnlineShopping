@@ -409,14 +409,14 @@ public class UserController {
         log.info("查询评论的action {}", commentActionDTO);
         List<CommentAction> commentActionList = RedisUtils.redisStringGet(redisTemplate,
                 RedisConstant.STORE_COMMENT_ACTION + commentActionDTO.getStoreId()
-                        + "-" + commentActionDTO.getGoodsId(), List.class);
+                        + "-" + commentActionDTO.getGoodsId() + "-" + commentActionDTO.getUserId(), List.class);
         if (!ObjectUtils.isEmpty(commentActionList)) {
             return Result.success(commentActionList);
         }
         commentActionList = userService.queryCommentsAction(commentActionDTO);
         RedisUtils.redisStringSet(redisTemplate,
                 RedisConstant.STORE_COMMENT_ACTION + commentActionDTO.getStoreId()
-                        + "-" + commentActionDTO.getGoodsId(),
+                        + "-" + commentActionDTO.getGoodsId() + "-" + commentActionDTO.getUserId(),
                 commentActionList,
                 1L, TimeUnit.HOURS);
         return Result.success(commentActionList);
@@ -445,8 +445,8 @@ public class UserController {
         // 删除缓存
         Long storeId = commentAction.getStoreId();
         Long goodsId = commentAction.getGoodsId();
-        RedisUtils.clearRedisCache(redisTemplate,
-                RedisConstant.STORE_COMMENT_ACTION + storeId + "-" + goodsId);
+        RedisUtils.clearRedisCacheByPattern(redisTemplate,
+                RedisConstant.STORE_COMMENT_ACTION + storeId + "-" + goodsId + "*");
         RedisUtils.clearRedisCacheByPattern(redisTemplate,
                 RedisConstant.STORE_COMMENT + "*" + storeId + "-" + goodsId);
         return Result.success("修改成功");

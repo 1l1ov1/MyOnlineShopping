@@ -827,7 +827,8 @@ public class UserServiceImpl implements UserService {
         if (findAction == CommentConstant.COMMENT_ACTION_NONE) {
             comment.setLikeCount(comment.getLikeCount() + 1);
         } else if (findAction == CommentConstant.COMMENT_ACTION_DISLIKE) {
-            comment.setDislikeCount(comment.getDislikeCount() - 1);
+            // 如果说值为0，就不允许减
+            comment.setDislikeCount(comment.getDislikeCount() == 0 ? 0 : comment.getDislikeCount() - 1);
             comment.setLikeCount(comment.getLikeCount() + 1);
         }
     }
@@ -839,7 +840,8 @@ public class UserServiceImpl implements UserService {
         if (findAction == CommentConstant.COMMENT_ACTION_NONE) {
             comment.setDislikeCount(comment.getDislikeCount() + 1);
         } else if (findAction == CommentConstant.COMMENT_ACTION_LIKE) {
-            comment.setLikeCount(comment.getLikeCount() - 1);
+            // 如果说值为0，就不允许减
+            comment.setLikeCount(comment.getLikeCount() == 0 ? 0 : comment.getLikeCount() - 1);
             comment.setDislikeCount(comment.getDislikeCount() + 1);
         }
     }
