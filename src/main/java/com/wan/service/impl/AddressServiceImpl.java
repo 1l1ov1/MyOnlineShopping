@@ -4,6 +4,7 @@ import com.wan.constant.AddressConstant;
 import com.wan.entity.Address;
 import com.wan.mapper.AddressMapper;
 import com.wan.service.AddressService;
+import com.wan.utils.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,14 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public Address getAddressByUserId(Long userId, Integer isDefault) {
+        // 当管理员要修改用户的信息时
+
+        List<Address> addressByUserId = addressMapper.getAddressByUserId(userId, isDefault);
+        if (ObjectUtils.isEmpty(addressByUserId) || addressByUserId.size() == 0) {
+            // 如果为空，或者没有
+            return null;
+        }
+        // 否则返回回去
         return addressMapper.getAddressByUserId(userId, isDefault).get(0);
     }
 
