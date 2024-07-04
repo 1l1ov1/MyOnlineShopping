@@ -42,9 +42,14 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
         registry.addInterceptor(jwtTokenInterceptor)
                 // 拦截所有路径
                 .addPathPatterns("/**")
-                // 不包括用户登录，注册，验证码，退出账号和 重置、忘记密码还有刷新token
+                // 不包括用户登录，注册，验证码，退出账号和 重置、忘记密码，分类的分页查询，商品的分页查询
+                // 查看商品详情，收藏，搜索商品或商店，分类查询还有刷新token
                 .excludePathPatterns("/user/login", "/user/register", "/user/verify",
-                        "/user/userLogout", "/user/forgetPwd", "/refresh/refreshToken");
+                        "/user/userLogout", "/user/forgetPwd", "/category/page","/goods/query",
+                        "/goods/detail","/goods/{id}","/favorite/search/{id}","/goods/query/{goodsName}",
+                        "/store/query/{storeName}", "/store/getStore/{id}","/goods/category/{id}",
+                        "/user/queryComment", "/user/queryCommentAction",
+                        "/refresh/refreshToken");
     }
 
     @Bean

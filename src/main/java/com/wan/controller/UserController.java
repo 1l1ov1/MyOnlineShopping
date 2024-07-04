@@ -161,6 +161,7 @@ public class UserController {
         // 保存到缓存中
         redisTemplate.opsForValue().set(KEY, text);
         // 设置过期时间 2分钟
+
         redisTemplate.expire(KEY, 120 * 1000, TimeUnit.MILLISECONDS);
         System.out.println("验证码为：" + text);
         VerificationCode.output(image, resp.getOutputStream());
@@ -324,12 +325,11 @@ public class UserController {
     public Result<String> buyGoods(@RequestBody GoodsPurchaseDTO goodsPurchaseDTO) {
         log.info("立即购买 {}", goodsPurchaseDTO);
         userService.buy(goodsPurchaseDTO);
-        // 清除该用户未发货订单和全部订单的缓存
+        // 清除该用户所有的订单缓存
         Long userId = ThreadBaseContext.getCurrentId();
         ThreadBaseContext.removeCurrentId();
-        RedisUtils.clearRedisCache(redisTemplate,
-                RedisConstant.USER_ORDERS + OrdersConstant.UNSHIPPED_ORDER + '-' + userId,
-                RedisConstant.USER_ORDERS + OrdersConstant.ALL_ORDERS + '-' + userId);
+        RedisUtils.clearRedisCacheByPattern(redisTemplate,
+                RedisConstant.USER_ORDERS  + "*-" + userId + "-*");
         return Result.success("购买成功");
     }
 

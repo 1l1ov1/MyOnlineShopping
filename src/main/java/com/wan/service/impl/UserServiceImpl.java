@@ -31,7 +31,6 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -298,6 +297,10 @@ public class UserServiceImpl implements UserService {
         userMapper.update(user);
 
         // 当用户购买后，就通知商家
+        notifyBusinessman(orders);
+    }
+
+    private void notifyBusinessman(Orders orders) {
         Map<String, Object> map = new HashMap<>();
         map.put("type", WebSocketConstant.REMIND_ORDER); // 1表示来单提醒 2表示客户催单
         map.put("message", MessageConstant.USER_HAS_ORDERED);
@@ -468,13 +471,16 @@ public class UserServiceImpl implements UserService {
         Long storeId = reminderDTO.getStoreId();
         Long ordersNumber = reminderDTO.getOrdersNumber();
         // 发送消息
-        Map<String, Object> map = new HashMap<>();
-        map.put("type", WebSocketConstant.USER_URGE_ORDER);
-        map.put("message", MessageConstant.USER_URGE_ORDER);
-        map.put("content", "订单号：" + ordersNumber);
-
-        webSocketServer.sendToSpecificStore(storeId, JSON.toJSONString(map));
-
+        // Map<String, Object> map = new HashMap<>();
+        // map.put("type", WebSocketConstant.USER_URGE_ORDER);
+        // map.put("message", MessageConstant.USER_URGE_ORDER);
+        // map.put("content", "订单号：" + ordersNumber);
+        //
+        // webSocketServer.sendToSpecificStore(storeId, JSON.toJSONString(map));
+        notifyBusinessman(Orders.builder()
+                .storeId(storeId)
+                .ordersNumber(ordersNumber)
+                .build());
     }
 
 
@@ -670,7 +676,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<CommentAction> queryCommentsAction(CommentActionDTO commentActionDTO) {
         try {
-            if (CheckObjectFieldUtils.allFieldNotNUll(commentActionDTO)) {
+            if (CheckObjectFieldUtils.areAllNonExcludedFieldsNotNull(commentActionDTO, commentActionDTO::getUserId)) {
                 // 如果全部字段不空
                 return commentMapper.findCommentAction(commentActionDTO);
             } else {

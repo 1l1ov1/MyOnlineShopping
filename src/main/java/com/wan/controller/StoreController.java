@@ -81,7 +81,7 @@ public class StoreController {
         return Result.success("修改成功");
     }
 
-    @GetMapping("/getGoods/{id}")
+    @GetMapping("/getStore/{id}")
     @ApiOperation("得到商店的商品")
     public Result<StoreAllGoodsVO> getStoreAllGoods(@PathVariable Long id) {
         log.info("得到商店的商品 {}", id);

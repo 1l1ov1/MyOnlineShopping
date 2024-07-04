@@ -1,5 +1,6 @@
 package com.wan;
 
+import com.wan.utils.SpringContextUtils;
 import com.wan.websocket.NoticeUserWebSocketServer;
 import com.wan.websocket.UserChatWebSocket;
 import org.springframework.boot.SpringApplication;
@@ -17,8 +18,7 @@ public class MyOnlineShoppingApplication {
 
     public static void main(String[] args) {
         ConfigurableApplicationContext context = SpringApplication.run(MyOnlineShoppingApplication.class, args);
-        NoticeUserWebSocketServer.setApplicationContext(context);
-        UserChatWebSocket.setApplicationContext(context);
+        SpringContextUtils.setApplicationContext(context);
     }
 
 }

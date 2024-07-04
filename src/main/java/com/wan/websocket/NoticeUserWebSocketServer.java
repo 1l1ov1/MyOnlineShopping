@@ -9,6 +9,7 @@ import com.wan.entity.User;
 import com.wan.service.MessageService;
 import com.wan.service.UserService;
 import com.wan.utils.ObjectUtils;
+import com.wan.utils.SpringContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -32,36 +33,10 @@ public class NoticeUserWebSocketServer {
     // 创建消息队列
     private static final ConcurrentHashMap<Long, Queue<String>> messageQueue = new ConcurrentHashMap();
 
-    // 任务队列未达到队列容量时，最大可以同时运行的线程数量。
-    private static final int CORE_POOL_SIZE = 5;
-    // 任务队列中存放的任务达到队列容量的时候，当前可以同时运行的线程数量变为最大线程数。
-    private static final int MAX_POOL_SIZE = 10;
-    // 线程池中的线程数量大于 corePoolSize 的时候，如果这时没有新的任务提交，核心线程外的线程不会立即销毁，
-    // 而是会等待，直到等待的时间超过了 keepAliveTime才会被回收销毁。
-    private static final long KEEP_ALIVE_TIME = 1L;
-    // 队列容量
-    private static final int QUEUE_CAPACITY = 100;
-
-    private static final ExecutorService executor = new ThreadPoolExecutor(
-            CORE_POOL_SIZE,
-            MAX_POOL_SIZE,
-            KEEP_ALIVE_TIME,
-            TimeUnit.SECONDS,
-            new ArrayBlockingQueue<>(QUEUE_CAPACITY),
-            new ThreadPoolExecutor.DiscardOldestPolicy());
-
+    private ThreadPoolExecutor threadPool;
     // 最大批处理数
     private static final int MAX_BATCH_SIZE = 100;
-    /**
-     * 由于@ServerEndpoint注解的类不是Spring MVC的控制器，而是WebSocket处理类，它不在Spring的控制范围内，
-     * 因此Spring无法自动处理@Autowired。所以要使用service类需要引入应用上下文
-     */
-    private static ApplicationContext applicationContext;
 
-
-    public static void setApplicationContext(ApplicationContext context) {
-        applicationContext = context;
-    }
 
     /**
      * 收到客户端消息后调用的方法
@@ -100,9 +75,12 @@ public class NoticeUserWebSocketServer {
                     batchMessage.add(messageQueue.poll());
                 }
 
+                if (threadPool == null) {
+                    threadPool = SpringContextUtils.getBean("threadPool", ThreadPoolExecutor.class);
+                }
 
                 // 提交批处理任务到线程池
-                executor.submit(() -> {
+                threadPool.submit(() -> {
                     for (String message : batchMessage) {
                         sendToSpecificUser(userId, message);
                     }
@@ -110,7 +88,7 @@ public class NoticeUserWebSocketServer {
 
             }
         }
-        UserService userService = applicationContext.getBean(UserService.class);
+        UserService userService = SpringContextUtils.getBean(UserService.class);
         // 将用户状态改为在线
         userService.update(User.builder()
                 .id(userId)
@@ -174,7 +152,7 @@ public class NoticeUserWebSocketServer {
     public void onClose(@PathParam("userId") Long userId) {
         System.out.println("用户连接断开:" + userId);
         // 将用户下线
-        UserService userService = applicationContext.getBean(UserService.class);
+        UserService userService = SpringContextUtils.getBean(UserService.class);
         userService.update(User.builder()
                 .id(userId)
                 .isOnline(UserConstant.IS_NOT_ONLINE).build());
