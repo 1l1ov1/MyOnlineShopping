@@ -142,13 +142,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public void updatePassword(UpdatePasswordDTO updatePasswordDTO) {
         Integer type = updatePasswordDTO.getType();
-        if (type == null) {
+        if (type == null || (!type.equals(PasswordConstant.FORGET)
+                && !type.equals(PasswordConstant.UPDATE))) {
             throw new IllegalArgumentException("非法类型");
         }
         User user = null;
         if (type.equals(PasswordConstant.FORGET)) {
             user = handleForgetPassword(updatePasswordDTO);
-        } else if (type.equals(PasswordConstant.UPDATE)) {
+        } else {
             user = handleUpdatePassword(updatePasswordDTO);
         }
 

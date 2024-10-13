@@ -29,7 +29,7 @@ public class GlobalExceptionHandler {
      * @return
      */
     @ExceptionHandler(RuntimeException.class)
-    public Result<String> runtimeExceptionHandler(BaseException ex){
+    public Result<String> runtimeExceptionHandler(RuntimeException ex){
         log.error("异常信息：{}", ex.getMessage());
         return Result.error(ex.getMessage());
     }

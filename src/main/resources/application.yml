@@ -1,10 +1,10 @@
 server:
-  port: 8080
+  port: ${server.port}
 
 spring:
   profiles:
     # 这个环境的配置，会影响登录时从cookie中是否可以获取到验证码
-    active: dev
+    active: prod
   datasource:
     type: ${spring.datasource.type}
     driver-class-name: ${spring.datasource.driver-class-name}
@@ -36,3 +36,9 @@ online-shopping:
 # 配置内外网穿透
 HSK:
   domain: ${HSK.domain}
+
+remote:
+  url: ${remote.url}
+
+CROS:
+  PATH: ${CROS.PATH}

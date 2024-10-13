@@ -1,9 +1,12 @@
+server:
+  port: 8081
 spring:
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
-    password: 123456
+    # password: 123456
+    password: Wan03042288123!
     port: 3306
     database: online_shopping
     host: localhost
@@ -33,3 +36,9 @@ online-shopping:
 
 HSK:
   domain: "ci90172or40.vicp.fun"
+
+remote:
+  url: "120.76.203.138"
+
+CROS:
+  PATH: "http://120.76.203.138:7070"

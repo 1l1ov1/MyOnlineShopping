@@ -64,8 +64,8 @@ public class UserController {
     private GoodsService goodsService;
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
-    @Value("${HSK.domain}")
-    private String HSK_DOMAIN;
+    @Value("${remote.url}")
+    private String DOMAIN;
 
     /**
      * 用户登录
@@ -154,7 +154,7 @@ public class UserController {
         Cookie cookie = new Cookie(RedisConstant.VERIFY_CODE, KEY);
         cookie.setMaxAge(120); // 2分钟
         // 由于内外网穿透，这是前端的域名，这里要将cookie保存到对应域名下
-        cookie.setDomain(HSK_DOMAIN);
+        cookie.setDomain(DOMAIN);
         // 设置为登录页面路径
         cookie.setPath("/");
         resp.addCookie(cookie);

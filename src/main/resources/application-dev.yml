@@ -1,3 +1,5 @@
+server:
+  port: 8080
 spring:
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
@@ -33,3 +35,9 @@ online-shopping:
 
 HSK:
   domain: "localhost"
+
+remote:
+  url: "localhost"
+
+CROS:
+  PATH: "http://localhost:7070"

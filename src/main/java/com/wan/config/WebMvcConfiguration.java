@@ -5,21 +5,30 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.wan.interceptor.JwtTokenInterceptor;
 import com.wan.json.JacksonObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.web.servlet.config.annotation.*;
+import org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
+import springfox.documentation.spring.web.plugins.WebFluxRequestHandlerProvider;
+import springfox.documentation.spring.web.plugins.WebMvcRequestHandlerProvider;
 
+import java.lang.reflect.Field;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 配置类，注册web层相关组件
@@ -31,6 +40,8 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
     @Autowired
     private JwtTokenInterceptor jwtTokenInterceptor;
 
+    @Value("${CROS.PATH}")
+    private String CROS_PATH;
     /**
      * 添加自定义拦截器
      *
@@ -44,26 +55,23 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
                 .addPathPatterns("/**")
                 // 不包括用户登录，注册，验证码，退出账号和 重置、忘记密码，分类的分页查询，商品的分页查询
                 // 查看商品详情，收藏，搜索商品或商店，分类查询还有刷新token
+                // 还有接口文档
                 .excludePathPatterns("/user/login", "/user/register", "/user/verify",
-                        "/user/userLogout", "/user/forgetPwd", "/category/page","/goods/query",
-                        "/goods/detail","/goods/{id}","/favorite/search/{id}","/goods/query/{goodsName}",
-                        "/store/query/{storeName}", "/store/getStore/{id}","/goods/category/{id}",
+                        "/user/userLogout", "/user/forgetPwd", "/category/page", "/goods/query",
+                        "/goods/detail", "/goods/{id}", "/favorite/search/{id}", "/goods/query/{goodsName}",
+                        "/store/query/{storeName}", "/store/getStore/{id}", "/goods/category/{id}",
                         "/user/queryComment", "/user/queryCommentAction",
-                        "/refresh/refreshToken");
+                        "/refresh/refreshToken",
+                        "/swagger-resources", "/v2/**");
     }
 
-    @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:7070") // 替换为前端域名
-                        .allowCredentials(true)
-                        .allowedMethods("*")
-                        .maxAge(3600);
-            }
-        };
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOrigins(CROS_PATH) // 替换为前端域名
+                .allowCredentials(true)
+                .allowedMethods("*")
+                .maxAge(3600);
     }
 
     /**
@@ -93,8 +101,38 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
                 .build();
         return docket;
     }
+   @Bean
+   public static BeanPostProcessor springfoxHandlerProviderBeanPostProcessor() {
+       return new BeanPostProcessor() {
 
+           @Override
+           public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+               if (bean instanceof WebMvcRequestHandlerProvider || bean instanceof WebFluxRequestHandlerProvider) {
+                   customizeSpringfoxHandlerMappings(getHandlerMappings(bean));
+               }
+               return bean;
+           }
 
+           private <T extends RequestMappingInfoHandlerMapping> void customizeSpringfoxHandlerMappings(List<T> mappings) {
+               List<T> copy = mappings.stream()
+                       .filter(mapping -> mapping.getPatternParser() == null)
+                       .collect(Collectors.toList());
+               mappings.clear();
+               mappings.addAll(copy);
+           }
+
+           @SuppressWarnings("unchecked")
+           private List<RequestMappingInfoHandlerMapping> getHandlerMappings(Object bean) {
+               try {
+                   Field field = ReflectionUtils.findField(bean.getClass(), "handlerMappings");
+                   field.setAccessible(true);
+                   return (List<RequestMappingInfoHandlerMapping>) field.get(bean);
+               } catch (IllegalArgumentException | IllegalAccessException e) {
+                   throw new IllegalStateException(e);
+               }
+           }
+       };
+   }
     /**
      * 配置消息转换器，用于支持JSON序列化和反序列化时的日期时间处理。
      * 这个方法覆盖了Spring MVC中默认的消息转换器配置，加入了对Java 8日期时间API的支持。
